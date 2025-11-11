@@ -1,7 +1,10 @@
 /**
  * API 客户端
  * 连接到 Cloudflare Workers 后端服务
+ * 支持记忆功能（通过 User-Id 和 Session-Id）
  */
+
+import { getUserId, getOrCreateSessionId } from './session-manager';
 
 export interface OptimizationResult {
   originalPrompt: string;
@@ -40,15 +43,22 @@ const getApiUrl = () => {
 /**
  * 优化提示词
  * 调用 Cloudflare Workers 后端 API
+ * 自动添加用户ID和会话ID实现记忆功能
  */
 export async function optimizePrompt(prompt: string): Promise<OptimizationResult> {
   const apiUrl = getApiUrl();
+  
+  // 获取或创建用户ID和会话ID
+  const userId = getUserId();
+  const sessionId = getOrCreateSessionId();
   
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-User-Id': userId,        // 用户唯一ID（记忆用户身份）
+        'X-Session-Id': sessionId,  // 会话ID（区分不同对话）
       },
       body: JSON.stringify({
         message: prompt

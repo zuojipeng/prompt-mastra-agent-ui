@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { optimizePrompt, OptimizationResult } from '@/lib/api-client';
+import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 
 export function ChatBox() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sessionInfo, setSessionInfo] = useState(() => getSessionInfo());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +26,22 @@ export function ChatBox() {
     try {
       const optimization = await optimizePrompt(input);
       setResult(optimization);
+      // 更新会话信息
+      setSessionInfo(getSessionInfo());
     } catch (err) {
       setError(err instanceof Error ? err.message : '优化失败，请重试');
     } finally {
       setLoading(false);
     }
+  };
+
+  // 新建对话
+  const handleNewSession = () => {
+    createNewSession();
+    setSessionInfo(getSessionInfo());
+    setResult(null);
+    setError('');
+    setInput('');
   };
 
   const copyToClipboard = (text: string) => {
@@ -38,6 +51,34 @@ export function ChatBox() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* 标题和会话信息 */}
+      <div className="text-center space-y-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+          AI 智能提示词优化器
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          让 AI 更好地理解你的需求，优化你的提示词
+        </p>
+        
+        {/* 会话信息和新建对话按钮 */}
+        <div className="flex items-center justify-center gap-4 text-xs">
+          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-500">
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+            <span>已启用记忆功能</span>
+          </div>
+          {sessionInfo.hasSession && (
+            <button
+              type="button"
+              onClick={handleNewSession}
+              className="px-3 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors font-medium"
+              title="开始新对话，清除当前会话记忆"
+            >
+              🔄 新建对话
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 输入区域 */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
