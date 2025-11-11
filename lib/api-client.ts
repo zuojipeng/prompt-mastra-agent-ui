@@ -1,6 +1,6 @@
 /**
  * API 客户端
- * 连接到独立的后端服务
+ * 连接到 Cloudflare Workers 后端服务
  */
 
 export interface OptimizationResult {
@@ -12,8 +12,20 @@ export interface OptimizationResult {
 }
 
 /**
+ * 后端 API 响应格式
+ */
+interface ApiResponse {
+  data: {
+    optimizedPrompt: string;
+    targetTool?: string;
+    suggestions?: string[];
+    reasoning?: string;
+    originalPrompt?: string;
+  };
+}
+
+/**
  * 获取后端 API 地址
- * 从环境变量读取，支持本地开发和生产环境
  */
 const getApiUrl = () => {
   // 优先使用环境变量配置的 API 地址
@@ -21,35 +33,51 @@ const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // 本地开发默认地址
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3001'; // 假设后端运行在 3001 端口
-  }
-  
-  // 生产环境需要配置
-  throw new Error('请配置 NEXT_PUBLIC_API_URL 环境变量');
+  // 默认使用 Cloudflare Workers 地址
+  return 'https://prompt-optimizer.hahazuo460.workers.dev/api/optimize';
 };
 
 /**
  * 优化提示词
- * 调用后端 API
+ * 调用 Cloudflare Workers 后端 API
  */
 export async function optimizePrompt(prompt: string): Promise<OptimizationResult> {
   const apiUrl = getApiUrl();
   
-  const response = await fetch(`${apiUrl}/api/optimize`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ prompt }),
-  });
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: prompt
+      }),
+    });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '请求失败' }));
-    throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+    }
+
+    const result: ApiResponse = await response.json();
+    
+    // 构造标准格式返回
+    return {
+      originalPrompt: result.data.originalPrompt || prompt,
+      optimizedPrompt: result.data.optimizedPrompt,
+      suggestions: result.data.suggestions || [],
+      targetTool: result.data.targetTool || 'ChatGPT',
+      reasoning: result.data.reasoning || '',
+    };
+    
+  } catch (error) {
+    console.error('API Error:', error);
+    
+    if (error instanceof Error) {
+      throw new Error(`优化失败: ${error.message}`);
+    }
+    
+    throw new Error('优化失败: 未知错误');
   }
-
-  return response.json();
 }
-
