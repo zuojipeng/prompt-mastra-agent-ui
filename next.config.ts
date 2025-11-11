@@ -1,19 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Cloudflare Pages 优化配置
+  // Cloudflare Pages 静态导出配置
+  output: 'export',  // 静态导出模式
+  
   images: {
-    unoptimized: true,
+    unoptimized: true,  // 必须禁用图片优化
   },
   
-  output: 'standalone',
-  
-  // 跳过 ESLint 检查（加快构建）
+  // 跳过构建检查
   eslint: {
     ignoreDuringBuilds: true,
   },
-  
-  // 跳过 TypeScript 类型检查（加快构建）
   typescript: {
     ignoreBuildErrors: true,
   },

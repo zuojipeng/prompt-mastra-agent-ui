@@ -7,7 +7,7 @@
 ```yaml
 Framework preset: Next.js
 构建命令: npm run build
-构建输出目录: .next
+构建输出目录: out
 Node 版本: 18
 ```
 
@@ -71,7 +71,7 @@ Cloudflare Pages:
 **检查**：
 1. Node 版本是否设置为 18
 2. 构建命令是否为 `npm run build`
-3. 输出目录是否为 `.next`
+3. 输出目录是否为 `out`（静态导出目录）
 
 **查看日志**：
 Cloudflare Dashboard → Pages → Deployments → 点击失败的部署
