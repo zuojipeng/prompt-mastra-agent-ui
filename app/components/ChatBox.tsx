@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { optimizePrompt } from '@/lib/api-client';
-import { OptimizationResult } from '@/lib/prompt-optimizer';
+import { optimizePrompt, OptimizationResult } from '@/lib/api-client';
 
 export function ChatBox() {
   const [input, setInput] = useState('');
