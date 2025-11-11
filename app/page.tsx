@@ -80,7 +80,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-20 py-8 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-6xl mx-auto px-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>由 Next.js + OpenAI 驱动 | 让 AI 工具发挥最大价值</p>
+          <p>由 OpenAI 驱动 | 让 AI 工具发挥最大价值</p>
         </div>
       </footer>
     </div>
