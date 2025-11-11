@@ -1,312 +1,182 @@
-# 🤖 AI 智能提示词优化器 - 前端
+# 🤖 AI 智能提示词优化器
 
-一个美观、现代化的前端应用，用于优化 AI 提示词。
+一个现代化的前端应用，帮助用户优化 AI 提示词，让 AI 工具更好地理解你的需求。
 
 ## ✨ 特性
 
-- 🎨 **现代化 UI** - 使用 Next.js 16 + React 19 + TailwindCSS
+- 🎨 **现代化 UI** - Next.js 15 + React 18 + TailwindCSS
+- 🧠 **记忆功能** - 自动记住用户身份和对话历史
 - 🌓 **深色模式** - 自动适配系统主题
-- 📱 **响应式设计** - 完美支持移动端和桌面端
-- ⚡ **性能优化** - 快速加载，流畅体验
-- 🔌 **后端分离** - 连接独立的后端 API 服务
+- 📱 **完全响应式** - 移动端和桌面端完美支持
+- ⚡ **性能优化** - 仅 3 个核心依赖，极速加载
 
 ## 🚀 快速开始
 
-### 环境要求
-
-- Node.js 18+ 
-- npm 或 pnpm
-
-### 安装依赖
+### 本地开发
 
 ```bash
+# 1. 安装依赖
 npm install
-```
 
-### 配置后端 API
-
-创建 `.env.local` 文件：
-
-```bash
-# 后端 API 地址
-NEXT_PUBLIC_API_URL=http://localhost:3001
-```
-
-**环境配置说明**：
-
-- **开发环境**：如果不配置，默认使用 `http://localhost:3001`
-- **生产环境**：必须配置 `NEXT_PUBLIC_API_URL` 为后端服务地址
-
-### 启动开发服务器
-
-```bash
+# 2. 启动开发服务器
 npm run dev
+
+# 3. 访问 http://localhost:3000
 ```
 
-访问 http://localhost:3000
+### 环境变量（可选）
 
-### 构建生产版本
+如果需要自定义后端 API 地址，创建 `.env.local`：
 
 ```bash
-npm run build
-npm start
+# 默认使用这个地址，可以不配置
+NEXT_PUBLIC_API_URL=https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
 ```
 
-## 📂 项目结构
+## 📦 技术栈
 
-```
-prompt-optimizer-frontend/
-├── app/                        # Next.js App Router
-│   ├── components/            # React 组件
-│   │   └── ChatBox.tsx       # 主聊天界面
-│   ├── page.tsx              # 首页
-│   ├── layout.tsx            # 根布局
-│   └── globals.css           # 全局样式
-├── lib/
-│   └── api-client.ts         # 后端 API 客户端
-├── public/                    # 静态资源
-├── next.config.ts            # Next.js 配置
-├── package.json              # 项目依赖
-└── tsconfig.json             # TypeScript 配置
-```
-
-## 🔌 后端 API 接口规范
-
-前端期望后端提供以下接口：
-
-### POST /api/optimize
-
-**请求**：
 ```json
 {
-  "prompt": "用户输入的提示词"
+  "dependencies": {
+    "next": "15.0.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}
+```
+
+## 🌐 部署到 Cloudflare Pages
+
+### 步骤
+
+1. **访问** https://dash.cloudflare.com/
+2. **Workers & Pages** → **Create Application** → **Pages** → **Connect to Git**
+3. **选择仓库**：`prompt-mastra-agent-ui`
+4. **配置构建**：
+
+```yaml
+项目名称: prompt-optimizer-frontend
+生产分支: main
+
+构建设置:
+  Framework preset: Next.js
+  构建命令: npm run build
+  构建输出目录: .next
+  
+环境变量（可选）:
+  NODE_VERSION: 18
+  NEXT_PUBLIC_API_URL: https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
+```
+
+5. **点击部署** → 等待 2-3 分钟 → **完成！** 🎉
+
+### 访问网站
+
+```
+https://prompt-optimizer-frontend.pages.dev
+```
+
+## 🔌 后端 API
+
+### 接口格式
+
+**请求**：
+```bash
+POST /api/optimize
+Content-Type: application/json
+X-User-Id: user-xxx
+X-Session-Id: session-xxx
+
+{
+  "message": "用户输入的提示词"
 }
 ```
 
 **响应**：
 ```json
 {
-  "originalPrompt": "原始提示词",
-  "optimizedPrompt": "优化后的提示词",
-  "suggestions": ["建议1", "建议2", "建议3"],
-  "targetTool": "推荐的AI工具",
-  "reasoning": "优化理由"
+  "data": {
+    "optimizedPrompt": "优化后的提示词",
+    "targetTool": "推荐的AI工具",
+    "suggestions": ["建议1", "建议2"],
+    "reasoning": "优化理由",
+    "originalPrompt": "原始提示词"
+  }
 }
 ```
 
-**错误响应**：
-```json
-{
-  "error": "错误信息"
-}
+## 🧠 记忆功能
+
+自动管理用户ID和会话ID：
+
+- **用户ID**：识别用户身份，存储在 localStorage
+- **会话ID**：区分不同对话，点击"新建对话"生成新ID
+- **自动携带**：每次 API 请求自动添加到 headers
+
+## 📂 项目结构
+
+```
+prompt-optimizer-frontend/
+├── app/
+│   ├── components/
+│   │   └── ChatBox.tsx      # 主聊天界面
+│   ├── page.tsx             # 首页
+│   └── layout.tsx           # 根布局
+├── lib/
+│   ├── api-client.ts        # API 客户端
+│   └── session-manager.ts   # 会话管理
+├── package.json
+├── next.config.ts
+└── README.md
 ```
 
-## 🎨 UI 组件
+## 🎨 功能展示
 
-### ChatBox 组件
-
-主要的聊天界面组件，包含：
-
-- **输入区域** - 用户输入提示词
-- **结果展示** - 显示优化结果
-  - 推荐 AI 工具卡片
-  - 优化后的提示词（可复制）
-  - 优化理由
-  - 改进建议列表
-  - 原始提示词对比
-
-### 功能特点
-
-- ✅ 加载状态动画
-- ✅ 错误提示
-- ✅ 一键复制优化结果
-- ✅ 优雅的动画效果
-- ✅ 完整的无障碍支持
-
-## 🌐 部署
-
-### Vercel (推荐)
-
-```bash
-# 1. 安装 Vercel CLI
-npm i -g vercel
-
-# 2. 部署
-vercel
-
-# 3. 配置环境变量
-vercel env add NEXT_PUBLIC_API_URL
-```
-
-### Cloudflare Pages
-
-```bash
-# 构建命令
-npm run build
-
-# 输出目录
-.next
-
-# 环境变量
-NEXT_PUBLIC_API_URL=https://your-backend-api.com
-```
-
-### Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-ENV NEXT_PUBLIC_API_URL=http://your-backend:3001
-EXPOSE 3000
-CMD ["npm", "start"]
-```
-
-## 🔧 开发
-
-### 添加新功能
-
-1. 在 `app/components/` 创建新组件
-2. 在 `lib/api-client.ts` 添加新的 API 调用
-3. 在 `app/page.tsx` 集成新功能
-
-### 样式自定义
-
-- 全局样式：`app/globals.css`
-- TailwindCSS 配置：`tailwind.config.js`（如需自定义）
-- 组件内样式：使用 Tailwind class
-
-### TypeScript
-
-项目使用严格的 TypeScript 配置：
-
-```typescript
-// lib/api-client.ts
-export interface OptimizationResult {
-  originalPrompt: string;
-  optimizedPrompt: string;
-  suggestions: string[];
-  targetTool: string;
-  reasoning: string;
-}
-```
+- ✅ 输入提示词
+- ✅ 点击"优化提示词"
+- ✅ 查看优化结果
+- ✅ 一键复制优化后的提示词
+- ✅ 查看改进建议
+- ✅ 点击"新建对话"开始新主题
 
 ## 🐛 故障排除
 
 ### API 连接失败
 
-**问题**：前端无法连接后端
-
-**检查**：
-1. 后端服务是否正常运行
-2. `NEXT_PUBLIC_API_URL` 配置是否正确
-3. 是否存在 CORS 问题（后端需要允许跨域）
-
-**解决**：
-```bash
-# 检查环境变量
-echo $NEXT_PUBLIC_API_URL
-
-# 测试后端 API
-curl http://localhost:3001/api/optimize -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"test"}'
-```
-
-### CORS 错误
-
-如果后端和前端在不同域名，后端需要配置 CORS：
+确保后端服务正常运行，并且已配置 CORS：
 
 ```javascript
-// Express 示例
+// 后端需要允许跨域
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://your-frontend.com'],
-  credentials: true
+  origin: ['http://localhost:3000', 'https://your-frontend.com']
 }));
 ```
 
-### 构建错误
+### 环境变量不生效
+
+修改 `.env.local` 后需要重启开发服务器：
 
 ```bash
-# 清理缓存
-rm -rf .next node_modules package-lock.json
-
-# 重新安装
-npm install
-
-# 重新构建
-npm run build
+# 停止服务器 (Ctrl+C)
+npm run dev
 ```
 
-## 📱 浏览器支持
+### 构建失败
 
-- ✅ Chrome (最新)
-- ✅ Firefox (最新)
-- ✅ Safari (最新)
-- ✅ Edge (最新)
-- ✅ 移动端浏览器
+确认 Node.js 版本：
 
-## 🤝 后端集成示例
-
-### 示例 1：Express.js
-
-```javascript
-const express = require('express');
-const cors = require('cors');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-app.post('/api/optimize', async (req, res) => {
-  const { prompt } = req.body;
-  
-  // 你的优化逻辑
-  const result = {
-    originalPrompt: prompt,
-    optimizedPrompt: '优化后的提示词',
-    suggestions: ['建议1', '建议2'],
-    targetTool: 'ChatGPT',
-    reasoning: '优化理由'
-  };
-  
-  res.json(result);
-});
-
-app.listen(3001);
-```
-
-### 示例 2：Next.js API Route
-
-```typescript
-// app/api/optimize/route.ts
-export async function POST(req: Request) {
-  const { prompt } = await req.json();
-  
-  // 你的优化逻辑
-  
-  return Response.json({
-    originalPrompt: prompt,
-    optimizedPrompt: '...',
-    suggestions: ['...'],
-    targetTool: '...',
-    reasoning: '...'
-  });
-}
+```bash
+node -v  # 需要 >= 18
 ```
 
 ## 📄 许可
 
 MIT License
 
-## 🙏 致谢
+## 🔗 相关链接
 
-- [Next.js](https://nextjs.org/)
-- [React](https://react.dev/)
-- [TailwindCSS](https://tailwindcss.com/)
+- **后端服务**: https://prompt-optimizer.hahazuo460.workers.dev
+- **GitHub**: https://github.com/zuojipeng/prompt-mastra-agent-ui
 
 ---
 
