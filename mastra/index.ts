@@ -1,24 +1,38 @@
 /**
- * Mastra 实例配置
- * 这是整个 Mastra 应用的入口
+ * Agent 管理器
+ * 简化版的 Agent 注册和管理（类似 Mastra 的设计）
  */
 
-import { Mastra } from '@mastra/core/mastra';
 import { promptOptimizerAgent } from './agents/prompt-optimizer-agent';
 
 /**
- * 创建并导出 Mastra 实例
- * 在这里注册所有的 Agents、Workflows、Tools 等
+ * Agent 注册表
  */
-export const mastra = new Mastra({
-  // 注册 Agents
-  agents: {
-    promptOptimizer: promptOptimizerAgent,
+const agents = {
+  promptOptimizer: promptOptimizerAgent,
+};
+
+/**
+ * Mastra-like Agent Manager
+ * 模拟 Mastra 的 API，但使用 Vercel AI SDK 实现
+ */
+export const mastra = {
+  /**
+   * 获取指定的 Agent
+   */
+  getAgent(id: keyof typeof agents) {
+    const agent = agents[id];
+    if (!agent) {
+      throw new Error(`Agent "${id}" not found`);
+    }
+    return agent;
   },
 
-  // 未来可以添加：
-  // workflows: {...},
-  // logger: new PinoLogger({...}),
-  // storage: new LibSQLStore({...}),
-});
+  /**
+   * 列出所有 Agents
+   */
+  listAgents() {
+    return Object.keys(agents);
+  },
+};
 

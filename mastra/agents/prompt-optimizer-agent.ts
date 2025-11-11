@@ -1,22 +1,16 @@
 /**
- * Mastra Agent - 提示词优化 Agent
- * 基于官方示例的正确实现
+ * Prompt Optimizer Agent - 提示词优化 Agent
+ * 使用 Vercel AI SDK 实现（Mastra 的底层框架）
  */
 
-import { Agent } from '@mastra/core/agent';
 import { openai } from '@ai-sdk/openai';
+import { generateText } from 'ai';
 import { analyzeIntentTool, identifyAIToolTool } from '../tools/prompt-tools';
 
 /**
- * 提示词优化 Agent
- * 这是一个专门优化 AI 提示词的智能 Agent
+ * Agent 系统提示词
  */
-export const promptOptimizerAgent = new Agent({
-  id: 'prompt-optimizer',
-  name: 'Prompt Optimizer Agent',
-  description: '一个专业的 AI 提示词优化专家，帮助用户将模糊的想法转化为清晰、有效的提示词',
-  
-  instructions: `你是一个专业的 AI 提示词优化专家。你的任务是：
+const AGENT_INSTRUCTIONS = `你是一个专业的 AI 提示词优化专家。你的任务是：
 
 **核心能力**：
 1. 深度理解用户的真实意图和需求
@@ -44,15 +38,38 @@ export const promptOptimizerAgent = new Agent({
   "reasoning": "为什么这样优化的详细理由"
 }
 
-请始终以友好、专业的态度回应用户，并确保优化后的提示词真正实用。`,
+请始终以友好、专业的态度回应用户，并确保优化后的提示词真正实用。`;
 
-  // 使用 OpenAI GPT-4o-mini 模型
+/**
+ * Prompt Optimizer Agent 配置
+ */
+export const promptOptimizerAgent = {
+  id: 'prompt-optimizer',
+  name: 'Prompt Optimizer Agent',
+  description: '一个专业的 AI 提示词优化专家',
   model: openai('gpt-4o-mini'),
-
-  // 注册工具
+  instructions: AGENT_INSTRUCTIONS,
   tools: {
     analyzeIntentTool,
     identifyAIToolTool,
   },
-});
+  
+  /**
+   * 生成优化结果
+   */
+  async generate(messages: Array<{ role: string; content: string }>) {
+    const result = await generateText({
+      model: this.model,
+      system: this.instructions,
+      messages,
+      tools: this.tools,
+      maxSteps: 5, // 允许 Agent 调用多次工具
+    });
+    
+    return {
+      text: result.text,
+      toolCalls: result.steps,
+    };
+  },
+};
 
