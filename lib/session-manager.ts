@@ -7,6 +7,13 @@ const USER_ID_KEY = 'promptUserId';
 const SESSION_ID_KEY = 'promptSessionId';
 
 /**
+ * 检查是否在浏览器环境
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
+
+/**
  * 生成随机ID
  */
 function generateId(prefix: string): string {
@@ -15,20 +22,19 @@ function generateId(prefix: string): string {
 
 /**
  * 获取或创建用户ID
- * 如果有登录系统，应该传入用户的真实ID
- * 如果没有登录，会在浏览器生成一个随机ID并存到localStorage
  */
 export function getUserId(customUserId?: string): string {
-  // 如果传入了自定义用户ID（比如来自登录系统），使用它
+  if (!isBrowser()) {
+    return 'server-user'; // 服务端返回占位符
+  }
+
   if (customUserId) {
     localStorage.setItem(USER_ID_KEY, customUserId);
     return customUserId;
   }
 
-  // 尝试从 localStorage 获取
   let userId = localStorage.getItem(USER_ID_KEY);
   
-  // 如果不存在，生成新的
   if (!userId) {
     userId = generateId('user');
     localStorage.setItem(USER_ID_KEY, userId);
@@ -41,14 +47,20 @@ export function getUserId(customUserId?: string): string {
  * 获取当前会话ID
  */
 export function getSessionId(): string | null {
+  if (!isBrowser()) {
+    return null;
+  }
   return localStorage.getItem(SESSION_ID_KEY);
 }
 
 /**
  * 创建新会话
- * 在开始新对话时调用
  */
 export function createNewSession(): string {
+  if (!isBrowser()) {
+    return 'server-session'; // 服务端返回占位符
+  }
+
   const sessionId = generateId('session');
   localStorage.setItem(SESSION_ID_KEY, sessionId);
   return sessionId;
@@ -56,9 +68,12 @@ export function createNewSession(): string {
 
 /**
  * 获取或创建会话ID
- * 如果当前没有会话，会自动创建一个
  */
 export function getOrCreateSessionId(): string {
+  if (!isBrowser()) {
+    return 'server-session';
+  }
+
   let sessionId = getSessionId();
   
   if (!sessionId) {
@@ -70,17 +85,17 @@ export function getOrCreateSessionId(): string {
 
 /**
  * 清除当前会话
- * 在想要开始全新对话时调用
  */
 export function clearSession(): void {
+  if (!isBrowser()) return;
   localStorage.removeItem(SESSION_ID_KEY);
 }
 
 /**
- * 清除所有数据（包括用户ID和会话ID）
- * 慎用：这会清除用户的所有记忆
+ * 清除所有数据
  */
 export function clearAll(): void {
+  if (!isBrowser()) return;
   localStorage.removeItem(USER_ID_KEY);
   localStorage.removeItem(SESSION_ID_KEY);
 }
@@ -93,6 +108,14 @@ export function getSessionInfo(): {
   sessionId: string | null;
   hasSession: boolean;
 } {
+  if (!isBrowser()) {
+    return {
+      userId: 'server-user',
+      sessionId: null,
+      hasSession: false,
+    };
+  }
+
   const userId = getUserId();
   const sessionId = getSessionId();
   
@@ -102,4 +125,3 @@ export function getSessionInfo(): {
     hasSession: !!sessionId,
   };
 }
-
