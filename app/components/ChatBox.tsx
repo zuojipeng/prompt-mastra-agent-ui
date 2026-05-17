@@ -1,19 +1,47 @@
 'use client';
 
-import { useState } from 'react';
-import { optimizePrompt, OptimizationResult } from '@/lib/api-client';
+import { useEffect, useState } from 'react';
+import { optimizePrompt, OptimizationResult, PromptVersion, TimelineSegment } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
+
+const SCENARIOS = [
+  { id: 'video' as const, label: 'AI 视频' },
+  { id: 'image' as const, label: 'AI 绘画' },
+  { id: 'code' as const, label: '编程' },
+];
+
+const STYLES = [
+  { id: '', label: '默认' },
+  { id: 'wong-kar-wai', label: '王家卫' },
+  { id: 'wes-anderson', label: '韦斯·安德森' },
+  { id: 'cyberpunk', label: '赛博朋克' },
+  { id: 'epic', label: '史诗感' },
+];
+
+type ScenarioId = (typeof SCENARIOS)[number]['id'];
+type SessionInfo = ReturnType<typeof getSessionInfo>;
+
+const INITIAL_SESSION_INFO: SessionInfo = {
+  userId: 'server-user',
+  sessionId: null,
+  hasSession: false,
+};
 
 export function ChatBox() {
   const [input, setInput] = useState('');
+  const [scenario, setScenario] = useState<ScenarioId>('video');
+  const [style, setStyle] = useState('');
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [sessionInfo, setSessionInfo] = useState(() => getSessionInfo());
+  const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
+
+  useEffect(() => {
+    setSessionInfo(getSessionInfo());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!input.trim()) {
       setError('请输入提示词');
       return;
@@ -24,9 +52,11 @@ export function ChatBox() {
     setResult(null);
 
     try {
-      const optimization = await optimizePrompt(input);
+      const optimization = await optimizePrompt(input, {
+        scenario,
+        ...(scenario === 'video' && style ? { style } : {}),
+      });
       setResult(optimization);
-      // 更新会话信息
       setSessionInfo(getSessionInfo());
     } catch (err) {
       setError(err instanceof Error ? err.message : '优化失败，请重试');
@@ -35,7 +65,6 @@ export function ChatBox() {
     }
   };
 
-  // 新建对话
   const handleNewSession = () => {
     createNewSession();
     setSessionInfo(getSessionInfo());
@@ -49,29 +78,33 @@ export function ChatBox() {
     alert('已复制到剪贴板！');
   };
 
+  const selectScenario = (nextScenario: ScenarioId) => {
+    setScenario(nextScenario);
+    if (nextScenario !== 'video') {
+      setStyle('');
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
-      {/* 标题和会话信息 */}
       <div className="text-center space-y-3">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-          AI 智能提示词优化器
+          AI 视频创作 · 分镜提示词生成器
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          让 AI 更好地理解你的需求，优化你的提示词
+          为 Runway、Kling、Pika 等视频工具生成 15 秒时间轴、镜头细节和完整 prompt
         </p>
-        
-        {/* 会话信息和新建对话按钮 */}
-        <div className="flex items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-500">
-            <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-            <span>已启用记忆功能</span>
-          </div>
+
+        <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
+          <span className="flex items-center gap-2 text-gray-500">
+            <span className="inline-block w-2 h-2 bg-green-500 rounded-full" />
+            已启用记忆功能
+          </span>
           {sessionInfo.hasSession && (
             <button
               type="button"
               onClick={handleNewSession}
               className="px-3 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors font-medium"
-              title="开始新对话，清除当前会话记忆"
             >
               🔄 新建对话
             </button>
@@ -79,17 +112,52 @@ export function ChatBox() {
         </div>
       </div>
 
-      {/* 输入区域 */}
+      <div className="flex flex-wrap justify-center gap-2">
+        {SCENARIOS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => selectScenario(s.id)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              scenario === s.id
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {scenario === 'video' && (
+        <div className="flex flex-wrap justify-center gap-2">
+          {STYLES.map((s) => (
+            <button
+              key={s.id || 'default'}
+              type="button"
+              onClick={() => setStyle(s.id)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                style === s.id
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            输入你的提示词
+            输入你的视频剧情或画面描述
           </label>
           <textarea
             id="prompt"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="例如：帮我写一个关于猫的故事..."
+            placeholder="例如：雨夜街头，一个女孩回头..."
             className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             disabled={loading}
           />
@@ -106,93 +174,57 @@ export function ChatBox() {
           disabled={loading}
           className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
         >
-          {loading ? (
-            <>
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              优化中...
-            </>
-          ) : (
-            '✨ 优化提示词'
-          )}
+          {loading ? '优化中...' : '✨ 优化提示词'}
         </button>
       </form>
 
-      {/* 结果展示 */}
       {result && (
-        <div className="space-y-6 animate-fadeIn">
-          {/* 推荐工具 */}
-          <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">🎯</span>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">推荐 AI 工具</h3>
-            </div>
-            <p className="text-lg font-medium text-purple-600 dark:text-purple-400">{result.targetTool}</p>
+        <div className="space-y-6">
+          <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold mb-2">📊 分析</h3>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.analysis}</p>
           </div>
 
-          {/* 优化后的提示词 */}
-          <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">✨</span>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">优化后的提示词</h3>
-              </div>
-              <button
-                onClick={() => copyToClipboard(result.optimizedPrompt)}
-                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors"
-              >
-                📋 复制
-              </button>
-            </div>
-            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-md">
-              <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
-                {result.optimizedPrompt}
-              </p>
-            </div>
-          </div>
+          {result.timeline.length > 0 && <TimelineView timeline={result.timeline} />}
 
-          {/* 优化理由 */}
-          {result.reasoning && (
-            <div className="p-6 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">💡</span>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">优化理由</h3>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.reasoning}</p>
-            </div>
+          {result.fullPrompt && (
+            <PromptBlock label="15秒完整 Positive Prompt" text={result.fullPrompt} onCopy={copyToClipboard} />
           )}
 
-          {/* 改进建议 */}
-          {result.suggestions && result.suggestions.length > 0 && (
-            <div className="p-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">📝</span>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">改进建议</h3>
+          {result.negativePrompt && (
+            <PromptBlock label="Negative Prompt" text={result.negativePrompt} onCopy={copyToClipboard} negative />
+          )}
+
+          {result.versions.length > 0 && (
+            <details className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <summary className="cursor-pointer font-medium">兼容版 Prompt</summary>
+              <div className="mt-4 space-y-4">
+                {result.versions.map((version, index) => (
+                  <VersionCard key={index} version={version} onCopy={copyToClipboard} />
+                ))}
               </div>
+            </details>
+          )}
+
+          {result.suggestions.length > 0 && (
+            <div className="p-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <h3 className="font-semibold mb-4">📝 改进建议</h3>
               <ul className="space-y-3">
                 {result.suggestions.map((suggestion, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">
+                  <li key={index} className="flex gap-3">
+                    <span className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{suggestion}</p>
+                    <p className="text-gray-700 dark:text-gray-300">{suggestion}</p>
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* 原始提示词对比 */}
-          <details className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-            <summary className="cursor-pointer font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <span>📊</span> 查看原始提示词对比
-            </summary>
-            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">原始输入：</p>
-              <p className="text-gray-700 dark:text-gray-300 italic">{result.originalPrompt}</p>
-            </div>
+          <details className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border">
+            <summary className="cursor-pointer font-medium">📋 原始输入</summary>
+            <p className="mt-4 italic text-gray-700 dark:text-gray-300">{result.originalPrompt}</p>
           </details>
         </div>
       )}
@@ -200,3 +232,77 @@ export function ChatBox() {
   );
 }
 
+function TimelineView({ timeline }: { timeline: TimelineSegment[] }) {
+  return (
+    <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+      <h3 className="font-semibold text-lg mb-4 text-blue-600 dark:text-blue-400">15秒分镜时间轴</h3>
+      <div className="space-y-4">
+        {timeline.map((segment, index) => (
+          <div key={`${segment.time}-${index}`} className="grid gap-3 md:grid-cols-[88px_1fr] border-t first:border-t-0 pt-4 first:pt-0">
+            <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">{segment.time}</div>
+            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <TimelineRow label="镜头" text={segment.shot} />
+              <TimelineRow label="动作" text={segment.action} />
+              <TimelineRow label="表情" text={segment.expression} />
+              <TimelineRow label="声音" text={segment.audio} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TimelineRow({ label, text }: { label: string; text: string }) {
+  return (
+    <p className="leading-relaxed">
+      <span className="font-medium text-gray-900 dark:text-gray-100">{label}：</span>
+      {text}
+    </p>
+  );
+}
+
+function VersionCard({ version, onCopy }: { version: PromptVersion; onCopy: (t: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-lg text-purple-600 dark:text-purple-400">✨ {version.style}</h3>
+      <PromptBlock label="Positive Prompt" text={version.positive_prompt} onCopy={onCopy} />
+      {version.negative_prompt ? (
+        <PromptBlock label="Negative Prompt" text={version.negative_prompt} onCopy={onCopy} negative />
+      ) : null}
+      {version.reasoning ? (
+        <p className="text-sm text-gray-600 dark:text-gray-400 border-t pt-3">💡 {version.reasoning}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function PromptBlock({
+  label,
+  text,
+  onCopy,
+  negative,
+}: {
+  label: string;
+  text: string;
+  onCopy: (t: string) => void;
+  negative?: boolean;
+}) {
+  return (
+    <div>
+      <div className="flex justify-between mb-2">
+        <span className="text-sm font-medium text-gray-500">{label}</span>
+        <button type="button" onClick={() => onCopy(text)} className="text-xs px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700">
+          📋 复制
+        </button>
+      </div>
+      <p
+        className={`p-3 rounded-md text-sm whitespace-pre-wrap ${
+          negative ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-900'
+        }`}
+      >
+        {text}
+      </p>
+    </div>
+  );
+}
