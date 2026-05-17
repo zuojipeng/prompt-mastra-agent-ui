@@ -1,5 +1,5 @@
 /**
- * API 客户端 — 连接 Cloudflare Workers 后端（my-prompt-mastra-agent）
+ * API 客户端 — 连接 AI 视频 prompt 服务。
  */
 
 import { getUserId, getOrCreateSessionId } from './session-manager';
@@ -19,6 +19,13 @@ export interface TimelineSegment {
   audio: string;
 }
 
+export interface PlatformVariant {
+  platform: 'Kling' | 'Runway' | 'Pika' | 'Sora' | 'Seedance';
+  prompt: string;
+  usage_notes: string;
+  constraint_notes: string;
+}
+
 export interface OptimizationResult {
   originalPrompt: string;
   scenario: string;
@@ -27,6 +34,7 @@ export interface OptimizationResult {
   fullPrompt: string;
   negativePrompt: string;
   versions: PromptVersion[];
+  platformVariants: PlatformVariant[];
   suggestions: string[];
 }
 
@@ -36,6 +44,7 @@ interface StructuredResult {
   full_prompt?: string;
   negative_prompt?: string;
   versions: PromptVersion[];
+  platform_variants?: PlatformVariant[];
   suggestions: string[];
 }
 
@@ -72,6 +81,21 @@ function normalizeTimeline(value: TimelineSegment[] | undefined): TimelineSegmen
   );
 }
 
+function normalizePlatformVariants(value: PlatformVariant[] | undefined): PlatformVariant[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (variant): variant is PlatformVariant =>
+      variant &&
+      isString(variant.platform) &&
+      isString(variant.prompt) &&
+      isString(variant.usage_notes) &&
+      isString(variant.constraint_notes),
+  );
+}
+
 function normalizeStructuredResult(value: StructuredResult | undefined): StructuredResult | null {
   if (!value || !isString(value.analysis) || !Array.isArray(value.versions)) {
     return null;
@@ -96,6 +120,7 @@ function normalizeStructuredResult(value: StructuredResult | undefined): Structu
     full_prompt: isString(value.full_prompt) ? value.full_prompt : '',
     negative_prompt: isString(value.negative_prompt) ? value.negative_prompt : '',
     versions,
+    platform_variants: normalizePlatformVariants(value.platform_variants),
     suggestions: Array.isArray(value.suggestions) ? value.suggestions.filter(isString) : [],
   };
 }
@@ -105,7 +130,6 @@ const getApiUrl = () =>
   'https://prompt-optimizer.hahazuo460.workers.dev/api/optimize';
 
 export type OptimizeOptions = {
-  scenario?: 'video' | 'image' | 'code';
   style?: string;
 };
 
@@ -126,7 +150,7 @@ export async function optimizePrompt(
     },
     body: JSON.stringify({
       message: prompt,
-      scenario: options?.scenario ?? 'video',
+      scenario: 'video',
       ...(options?.style ? { style: options.style } : {}),
     }),
   });
@@ -160,6 +184,7 @@ export async function optimizePrompt(
       fullPrompt: result.full_prompt ?? '',
       negativePrompt: result.negative_prompt ?? '',
       versions: result.versions,
+      platformVariants: result.platform_variants ?? [],
       suggestions: result.suggestions,
     };
   }
@@ -184,6 +209,7 @@ export async function optimizePrompt(
           reasoning: '',
         },
       ],
+      platformVariants: [],
       suggestions: [],
     };
   }

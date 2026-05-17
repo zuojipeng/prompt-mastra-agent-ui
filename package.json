@@ -2,7 +2,7 @@
   "name": "prompt-optimizer-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "AI 智能提示词优化器 - 前端应用",
+  "description": "AI 视频分镜 Prompt 工作台 - 前端应用",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

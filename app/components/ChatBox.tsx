@@ -1,14 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { optimizePrompt, OptimizationResult, PromptVersion, TimelineSegment } from '@/lib/api-client';
+import { optimizePrompt, OptimizationResult, PlatformVariant, PromptVersion, TimelineSegment } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
-
-const SCENARIOS = [
-  { id: 'video' as const, label: 'AI 视频' },
-  { id: 'image' as const, label: 'AI 绘画' },
-  { id: 'code' as const, label: '编程' },
-];
 
 const STYLES = [
   { id: '', label: '默认' },
@@ -18,7 +12,6 @@ const STYLES = [
   { id: 'epic', label: '史诗感' },
 ];
 
-type ScenarioId = (typeof SCENARIOS)[number]['id'];
 type SessionInfo = ReturnType<typeof getSessionInfo>;
 
 const INITIAL_SESSION_INFO: SessionInfo = {
@@ -29,11 +22,11 @@ const INITIAL_SESSION_INFO: SessionInfo = {
 
 export function ChatBox() {
   const [input, setInput] = useState('');
-  const [scenario, setScenario] = useState<ScenarioId>('video');
   const [style, setStyle] = useState('');
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copiedLabel, setCopiedLabel] = useState('');
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
 
   useEffect(() => {
@@ -53,8 +46,7 @@ export function ChatBox() {
 
     try {
       const optimization = await optimizePrompt(input, {
-        scenario,
-        ...(scenario === 'video' && style ? { style } : {}),
+        ...(style ? { style } : {}),
       });
       setResult(optimization);
       setSessionInfo(getSessionInfo());
@@ -73,26 +65,20 @@ export function ChatBox() {
     setInput('');
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert('已复制到剪贴板！');
-  };
-
-  const selectScenario = (nextScenario: ScenarioId) => {
-    setScenario(nextScenario);
-    if (nextScenario !== 'video') {
-      setStyle('');
-    }
+  const copyToClipboard = async (text: string, label = '内容') => {
+    await navigator.clipboard.writeText(text);
+    setCopiedLabel(label);
+    window.setTimeout(() => setCopiedLabel(''), 1400);
   };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-          AI 视频创作 · 分镜提示词生成器
+        <h1 className="text-4xl font-bold text-gray-950 dark:text-gray-50">
+          AI 视频分镜 Prompt 工作台
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          为 Runway、Kling、Pika 等视频工具生成 15 秒时间轴、镜头细节和完整 prompt
+          把一句创意拆成 15 秒时间轴、镜头细节、主 prompt、负向词和平台适配版本
         </p>
 
         <div className="flex items-center justify-center gap-4 text-xs flex-wrap">
@@ -104,49 +90,30 @@ export function ChatBox() {
             <button
               type="button"
               onClick={handleNewSession}
-              className="px-3 py-1 rounded-md bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 transition-colors font-medium"
+              className="px-3 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors font-medium"
             >
-              🔄 新建对话
+              新建创作
             </button>
           )}
         </div>
       </div>
 
       <div className="flex flex-wrap justify-center gap-2">
-        {SCENARIOS.map((s) => (
+        {STYLES.map((s) => (
           <button
-            key={s.id}
+            key={s.id || 'default'}
             type="button"
-            onClick={() => selectScenario(s.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              scenario === s.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            onClick={() => setStyle(s.id)}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              style === s.id
+                ? 'bg-emerald-700 text-white'
+                : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200'
             }`}
           >
             {s.label}
           </button>
         ))}
       </div>
-
-      {scenario === 'video' && (
-        <div className="flex flex-wrap justify-center gap-2">
-          {STYLES.map((s) => (
-            <button
-              key={s.id || 'default'}
-              type="button"
-              onClick={() => setStyle(s.id)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                style === s.id
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -157,8 +124,8 @@ export function ChatBox() {
             id="prompt"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="例如：雨夜街头，一个女孩回头..."
-            className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder="例如：雨夜街头，一个女孩停在霓虹招牌下，听见身后脚步声后缓慢回头..."
+            className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             disabled={loading}
           />
         </div>
@@ -172,16 +139,22 @@ export function ChatBox() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
         >
-          {loading ? '优化中...' : '✨ 优化提示词'}
+          {loading ? '生成中...' : '生成视频 Prompt 套件'}
         </button>
       </form>
+
+      {copiedLabel && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+          已复制：{copiedLabel}
+        </div>
+      )}
 
       {result && (
         <div className="space-y-6">
           <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold mb-2">📊 分析</h3>
+            <h3 className="font-semibold mb-2">创意诊断</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.analysis}</p>
           </div>
 
@@ -193,6 +166,10 @@ export function ChatBox() {
 
           {result.negativePrompt && (
             <PromptBlock label="Negative Prompt" text={result.negativePrompt} onCopy={copyToClipboard} negative />
+          )}
+
+          {result.platformVariants.length > 0 && (
+            <PlatformVariantList variants={result.platformVariants} onCopy={copyToClipboard} />
           )}
 
           {result.versions.length > 0 && (
@@ -207,12 +184,12 @@ export function ChatBox() {
           )}
 
           {result.suggestions.length > 0 && (
-            <div className="p-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-              <h3 className="font-semibold mb-4">📝 改进建议</h3>
+            <div className="p-6 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
+              <h3 className="font-semibold mb-4">下一步优化建议</h3>
               <ul className="space-y-3">
                 {result.suggestions.map((suggestion, index) => (
                   <li key={index} className="flex gap-3">
-                    <span className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
                     <p className="text-gray-700 dark:text-gray-300">{suggestion}</p>
@@ -223,7 +200,7 @@ export function ChatBox() {
           )}
 
           <details className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border">
-            <summary className="cursor-pointer font-medium">📋 原始输入</summary>
+            <summary className="cursor-pointer font-medium">原始输入</summary>
             <p className="mt-4 italic text-gray-700 dark:text-gray-300">{result.originalPrompt}</p>
           </details>
         </div>
@@ -235,11 +212,11 @@ export function ChatBox() {
 function TimelineView({ timeline }: { timeline: TimelineSegment[] }) {
   return (
     <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-      <h3 className="font-semibold text-lg mb-4 text-blue-600 dark:text-blue-400">15秒分镜时间轴</h3>
+      <h3 className="font-semibold text-lg mb-4 text-emerald-700 dark:text-emerald-300">15秒分镜时间轴</h3>
       <div className="space-y-4">
         {timeline.map((segment, index) => (
           <div key={`${segment.time}-${index}`} className="grid gap-3 md:grid-cols-[88px_1fr] border-t first:border-t-0 pt-4 first:pt-0">
-            <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">{segment.time}</div>
+            <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{segment.time}</div>
             <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
               <TimelineRow label="镜头" text={segment.shot} />
               <TimelineRow label="动作" text={segment.action} />
@@ -265,14 +242,64 @@ function TimelineRow({ label, text }: { label: string; text: string }) {
 function VersionCard({ version, onCopy }: { version: PromptVersion; onCopy: (t: string) => void }) {
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-lg text-purple-600 dark:text-purple-400">✨ {version.style}</h3>
+      <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{version.style}</h3>
       <PromptBlock label="Positive Prompt" text={version.positive_prompt} onCopy={onCopy} />
       {version.negative_prompt ? (
         <PromptBlock label="Negative Prompt" text={version.negative_prompt} onCopy={onCopy} negative />
       ) : null}
       {version.reasoning ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400 border-t pt-3">💡 {version.reasoning}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 border-t pt-3">{version.reasoning}</p>
       ) : null}
+    </div>
+  );
+}
+
+function PlatformVariantList({
+  variants,
+  onCopy,
+}: {
+  variants: PlatformVariant[];
+  onCopy: (text: string, label?: string) => void;
+}) {
+  return (
+    <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">平台适配版本</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            针对不同视频模型的 prompt、使用建议和限制提醒
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {variants.map((variant) => (
+          <div key={variant.platform} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100">{variant.platform}</h4>
+              <button
+                type="button"
+                onClick={() => onCopy(variant.prompt, `${variant.platform} Prompt`)}
+                className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+              >
+                复制
+              </button>
+            </div>
+            <p className="rounded-md bg-gray-50 dark:bg-gray-900 p-3 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+              {variant.prompt}
+            </p>
+            <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
+              <p>
+                <span className="font-medium text-gray-900 dark:text-gray-100">使用建议：</span>
+                {variant.usage_notes}
+              </p>
+              <p>
+                <span className="font-medium text-gray-900 dark:text-gray-100">限制提醒：</span>
+                {variant.constraint_notes}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -292,8 +319,12 @@ function PromptBlock({
     <div>
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium text-gray-500">{label}</span>
-        <button type="button" onClick={() => onCopy(text)} className="text-xs px-3 py-1 rounded-md bg-gray-100 dark:bg-gray-700">
-          📋 复制
+        <button
+          type="button"
+          onClick={() => onCopy(text, label)}
+          className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+        >
+          复制
         </button>
       </div>
       <p
