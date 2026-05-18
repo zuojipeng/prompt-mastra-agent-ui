@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { optimizePrompt, OptimizationResult, PlatformVariant, PromptVersion, TimelineSegment } from '@/lib/api-client';
+import {
+  fetchPromptHistory,
+  HistoryRecord,
+  optimizePrompt,
+  OptimizationResult,
+  PlatformVariant,
+  PromptVersion,
+  TimelineSegment,
+} from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 
 const STYLES = [
@@ -27,11 +35,28 @@ export function ChatBox() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copiedLabel, setCopiedLabel] = useState('');
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
 
   useEffect(() => {
     setSessionInfo(getSessionInfo());
+    refreshHistory();
   }, []);
+
+  const refreshHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError('');
+
+    try {
+      setHistory(await fetchPromptHistory());
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : '历史记录读取失败');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +75,7 @@ export function ChatBox() {
       });
       setResult(optimization);
       setSessionInfo(getSessionInfo());
+      await refreshHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : '优化失败，请重试');
     } finally {
@@ -63,12 +89,26 @@ export function ChatBox() {
     setResult(null);
     setError('');
     setInput('');
+    setHistory([]);
   };
 
   const copyToClipboard = async (text: string, label = '内容') => {
     await navigator.clipboard.writeText(text);
     setCopiedLabel(label);
     window.setTimeout(() => setCopiedLabel(''), 1400);
+  };
+
+  const continueFromHistory = (record: HistoryRecord) => {
+    setInput(record.userPrompt);
+    setResult(record.result);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const refineArtifact = (label: string, text: string) => {
+    setInput(`请基于下面的${label}继续优化，保留原始创意，但让它更适合 AI 视频生成：\n\n${text}`);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -151,6 +191,15 @@ export function ChatBox() {
         </div>
       )}
 
+      <HistoryPanel
+        history={history}
+        loading={historyLoading}
+        error={historyError}
+        onRefresh={refreshHistory}
+        onContinue={continueFromHistory}
+        onCopy={copyToClipboard}
+      />
+
       {result && (
         <div className="space-y-6">
           <div className="p-4 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
@@ -158,18 +207,29 @@ export function ChatBox() {
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.analysis}</p>
           </div>
 
-          {result.timeline.length > 0 && <TimelineView timeline={result.timeline} />}
+          {result.timeline.length > 0 && <TimelineView timeline={result.timeline} onRefine={refineArtifact} />}
 
           {result.fullPrompt && (
-            <PromptBlock label="15秒完整 Positive Prompt" text={result.fullPrompt} onCopy={copyToClipboard} />
+            <PromptBlock
+              label="15秒完整 Positive Prompt"
+              text={result.fullPrompt}
+              onCopy={copyToClipboard}
+              onRefine={refineArtifact}
+            />
           )}
 
           {result.negativePrompt && (
-            <PromptBlock label="Negative Prompt" text={result.negativePrompt} onCopy={copyToClipboard} negative />
+            <PromptBlock
+              label="Negative Prompt"
+              text={result.negativePrompt}
+              onCopy={copyToClipboard}
+              onRefine={refineArtifact}
+              negative
+            />
           )}
 
           {result.platformVariants.length > 0 && (
-            <PlatformVariantList variants={result.platformVariants} onCopy={copyToClipboard} />
+            <PlatformVariantList variants={result.platformVariants} onCopy={copyToClipboard} onRefine={refineArtifact} />
           )}
 
           {result.versions.length > 0 && (
@@ -177,7 +237,7 @@ export function ChatBox() {
               <summary className="cursor-pointer font-medium">兼容版 Prompt</summary>
               <div className="mt-4 space-y-4">
                 {result.versions.map((version, index) => (
-                  <VersionCard key={index} version={version} onCopy={copyToClipboard} />
+                  <VersionCard key={index} version={version} onCopy={copyToClipboard} onRefine={refineArtifact} />
                 ))}
               </div>
             </details>
@@ -209,14 +269,32 @@ export function ChatBox() {
   );
 }
 
-function TimelineView({ timeline }: { timeline: TimelineSegment[] }) {
+function TimelineView({
+  timeline,
+  onRefine,
+}: {
+  timeline: TimelineSegment[];
+  onRefine: (label: string, text: string) => void;
+}) {
   return (
     <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
       <h3 className="font-semibold text-lg mb-4 text-emerald-700 dark:text-emerald-300">15秒分镜时间轴</h3>
       <div className="space-y-4">
-        {timeline.map((segment, index) => (
-          <div key={`${segment.time}-${index}`} className="grid gap-3 md:grid-cols-[88px_1fr] border-t first:border-t-0 pt-4 first:pt-0">
-            <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{segment.time}</div>
+        {timeline.map((segment, index) => {
+          const segmentText = `时间：${segment.time}\n镜头：${segment.shot}\n动作：${segment.action}\n表情：${segment.expression}\n声音：${segment.audio}`;
+
+          return (
+          <div key={`${segment.time}-${index}`} className="grid gap-3 md:grid-cols-[96px_1fr] border-t first:border-t-0 pt-4 first:pt-0">
+            <div className="space-y-2">
+              <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{segment.time}</div>
+              <button
+                type="button"
+                onClick={() => onRefine(`${segment.time} 分镜`, segmentText)}
+                className="text-xs px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+              >
+                优化此镜头
+              </button>
+            </div>
             <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
               <TimelineRow label="镜头" text={segment.shot} />
               <TimelineRow label="动作" text={segment.action} />
@@ -224,7 +302,8 @@ function TimelineView({ timeline }: { timeline: TimelineSegment[] }) {
               <TimelineRow label="声音" text={segment.audio} />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -239,13 +318,110 @@ function TimelineRow({ label, text }: { label: string; text: string }) {
   );
 }
 
-function VersionCard({ version, onCopy }: { version: PromptVersion; onCopy: (t: string) => void }) {
+function HistoryPanel({
+  history,
+  loading,
+  error,
+  onRefresh,
+  onContinue,
+  onCopy,
+}: {
+  history: HistoryRecord[];
+  loading: boolean;
+  error: string;
+  onRefresh: () => void;
+  onContinue: (record: HistoryRecord) => void;
+  onCopy: (text: string, label?: string) => void;
+}) {
+  return (
+    <section className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">历史工作台</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">查看最近生成记录，复制结果或带回输入区继续优化。</p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          {loading ? '读取中...' : '刷新历史'}
+        </button>
+      </div>
+
+      {error && (
+        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
+          {error}
+        </p>
+      )}
+
+      {!loading && history.length === 0 && !error && (
+        <p className="mt-4 rounded-md bg-gray-50 px-3 py-4 text-sm text-gray-500 dark:bg-gray-950 dark:text-gray-400">
+          当前会话还没有历史记录。生成一次视频 Prompt 套件后，这里会显示最近结果。
+        </p>
+      )}
+
+      {history.length > 0 && (
+        <div className="mt-4 grid gap-3">
+          {history.slice(0, 5).map((record) => (
+            <article key={record.timestamp} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-gray-500">{new Date(record.timestamp).toLocaleString()}</div>
+                  <p className="mt-1 line-clamp-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {record.userPrompt || '未识别到原始输入'}
+                  </p>
+                  {record.result ? (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {record.result.timeline.length} 段分镜 · {record.result.platformVariants.length} 个平台版本
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">旧记录无法解析结构化结果</p>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onContinue(record)}
+                    className="rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-800"
+                  >
+                    继续优化
+                  </button>
+                  {record.result?.fullPrompt ? (
+                    <button
+                      type="button"
+                      onClick={() => onCopy(record.result?.fullPrompt ?? '', '历史 Positive Prompt')}
+                      className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                    >
+                      复制主 Prompt
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function VersionCard({
+  version,
+  onCopy,
+  onRefine,
+}: {
+  version: PromptVersion;
+  onCopy: (text: string, label?: string) => void;
+  onRefine: (label: string, text: string) => void;
+}) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{version.style}</h3>
-      <PromptBlock label="Positive Prompt" text={version.positive_prompt} onCopy={onCopy} />
+      <PromptBlock label="Positive Prompt" text={version.positive_prompt} onCopy={onCopy} onRefine={onRefine} />
       {version.negative_prompt ? (
-        <PromptBlock label="Negative Prompt" text={version.negative_prompt} onCopy={onCopy} negative />
+        <PromptBlock label="Negative Prompt" text={version.negative_prompt} onCopy={onCopy} onRefine={onRefine} negative />
       ) : null}
       {version.reasoning ? (
         <p className="text-sm text-gray-600 dark:text-gray-400 border-t pt-3">{version.reasoning}</p>
@@ -257,9 +433,11 @@ function VersionCard({ version, onCopy }: { version: PromptVersion; onCopy: (t: 
 function PlatformVariantList({
   variants,
   onCopy,
+  onRefine,
 }: {
   variants: PlatformVariant[];
   onCopy: (text: string, label?: string) => void;
+  onRefine: (label: string, text: string) => void;
 }) {
   return (
     <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -274,15 +452,24 @@ function PlatformVariantList({
       <div className="grid gap-4 md:grid-cols-2">
         {variants.map((variant) => (
           <div key={variant.platform} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h4 className="font-semibold text-gray-900 dark:text-gray-100">{variant.platform}</h4>
-              <button
-                type="button"
-                onClick={() => onCopy(variant.prompt, `${variant.platform} Prompt`)}
-                className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-              >
-                复制
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => onCopy(variant.prompt, `${variant.platform} Prompt`)}
+                  className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                >
+                  复制
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onRefine(`${variant.platform} 平台版本`, variant.prompt)}
+                  className="text-xs px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+                >
+                  继续优化
+                </button>
+              </div>
             </div>
             <p className="rounded-md bg-gray-50 dark:bg-gray-900 p-3 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
               {variant.prompt}
@@ -308,24 +495,37 @@ function PromptBlock({
   label,
   text,
   onCopy,
+  onRefine,
   negative,
 }: {
   label: string;
   text: string;
-  onCopy: (t: string) => void;
+  onCopy: (text: string, label?: string) => void;
+  onRefine?: (label: string, text: string) => void;
   negative?: boolean;
 }) {
   return (
     <div>
-      <div className="flex justify-between mb-2">
+      <div className="flex flex-wrap justify-between gap-2 mb-2">
         <span className="text-sm font-medium text-gray-500">{label}</span>
-        <button
-          type="button"
-          onClick={() => onCopy(text, label)}
-          className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
-        >
-          复制
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onCopy(text, label)}
+            className="text-xs px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+          >
+            复制
+          </button>
+          {onRefine ? (
+            <button
+              type="button"
+              onClick={() => onRefine(label, text)}
+              className="text-xs px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+            >
+              继续优化
+            </button>
+          ) : null}
+        </div>
       </div>
       <p
         className={`p-3 rounded-md text-sm whitespace-pre-wrap ${
