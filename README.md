@@ -11,6 +11,7 @@
 - Kling、Runway、Pika、Sora、Seedance 平台适配版本
 - 历史工作台，可查看最近生成记录并继续优化
 - 单项继续优化，可针对主 prompt、负向词、单个镜头或平台版本继续生成
+- 单项继续优化会通过结构化 `refinement` 请求告诉服务端目标类型和目标内容
 - 会话 ID 与用户 ID 自动管理
 - 响应式界面和深色模式
 
@@ -113,6 +114,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8787/api/optimize
 ```bash
 npm run lint
 npm run build
+npm run test:smoke
 ```
 
 每次发布前至少确认：

@@ -8,6 +8,8 @@ import {
   OptimizationResult,
   PlatformVariant,
   PromptVersion,
+  RefinementRequest,
+  RefinementTargetType,
   TimelineSegment,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
@@ -38,6 +40,7 @@ export function ChatBox() {
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
+  const [pendingRefinement, setPendingRefinement] = useState<RefinementRequest | null>(null);
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
 
   useEffect(() => {
@@ -72,8 +75,10 @@ export function ChatBox() {
     try {
       const optimization = await optimizePrompt(input, {
         ...(style ? { style } : {}),
+        ...(pendingRefinement ? { refinement: pendingRefinement } : {}),
       });
       setResult(optimization);
+      setPendingRefinement(null);
       setSessionInfo(getSessionInfo());
       await refreshHistory();
     } catch (err) {
@@ -89,6 +94,7 @@ export function ChatBox() {
     setResult(null);
     setError('');
     setInput('');
+    setPendingRefinement(null);
     setHistory([]);
   };
 
@@ -101,12 +107,19 @@ export function ChatBox() {
   const continueFromHistory = (record: HistoryRecord) => {
     setInput(record.userPrompt);
     setResult(record.result);
+    setPendingRefinement(null);
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const refineArtifact = (label: string, text: string) => {
-    setInput(`请基于下面的${label}继续优化，保留原始创意，但让它更适合 AI 视频生成：\n\n${text}`);
+  const refineArtifact = (targetType: RefinementTargetType, label: string, text: string) => {
+    setInput(`继续优化${label}，保留原始创意，但让它更适合 AI 视频生成。`);
+    setPendingRefinement({
+      targetType,
+      label,
+      content: text,
+      instruction: '保留原始创意，增强可生成性、镜头清晰度和视频平台适配性。',
+    });
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -156,6 +169,22 @@ export function ChatBox() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {pendingRefinement && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span>
+                正在局部优化：<strong>{pendingRefinement.label}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setPendingRefinement(null)}
+                className="rounded-md bg-white/70 px-2 py-1 text-xs font-medium text-emerald-900 hover:bg-white dark:bg-emerald-900/60 dark:text-emerald-100"
+              >
+                取消局部优化
+              </button>
+            </div>
+          </div>
+        )}
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             输入你的视频剧情或画面描述
@@ -213,6 +242,7 @@ export function ChatBox() {
             <PromptBlock
               label="15秒完整 Positive Prompt"
               text={result.fullPrompt}
+              targetType="full_prompt"
               onCopy={copyToClipboard}
               onRefine={refineArtifact}
             />
@@ -222,6 +252,7 @@ export function ChatBox() {
             <PromptBlock
               label="Negative Prompt"
               text={result.negativePrompt}
+              targetType="negative_prompt"
               onCopy={copyToClipboard}
               onRefine={refineArtifact}
               negative
@@ -274,7 +305,7 @@ function TimelineView({
   onRefine,
 }: {
   timeline: TimelineSegment[];
-  onRefine: (label: string, text: string) => void;
+  onRefine: (targetType: RefinementTargetType, label: string, text: string) => void;
 }) {
   return (
     <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
@@ -289,7 +320,7 @@ function TimelineView({
               <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{segment.time}</div>
               <button
                 type="button"
-                onClick={() => onRefine(`${segment.time} 分镜`, segmentText)}
+                onClick={() => onRefine('timeline_segment', `${segment.time} 分镜`, segmentText)}
                 className="text-xs px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
               >
                 优化此镜头
@@ -414,14 +445,27 @@ function VersionCard({
 }: {
   version: PromptVersion;
   onCopy: (text: string, label?: string) => void;
-  onRefine: (label: string, text: string) => void;
+  onRefine: (targetType: RefinementTargetType, label: string, text: string) => void;
 }) {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{version.style}</h3>
-      <PromptBlock label="Positive Prompt" text={version.positive_prompt} onCopy={onCopy} onRefine={onRefine} />
+      <PromptBlock
+        label="Positive Prompt"
+        text={version.positive_prompt}
+        targetType="version"
+        onCopy={onCopy}
+        onRefine={onRefine}
+      />
       {version.negative_prompt ? (
-        <PromptBlock label="Negative Prompt" text={version.negative_prompt} onCopy={onCopy} onRefine={onRefine} negative />
+        <PromptBlock
+          label="Negative Prompt"
+          text={version.negative_prompt}
+          targetType="negative_prompt"
+          onCopy={onCopy}
+          onRefine={onRefine}
+          negative
+        />
       ) : null}
       {version.reasoning ? (
         <p className="text-sm text-gray-600 dark:text-gray-400 border-t pt-3">{version.reasoning}</p>
@@ -437,7 +481,7 @@ function PlatformVariantList({
 }: {
   variants: PlatformVariant[];
   onCopy: (text: string, label?: string) => void;
-  onRefine: (label: string, text: string) => void;
+  onRefine: (targetType: RefinementTargetType, label: string, text: string) => void;
 }) {
   return (
     <div className="p-6 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -464,7 +508,7 @@ function PlatformVariantList({
                 </button>
                 <button
                   type="button"
-                  onClick={() => onRefine(`${variant.platform} 平台版本`, variant.prompt)}
+                  onClick={() => onRefine('platform_variant', `${variant.platform} 平台版本`, variant.prompt)}
                   className="text-xs px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
                 >
                   继续优化
@@ -494,14 +538,16 @@ function PlatformVariantList({
 function PromptBlock({
   label,
   text,
+  targetType,
   onCopy,
   onRefine,
   negative,
 }: {
   label: string;
   text: string;
+  targetType?: RefinementTargetType;
   onCopy: (text: string, label?: string) => void;
-  onRefine?: (label: string, text: string) => void;
+  onRefine?: (targetType: RefinementTargetType, label: string, text: string) => void;
   negative?: boolean;
 }) {
   return (
@@ -519,7 +565,7 @@ function PromptBlock({
           {onRefine ? (
             <button
               type="button"
-              onClick={() => onRefine(label, text)}
+              onClick={() => onRefine(targetType ?? 'full_prompt', label, text)}
               className="text-xs px-3 py-1 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
             >
               继续优化

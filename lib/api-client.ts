@@ -44,6 +44,20 @@ export interface HistoryRecord {
   result: OptimizationResult | null;
 }
 
+export type RefinementTargetType =
+  | 'full_prompt'
+  | 'negative_prompt'
+  | 'timeline_segment'
+  | 'platform_variant'
+  | 'version';
+
+export interface RefinementRequest {
+  targetType: RefinementTargetType;
+  label: string;
+  content: string;
+  instruction?: string;
+}
+
 interface StructuredResult {
   analysis: string;
   timeline?: TimelineSegment[];
@@ -177,6 +191,7 @@ function toOptimizationResult(prompt: string, result: StructuredResult | null): 
 
 export type OptimizeOptions = {
   style?: string;
+  refinement?: RefinementRequest;
 };
 
 export async function optimizePrompt(
@@ -198,6 +213,7 @@ export async function optimizePrompt(
       message: prompt,
       scenario: 'video',
       ...(options?.style ? { style: options.style } : {}),
+      ...(options?.refinement ? { refinement: options.refinement } : {}),
     }),
   });
 
