@@ -26,10 +26,18 @@ export interface PlatformVariant {
   constraint_notes: string;
 }
 
+export interface ContinuityPlan {
+  protagonist_lock: string;
+  recurring_visual_symbols: string[];
+  world_rules: string[];
+  shot_intents: string[];
+}
+
 export interface OptimizationResult {
   originalPrompt: string;
   scenario: string;
   analysis: string;
+  continuityPlan: ContinuityPlan | null;
   timeline: TimelineSegment[];
   fullPrompt: string;
   negativePrompt: string;
@@ -58,8 +66,19 @@ export interface RefinementRequest {
   instruction?: string;
 }
 
+export interface ProjectBible {
+  protagonist?: string;
+  mission?: string;
+  world?: string;
+  visualSymbols?: string[];
+  lookAndFeel?: string;
+  continuityRules?: string[];
+  shotIntent?: string;
+}
+
 interface StructuredResult {
   analysis: string;
+  continuity_plan?: ContinuityPlan;
   timeline?: TimelineSegment[];
   full_prompt?: string;
   negative_prompt?: string;
@@ -116,6 +135,25 @@ function normalizePlatformVariants(value: PlatformVariant[] | undefined): Platfo
   );
 }
 
+function normalizeContinuityPlan(value: ContinuityPlan | undefined): ContinuityPlan | null {
+  if (
+    !value ||
+    !isString(value.protagonist_lock) ||
+    !Array.isArray(value.recurring_visual_symbols) ||
+    !Array.isArray(value.world_rules) ||
+    !Array.isArray(value.shot_intents)
+  ) {
+    return null;
+  }
+
+  return {
+    protagonist_lock: value.protagonist_lock,
+    recurring_visual_symbols: value.recurring_visual_symbols.filter(isString),
+    world_rules: value.world_rules.filter(isString),
+    shot_intents: value.shot_intents.filter(isString),
+  };
+}
+
 function normalizeStructuredResult(value: StructuredResult | undefined): StructuredResult | null {
   if (!value || !isString(value.analysis) || !Array.isArray(value.versions)) {
     return null;
@@ -136,6 +174,7 @@ function normalizeStructuredResult(value: StructuredResult | undefined): Structu
 
   return {
     analysis: value.analysis,
+    continuity_plan: normalizeContinuityPlan(value.continuity_plan) ?? undefined,
     timeline: normalizeTimeline(value.timeline),
     full_prompt: isString(value.full_prompt) ? value.full_prompt : '',
     negative_prompt: isString(value.negative_prompt) ? value.negative_prompt : '',
@@ -180,6 +219,7 @@ function toOptimizationResult(prompt: string, result: StructuredResult | null): 
     originalPrompt: prompt,
     scenario: 'video',
     analysis: result.analysis,
+    continuityPlan: result.continuity_plan ?? null,
     timeline: result.timeline ?? [],
     fullPrompt: result.full_prompt ?? '',
     negativePrompt: result.negative_prompt ?? '',
@@ -191,6 +231,7 @@ function toOptimizationResult(prompt: string, result: StructuredResult | null): 
 
 export type OptimizeOptions = {
   style?: string;
+  projectBible?: ProjectBible;
   refinement?: RefinementRequest;
 };
 
@@ -213,6 +254,7 @@ export async function optimizePrompt(
       message: prompt,
       scenario: 'video',
       ...(options?.style ? { style: options.style } : {}),
+      ...(options?.projectBible ? { projectBible: options.projectBible } : {}),
       ...(options?.refinement ? { refinement: options.refinement } : {}),
     }),
   });
@@ -242,6 +284,7 @@ export async function optimizePrompt(
       originalPrompt: data.originalPrompt ?? prompt,
       scenario: data.scenario ?? 'video',
       analysis: result.analysis,
+      continuityPlan: result.continuity_plan ?? null,
       timeline: result.timeline ?? [],
       fullPrompt: result.full_prompt ?? '',
       negativePrompt: result.negative_prompt ?? '',
@@ -260,6 +303,7 @@ export async function optimizePrompt(
       originalPrompt: data.originalPrompt ?? prompt,
       scenario: data.scenario ?? 'video',
       analysis: '（后端返回旧版格式，建议部署最新 Worker）',
+      continuityPlan: null,
       timeline: [],
       fullPrompt: data.optimizedPrompt,
       negativePrompt: '',

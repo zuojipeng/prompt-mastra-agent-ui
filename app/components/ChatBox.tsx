@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import {
   fetchPromptHistory,
+  ContinuityPlan,
   HistoryRecord,
   optimizePrompt,
   OptimizationResult,
   PlatformVariant,
+  ProjectBible,
   PromptVersion,
   RefinementRequest,
   RefinementTargetType,
@@ -30,6 +32,39 @@ const INITIAL_SESSION_INFO: SessionInfo = {
   hasSession: false,
 };
 
+function splitList(value: string): string[] | undefined {
+  const items = value
+    .split(/[,，、\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return items.length ? items : undefined;
+}
+
+function buildProjectBible(values: typeof EMPTY_PROJECT_BIBLE): ProjectBible | undefined {
+  const projectBible: ProjectBible = {
+    ...(values.protagonist.trim() ? { protagonist: values.protagonist.trim() } : {}),
+    ...(values.mission.trim() ? { mission: values.mission.trim() } : {}),
+    ...(values.world.trim() ? { world: values.world.trim() } : {}),
+    ...(splitList(values.visualSymbols) ? { visualSymbols: splitList(values.visualSymbols) } : {}),
+    ...(values.lookAndFeel.trim() ? { lookAndFeel: values.lookAndFeel.trim() } : {}),
+    ...(splitList(values.continuityRules) ? { continuityRules: splitList(values.continuityRules) } : {}),
+    ...(values.shotIntent.trim() ? { shotIntent: values.shotIntent.trim() } : {}),
+  };
+
+  return Object.keys(projectBible).length ? projectBible : undefined;
+}
+
+const EMPTY_PROJECT_BIBLE: Required<Record<keyof ProjectBible, string>> = {
+  protagonist: '',
+  mission: '',
+  world: '',
+  visualSymbols: '',
+  lookAndFeel: '',
+  continuityRules: '',
+  shotIntent: '',
+};
+
 export function ChatBox() {
   const [input, setInput] = useState('');
   const [style, setStyle] = useState('');
@@ -41,6 +76,8 @@ export function ChatBox() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
   const [pendingRefinement, setPendingRefinement] = useState<RefinementRequest | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [projectBibleForm, setProjectBibleForm] = useState(EMPTY_PROJECT_BIBLE);
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
 
   useEffect(() => {
@@ -72,9 +109,12 @@ export function ChatBox() {
     setError('');
     setResult(null);
 
+    const projectBible = buildProjectBible(projectBibleForm);
+
     try {
       const optimization = await optimizePrompt(input, {
         ...(style ? { style } : {}),
+        ...(projectBible ? { projectBible } : {}),
         ...(pendingRefinement ? { refinement: pendingRefinement } : {}),
       });
       setResult(optimization);
@@ -96,6 +136,10 @@ export function ChatBox() {
     setInput('');
     setPendingRefinement(null);
     setHistory([]);
+  };
+
+  const updateProjectBible = (key: keyof typeof projectBibleForm, value: string) => {
+    setProjectBibleForm((current) => ({ ...current, [key]: value }));
   };
 
   const copyToClipboard = async (text: string, label = '内容') => {
@@ -199,6 +243,13 @@ export function ChatBox() {
           />
         </div>
 
+        <AdvancedDirectorPanel
+          open={showAdvanced}
+          values={projectBibleForm}
+          onToggle={() => setShowAdvanced((current) => !current)}
+          onChange={updateProjectBible}
+        />
+
         {error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -235,6 +286,8 @@ export function ChatBox() {
             <h3 className="font-semibold mb-2">创意诊断</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.analysis}</p>
           </div>
+
+          {result.continuityPlan && <ContinuityPlanView plan={result.continuityPlan} />}
 
           {result.timeline.length > 0 && <TimelineView timeline={result.timeline} onRefine={refineArtifact} />}
 
@@ -337,6 +390,145 @@ function TimelineView({
         })}
       </div>
     </div>
+  );
+}
+
+function ContinuityPlanView({ plan }: { plan: ContinuityPlan }) {
+  return (
+    <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+      <h3 className="font-semibold text-gray-900 dark:text-gray-100">导演连续性</h3>
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <div>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">主角锁定</p>
+          <p className="mt-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{plan.protagonist_lock}</p>
+        </div>
+        <ContinuityList title="固定视觉符号" items={plan.recurring_visual_symbols} />
+        <ContinuityList title="世界规则" items={plan.world_rules} />
+        <ContinuityList title="镜头目的" items={plan.shot_intents} />
+      </div>
+    </section>
+  );
+}
+
+function ContinuityList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</p>
+      <ul className="mt-1 space-y-1 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+        {items.map((item, index) => (
+          <li key={`${title}-${index}`}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AdvancedDirectorPanel({
+  open,
+  values,
+  onToggle,
+  onChange,
+}: {
+  open: boolean;
+  values: typeof EMPTY_PROJECT_BIBLE;
+  onToggle: () => void;
+  onChange: (key: keyof typeof EMPTY_PROJECT_BIBLE, value: string) => void;
+}) {
+  return (
+    <section className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">高级导演模式</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            可选。用于锁定主角、世界观、视觉符号和连续性，不影响快速生成。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+          {open ? '收起高级选项' : '展开高级选项'}
+        </button>
+      </div>
+
+      {open && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <DirectorField
+            label="主角设定"
+            value={values.protagonist}
+            onChange={(value) => onChange('protagonist', value)}
+            placeholder="例如：复古清洁机器人，牛仔帽，旧金属外壳，动作迟缓但执着"
+          />
+          <DirectorField
+            label="角色任务"
+            value={values.mission}
+            onChange={(value) => onChange('mission', value)}
+            placeholder="例如：每天清理废弃小镇，并保护一个红裙人偶"
+          />
+          <DirectorField
+            label="世界观"
+            value={values.world}
+            onChange={(value) => onChange('world', value)}
+            placeholder="例如：原子朋克废土小镇，慢速丧尸游荡，旧广告牌闪烁"
+          />
+          <DirectorField
+            label="固定视觉符号"
+            value={values.visualSymbols}
+            onChange={(value) => onChange('visualSymbols', value)}
+            placeholder="逗号分隔，例如：机械鸵鸟、红裙人偶、破旧清扫车"
+          />
+          <DirectorField
+            label="统一视觉风格"
+            value={values.lookAndFeel}
+            onChange={(value) => onChange('lookAndFeel', value)}
+            placeholder="例如：atompunk, retro-futurism, dusty orange light, handcrafted miniature feel"
+          />
+          <DirectorField
+            label="连续性规则"
+            value={values.continuityRules}
+            onChange={(value) => onChange('continuityRules', value)}
+            placeholder="逗号分隔，例如：主角外观不漂移、视觉符号重复出现、每镜头只做一件事"
+          />
+          <div className="md:col-span-2">
+            <DirectorField
+              label="每个镜头的单一目的"
+              value={values.shotIntent}
+              onChange={(value) => onChange('shotIntent', value)}
+              placeholder="例如：建立世界、展示职业、制造反差萌、推进关系、留下悬念"
+            />
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function DirectorField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="mt-2 w-full min-h-[76px] rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:ring-2 focus:ring-emerald-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+      />
+    </label>
   );
 }
 

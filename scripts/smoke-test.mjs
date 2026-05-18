@@ -7,6 +7,7 @@ const html = await readFile(join(outDir, 'index.html'), 'utf8');
 
 const requiredHtml = [
   'AI 视频分镜 Prompt 工作台',
+  '高级导演模式',
   '历史工作台',
   '生成视频 Prompt 套件',
 ];
@@ -29,6 +30,8 @@ const pageJs = await readFile(join(appChunkDir, pageChunk), 'utf8');
 
 const requiredJs = [
   '历史工作台',
+  '高级导演模式',
+  '导演连续性',
   '继续优化',
   '优化此镜头',
   'prompt-optimizer.hahazuo460.workers.dev/api/optimize',
