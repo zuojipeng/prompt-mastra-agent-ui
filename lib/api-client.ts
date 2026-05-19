@@ -44,6 +44,8 @@ export interface OptimizationResult {
   versions: PromptVersion[];
   platformVariants: PlatformVariant[];
   suggestions: string[];
+  /** v2: 多镜头 prompt 数组（新字段，优先使用） */
+  prompts: string[];
 }
 
 export interface HistoryRecord {
@@ -85,6 +87,8 @@ interface StructuredResult {
   versions: PromptVersion[];
   platform_variants?: PlatformVariant[];
   suggestions: string[];
+  /** v2: 多镜头 prompt 数组 */
+  prompts?: string[];
 }
 
 interface ApiResponse {
@@ -94,6 +98,10 @@ interface ApiResponse {
     originalPrompt?: string;
     scenario?: string;
     style?: string | null;
+    /** v2: 简化 prompt 字段 */
+    prompt?: string;
+    /** v2: 镜头数 */
+    shotCount?: number;
     result?: StructuredResult;
     /** 旧版 API 兼容 */
     optimizedPrompt?: string;
@@ -210,10 +218,22 @@ function cleanUserPrompt(content: string): string {
     .trim();
 }
 
+function normalizePrompts(prompts: string[] | undefined, fullPrompt: string | undefined): string[] {
+  if (Array.isArray(prompts) && prompts.length > 0) {
+    return prompts.filter(isString);
+  }
+  if (fullPrompt) {
+    return [fullPrompt];
+  }
+  return [];
+}
+
 function toOptimizationResult(prompt: string, result: StructuredResult | null): OptimizationResult | null {
   if (!result) {
     return null;
   }
+
+  const prompts = normalizePrompts(result.prompts, result.full_prompt);
 
   return {
     originalPrompt: prompt,
@@ -226,6 +246,7 @@ function toOptimizationResult(prompt: string, result: StructuredResult | null): 
     versions: result.versions,
     platformVariants: result.platform_variants ?? [],
     suggestions: result.suggestions,
+    prompts,
   };
 }
 
@@ -233,6 +254,8 @@ export type OptimizeOptions = {
   style?: string;
   projectBible?: ProjectBible;
   refinement?: RefinementRequest;
+  /** v2: 镜头数 */
+  shotCount?: number;
 };
 
 export async function optimizePrompt(
@@ -256,6 +279,7 @@ export async function optimizePrompt(
       ...(options?.style ? { style: options.style } : {}),
       ...(options?.projectBible ? { projectBible: options.projectBible } : {}),
       ...(options?.refinement ? { refinement: options.refinement } : {}),
+      ...(options?.shotCount ? { shotCount: options.shotCount } : {}),
     }),
   });
 
@@ -272,6 +296,23 @@ export async function optimizePrompt(
   const { data } = json;
   if (!data) {
     throw new Error(json.error ?? '后端返回数据格式无效');
+  }
+
+  // v2: 简化响应格式 { data: { prompt: "中文描述", ... } }
+  if (typeof data.prompt === 'string' && data.prompt.trim()) {
+    return {
+      originalPrompt: data.originalPrompt ?? prompt,
+      scenario: data.scenario ?? 'video',
+      analysis: '',
+      continuityPlan: null,
+      timeline: [],
+      fullPrompt: data.prompt,
+      negativePrompt: '',
+      versions: [],
+      platformVariants: [],
+      suggestions: [],
+      prompts: [data.prompt],
+    };
   }
 
   if (data.result) {
@@ -291,6 +332,7 @@ export async function optimizePrompt(
       versions: result.versions,
       platformVariants: result.platform_variants ?? [],
       suggestions: result.suggestions,
+      prompts: normalizePrompts(result.prompts, result.full_prompt),
     };
   }
 
@@ -317,6 +359,7 @@ export async function optimizePrompt(
       ],
       platformVariants: [],
       suggestions: [],
+      prompts: [data.optimizedPrompt],
     };
   }
 
