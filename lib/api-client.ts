@@ -100,6 +100,8 @@ interface ApiResponse {
     style?: string | null;
     /** v2: 简化 prompt 字段 */
     prompt?: string;
+    /** v3: 多镜头 prompts 数组 */
+    prompts?: string[];
     /** v2: 镜头数 */
     shotCount?: number;
     result?: StructuredResult;
@@ -298,7 +300,24 @@ export async function optimizePrompt(
     throw new Error(json.error ?? '后端返回数据格式无效');
   }
 
-  // v2: 简化响应格式 { data: { prompt: "中文描述", ... } }
+  // v3: 多镜头响应 { data: { prompts: [...], shotCount: N } }
+  if (Array.isArray(data.prompts) && data.prompts.length > 0) {
+    return {
+      originalPrompt: data.originalPrompt ?? prompt,
+      scenario: data.scenario ?? 'video',
+      analysis: '',
+      continuityPlan: null,
+      timeline: [],
+      fullPrompt: data.prompts[0],
+      negativePrompt: '',
+      versions: [],
+      platformVariants: [],
+      suggestions: [],
+      prompts: data.prompts,
+    };
+  }
+
+  // v2: 简化响应 { data: { prompt: "..." } }
   if (typeof data.prompt === 'string' && data.prompt.trim()) {
     return {
       originalPrompt: data.originalPrompt ?? prompt,
