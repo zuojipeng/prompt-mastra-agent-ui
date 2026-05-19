@@ -126,7 +126,86 @@ export function ChatBox() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Hero */}
+      <div className="text-center space-y-3">
+        <p className="text-lg text-gray-600 dark:text-gray-400">
+          把一句创意拆成可直接复制到小云雀的中文画面描述
+        </p>
+        {sessionInfo.hasSession && (
+          <button
+            type="button"
+            onClick={handleNewSession}
+            className="px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors text-xs font-medium"
+          >
+            新建创作
+          </button>
+        )}
+      </div>
+
+      {/* Onboarding guide — shown when no results */}
+      {!result && !loading && (
+        <div className="grid md:grid-cols-3 gap-3 text-sm">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+              💡 输入你的视频创意
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">
+              一句画面描述即可，比如雨夜街头、角色动作、情绪氛围。
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+              ✨ 秒出中文画面描述
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">
+              自动生成可直接复制到小云雀、Seedance 的中文提示词。
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+              🎬 多镜头连续叙事
+            </div>
+            <p className="text-gray-600 dark:text-gray-400">
+              一个创意拆成 1/3/5 个连续镜头，保持角色和风格一致。
+            </p>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Style + Shot Count toolbar */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <span className="text-sm text-gray-500 dark:text-gray-400">风格</span>
+          {STYLES.map((s) => (
+            <button
+              key={s.id || 'default'}
+              type="button"
+              onClick={() => setStyle(s.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                style === s.id
+                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 dark:ring-emerald-700'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">镜头</span>
+          {SHOT_COUNTS.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setShotCount(n)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                shotCount === n
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+              }`}
+            >
+              {n} 镜
+            </button>
+          ))}
+        </div>
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             输入你的视频创意
@@ -139,50 +218,6 @@ export function ChatBox() {
             className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             disabled={loading}
           />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Style selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">风格：</span>
-            <select
-              value={style}
-              onChange={(e) => setStyle(e.target.value)}
-              className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-3 py-1.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500"
-            >
-              {STYLES.map((s) => (
-                <option key={s.id || 'default'} value={s.id}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Shot count selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400">镜头数：</span>
-            <select
-              value={shotCount}
-              onChange={(e) => setShotCount(Number(e.target.value))}
-              className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm px-3 py-1.5 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500"
-            >
-              {SHOT_COUNTS.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {sessionInfo.hasSession && (
-            <button
-              type="button"
-              onClick={handleNewSession}
-              className="ml-auto px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors text-sm font-medium"
-            >
-              新建创作
-            </button>
-          )}
         </div>
 
         {error && (
@@ -200,16 +235,15 @@ export function ChatBox() {
         </button>
       </form>
 
-      {/* Copied feedback toast */}
-      {copiedIndex !== null && (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-          已复制
-        </div>
-      )}
-
       {/* Prompt cards */}
       {prompts.length > 0 && (
         <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              生成结果
+            </h2>
+            <span className="text-xs text-gray-400">{prompts.length} 个镜头</span>
+          </div>
           {prompts.map((prompt, index) => (
             <PromptCard
               key={index}
