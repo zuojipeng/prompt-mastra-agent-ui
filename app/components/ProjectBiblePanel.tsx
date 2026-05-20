@@ -118,6 +118,7 @@ export function ProjectBiblePanel({
   bible: ProjectBible;
   onChange: (bible: ProjectBible) => void;
 }) {
+  const [showGuide, setShowGuide] = useState(false);
   const hasAnyValue =
     bible.protagonist ||
     bible.mission ||
@@ -222,6 +223,47 @@ export function ProjectBiblePanel({
         tags={bible.continuityRules ?? []}
         onChange={(tags) => onChange({ ...bible, continuityRules: tags })}
       />
+
+      {/* Best practice guide */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowGuide(!showGuide)}
+          className="flex items-center gap-1.5 text-xs text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-200 transition-colors"
+        >
+          <span>{showGuide ? '▼' : '▶'}</span>
+          填写指南 & 最佳实践
+        </button>
+        {showGuide && (
+          <div className="mt-3 space-y-3 text-xs text-gray-600 dark:text-gray-400">
+            <div className="rounded-lg border border-indigo-200 dark:border-indigo-800/50 bg-white dark:bg-gray-900 p-3">
+              <p className="font-medium text-indigo-700 dark:text-indigo-300 mb-2">
+                🌧 最佳实践示例：《雨夜追踪》
+              </p>
+              <div className="space-y-1.5">
+                <p><span className="font-medium text-gray-900 dark:text-gray-100">创意：</span>雨夜街头，一个女孩听见身后脚步声后缓慢回头</p>
+                <div className="grid gap-1.5 pl-2 border-l-2 border-indigo-200 dark:border-indigo-800">
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">主角：</span>穿深灰色连帽雨衣的短发女孩，眼神疲惫而警惕</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">任务：</span>在雨夜中寻找失踪的弟弟</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">世界观：</span>近未来南方城市，常年下雨，老旧街巷密布霓虹灯牌</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">视觉符号：</span>透明雨伞、红蓝霓虹倒影</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">风格：</span>赛博朋克 + 王家卫：青橙互补色，大量水面镜面反射</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">镜头目的：</span>建立悬念 → 紧张升级 → 情绪爆发 → 余韵收尾</p>
+                  <p><span className="font-medium text-gray-900 dark:text-gray-100">连续性规则：</span>雨量始终保持中雨、主光源来自霓虹灯</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-2 pl-2 border-l-2 border-amber-300 dark:border-amber-700">
+              <p className="font-medium text-amber-700 dark:text-amber-400">💡 核心原则</p>
+              <p>• 主角要「可锁定」：有颜色、有服装、有情绪</p>
+              <p>• 世界观要「有质感」：不止「下雨的街道」，而是怎样的街道</p>
+              <p>• 视觉符号≤3个：太多 AI 顾此失彼</p>
+              <p>• 连续性规则锁定易错项：角色外观不变、光影统一</p>
+              <p>• 风格可以混搭：「赛博朋克+王家卫」比单一风格更有辨识度</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
