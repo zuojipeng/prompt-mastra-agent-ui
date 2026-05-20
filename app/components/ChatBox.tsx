@@ -35,6 +35,10 @@ export function ChatBox() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
+  const [refineInput, setRefineInput] = useState('');
+  const [refiningLoading, setRefiningLoading] = useState(false);
+  const [refiningError, setRefiningError] = useState('');
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
@@ -109,6 +113,65 @@ export function ChatBox() {
   const openInXiaoYunQue = (text: string) => {
     const encoded = encodeURIComponent(text);
     window.open(`https://xyq.jianying.com/?prompt=${encoded}`, '_blank');
+  };
+
+  const startRefine = (index: number) => {
+    setRefiningIndex(index);
+    setRefineInput('');
+    setRefiningError('');
+  };
+
+  const cancelRefine = () => {
+    setRefiningIndex(null);
+    setRefineInput('');
+    setRefiningError('');
+  };
+
+  const submitRefine = async (index: number) => {
+    if (!result || !refineInput.trim()) {
+      setRefiningError('请输入优化要求');
+      return;
+    }
+
+    const originalPrompt = prompts[index];
+    if (!originalPrompt) return;
+
+    setRefiningLoading(true);
+    setRefiningError('');
+
+    try {
+      const refinementResult = await optimizePrompt(refineInput.trim(), {
+        refinement: {
+          targetType: 'full_prompt',
+          label: `镜头 ${index + 1}`,
+          content: originalPrompt,
+        },
+      });
+
+      // Replace the refined shot in the prompts array
+      const updatedPrompts = [...prompts];
+      updatedPrompts[index] = refinementResult.prompts?.[0] ?? refinementResult.fullPrompt;
+      if (!updatedPrompts[index]) {
+        throw new Error('优化结果为空');
+      }
+
+      setResult((prev) =>
+        prev
+          ? {
+              ...prev,
+              prompts: updatedPrompts,
+              fullPrompt: updatedPrompts[0],
+            }
+          : prev,
+      );
+      setRefiningIndex(null);
+      setRefineInput('');
+      await refreshHistory();
+    } catch (err) {
+      setRefiningError(err instanceof Error ? err.message : '优化失败，请重试');
+    } finally {
+      setRefiningLoading(false);
+    }
   };
 
   // Get prompts from result: prefer new prompts array, fallback to fullPrompt
@@ -250,8 +313,16 @@ export function ChatBox() {
               index={index}
               text={prompt}
               isCopied={copiedIndex === index}
+              isRefining={refiningIndex === index}
+              refiningLoading={refiningLoading}
+              refiningError={refiningError}
+              refineInput={refineInput}
               onCopy={() => copyToClipboard(prompt, index)}
               onOpenInXYQ={() => openInXiaoYunQue(prompt)}
+              onStartRefine={() => startRefine(index)}
+              onCancelRefine={cancelRefine}
+              onRefineInputChange={setRefineInput}
+              onSubmitRefine={() => submitRefine(index)}
             />
           ))}
         </div>
@@ -277,14 +348,30 @@ function PromptCard({
   index,
   text,
   isCopied,
+  isRefining,
+  refiningLoading,
+  refiningError,
+  refineInput,
   onCopy,
   onOpenInXYQ,
+  onStartRefine,
+  onCancelRefine,
+  onRefineInputChange,
+  onSubmitRefine,
 }: {
   index: number;
   text: string;
   isCopied: boolean;
+  isRefining: boolean;
+  refiningLoading: boolean;
+  refiningError: string;
+  refineInput: string;
   onCopy: () => void;
   onOpenInXYQ: () => void;
+  onStartRefine: () => void;
+  onCancelRefine: () => void;
+  onRefineInputChange: (value: string) => void;
+  onSubmitRefine: () => void;
 }) {
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
@@ -311,11 +398,66 @@ function PromptCard({
           >
             在小云雀打开
           </button>
+          {!isRefining && (
+            <button
+              type="button"
+              onClick={onStartRefine}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-purple-50 text-purple-800 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+            >
+              优化此镜头
+            </button>
+          )}
         </div>
       </div>
       <p className="text-base sm:text-lg leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
         {text}
       </p>
+      {isRefining && (
+        <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+              输入优化要求（如：加强光影对比、改为白天场景）
+            </label>
+            <textarea
+              value={refineInput}
+              onChange={(e) => onRefineInputChange(e.target.value)}
+              placeholder="例如：加强光影对比，把环境改为黄昏，强化雨滴反光..."
+              className="w-full min-h-[80px] px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+              disabled={refiningLoading}
+            />
+          </div>
+          {refiningError && (
+            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-xs text-red-600 dark:text-red-400">{refiningError}</p>
+            </div>
+          )}
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={onCancelRefine}
+              disabled={refiningLoading}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={onSubmitRefine}
+              disabled={refiningLoading || !refineInput.trim()}
+              className="text-xs px-4 py-1.5 rounded-md font-medium bg-purple-700 text-white hover:bg-purple-800 disabled:bg-gray-400 transition-colors flex items-center gap-1.5"
+            >
+              {refiningLoading ? (
+                <>
+                  <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  优化中...
+                </>
+              ) : (
+                '确认优化'
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
