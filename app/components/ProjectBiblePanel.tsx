@@ -1,7 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ProjectBible } from '@/lib/api-client';
+
+const STORAGE_KEY = 'project-bible-presets';
+
+interface Preset {
+  name: string;
+  bible: ProjectBible;
+}
+
+function loadPresets(): Preset[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function savePresets(presets: Preset[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+  } catch { /* quota exceeded, ignore */ }
+}
 
 interface TagInputProps {
   label: string;
@@ -119,6 +141,56 @@ export function ProjectBiblePanel({
   onChange: (bible: ProjectBible) => void;
 }) {
   const [showGuide, setShowGuide] = useState(false);
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [showSaveInput, setShowSaveInput] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [showPresetMenu, setShowPresetMenu] = useState(false);
+  const presetMenuRef = useRef<HTMLDivElement>(null);
+  const saveInputRef = useRef<HTMLInputElement>(null);
+
+  // Load presets on mount
+  useEffect(() => {
+    setPresets(loadPresets());
+  }, []);
+
+  // Close preset menu on click outside
+  useEffect(() => {
+    if (!showPresetMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (presetMenuRef.current && !presetMenuRef.current.contains(e.target as Node)) {
+        setShowPresetMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showPresetMenu]);
+
+  // Focus name input when shown
+  useEffect(() => {
+    if (showSaveInput) saveInputRef.current?.focus();
+  }, [showSaveInput]);
+
+  const handleSavePreset = () => {
+    const name = presetName.trim();
+    if (!name || !hasAnyValue) return;
+    const updated = [...presets, { name, bible: { ...bible } }];
+    setPresets(updated);
+    savePresets(updated);
+    setPresetName('');
+    setShowSaveInput(false);
+  };
+
+  const handleLoadPreset = (preset: Preset) => {
+    onChange({ ...preset.bible });
+    setShowPresetMenu(false);
+  };
+
+  const handleDeletePreset = (index: number) => {
+    const updated = presets.filter((_, i) => i !== index);
+    setPresets(updated);
+    savePresets(updated);
+  };
+
   const hasAnyValue =
     bible.protagonist ||
     bible.mission ||
@@ -151,7 +223,76 @@ export function ProjectBiblePanel({
             </span>
           )}
         </div>
-        {hasAnyValue && (
+        <div className="flex items-center gap-2">
+          {/* Preset save/load */}
+          <div className="relative" ref={presetMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowPresetMenu(!showPresetMenu)}
+              className="text-xs px-2 py-1 rounded-md text-indigo-600 hover:bg-indigo-100 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors"
+            >
+              📋 预设
+            </button>
+            {showPresetMenu && (
+              <div className="absolute right-0 top-full mt-1 z-30 w-56 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
+                {presets.length > 0 && (
+                  <div className="px-2 py-1 text-[10px] text-gray-400 uppercase tracking-wider">加载预设</div>
+                )}
+                {presets.map((p, i) => (
+                  <div key={i} className="flex items-center px-2 py-1 group">
+                    <button
+                      type="button"
+                      onClick={() => handleLoadPreset(p)}
+                      className="flex-1 text-left px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                    >
+                      {p.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePreset(i)}
+                      className="opacity-0 group-hover:opacity-100 px-1.5 py-0.5 text-xs text-gray-400 hover:text-red-500 transition-all"
+                      title="删除"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1 px-2">
+                  {showSaveInput ? (
+                    <div className="flex gap-1 items-center px-1 pb-1">
+                      <input
+                        ref={saveInputRef}
+                        type="text"
+                        value={presetName}
+                        onChange={(e) => setPresetName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSavePreset()}
+                        placeholder="预设名称"
+                        className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSavePreset}
+                        disabled={!presetName.trim() || !hasAnyValue}
+                        className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40"
+                      >
+                        保存
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowSaveInput(true)}
+                      disabled={!hasAnyValue}
+                      className="w-full text-left px-3 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded disabled:opacity-40 disabled:hover:bg-transparent"
+                    >
+                      + 保存当前为预设
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          {hasAnyValue && (
           <button
             type="button"
             onClick={() =>
@@ -170,6 +311,7 @@ export function ProjectBiblePanel({
             清空
           </button>
         )}
+      </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

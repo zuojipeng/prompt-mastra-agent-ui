@@ -156,6 +156,35 @@ export function ChatBox() {
     refreshHistory();
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + Enter → submit form
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        // Don't submit if already loading
+        if (!loading && input.trim() && !validateInput(input)) {
+          // Simulate form submission by triggering handleSubmit
+          // We need access to the form ref, so we'll dispatch from the submit button
+          const submitBtn = document.querySelector<HTMLButtonElement>('button[type="submit"]');
+          submitBtn?.click();
+        }
+      }
+      // Escape → close refinement / bible panel
+      if (e.key === 'Escape') {
+        if (refiningIndex !== null) {
+          cancelRefine();
+        } else if (showBible) {
+          setShowBible(false);
+        } else if (showBatchMenu) {
+          setShowBatchMenu(false);
+        }
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [loading, input, refiningIndex, showBible, showBatchMenu]);
+
   const refreshHistory = async () => {
     setHistoryLoading(true);
     setHistoryError('');
