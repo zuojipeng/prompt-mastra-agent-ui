@@ -196,7 +196,23 @@ export function ChatBox() {
       setSessionInfo(getSessionInfo());
       await refreshHistory();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '优化失败，请重试');
+      const msg = err instanceof Error ? err.message : '优化失败，请重试';
+      // Auto-retry: format error with multi-shot → retry as single shot
+      if (msg.includes('格式异常') && shotCount > 1) {
+        setError(msg + '，正在重试...');
+        const singleOpts = { ...options, shotCount: 1 };
+        try {
+          const optimization = await optimizePrompt(input, singleOpts);
+          setResult(optimization);
+          setSessionInfo(getSessionInfo());
+          await refreshHistory();
+          return;
+        } catch (retryErr) {
+          setError(retryErr instanceof Error ? retryErr.message : '重试失败，请稍后再试');
+          return;
+        }
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

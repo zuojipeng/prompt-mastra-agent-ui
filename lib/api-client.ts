@@ -287,6 +287,10 @@ export async function optimizePrompt(
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => '');
+    const isFormatError = response.status === 502 && errorText.includes('模型返回格式无效');
+    if (isFormatError) {
+      throw new Error('生成格式异常，已自动切换为单镜头模式重试');
+    }
     throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
   }
 
