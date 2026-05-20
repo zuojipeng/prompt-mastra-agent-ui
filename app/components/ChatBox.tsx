@@ -20,6 +20,15 @@ const STYLES = [
 ];
 
 const SHOT_COUNTS = [1, 3, 5];
+const MAX_INPUT_LENGTH = 2000;
+
+function validateInput(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return '请输入视频创意';
+  if (trimmed.length > MAX_INPUT_LENGTH)
+    return `输入内容过长（最多 ${MAX_INPUT_LENGTH} 字）`;
+  return null;
+}
 
 const PLATFORM_TARGETS = [
   { id: 'xyq', label: '小云雀 (AI视频)', icon: '🎬' },
@@ -69,6 +78,12 @@ export function ChatBox() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
+  const [lastInput, setLastInput] = useState('');
+  const [lastOptions, setLastOptions] = useState<{
+    style?: string;
+    shotCount?: number;
+    projectBible?: ProjectBible;
+  }>({});
 
   useEffect(() => {
     setSessionInfo(getSessionInfo());
@@ -90,8 +105,10 @@ export function ChatBox() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) {
-      setError('请输入提示词');
+
+    const validationError = validateInput(input);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -99,12 +116,16 @@ export function ChatBox() {
     setError('');
     setResult(null);
 
+    const options = {
+      ...(style ? { style } : {}),
+      ...(shotCount > 1 ? { shotCount } : {}),
+      ...(hasBibleValues(projectBible) ? { projectBible } : {}),
+    };
+    setLastInput(input);
+    setLastOptions(options);
+
     try {
-      const optimization = await optimizePrompt(input, {
-        ...(style ? { style } : {}),
-        ...(shotCount > 1 ? { shotCount } : {}),
-        ...(hasBibleValues(projectBible) ? { projectBible } : {}),
-      });
+      const optimization = await optimizePrompt(input, options);
       setResult(optimization);
       setSessionInfo(getSessionInfo());
       await refreshHistory();
@@ -112,6 +133,24 @@ export function ChatBox() {
       setError(err instanceof Error ? err.message : '优化失败，请重试');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (lastInput) {
+      setLoading(true);
+      setError('');
+
+      optimizePrompt(lastInput, lastOptions)
+        .then((optimization) => {
+          setResult(optimization);
+          setSessionInfo(getSessionInfo());
+          refreshHistory();
+        })
+        .catch((err) => {
+          setError(err instanceof Error ? err.message : '重试失败，请稍后再试');
+        })
+        .finally(() => setLoading(false));
     }
   };
 
@@ -363,12 +402,35 @@ export function ChatBox() {
             placeholder="例如：雨夜街头，一个女孩停在霓虹招牌下，听见身后脚步声后缓慢回头..."
             className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             disabled={loading}
+            maxLength={MAX_INPUT_LENGTH + 100}
           />
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-400">
+              {input.length > 0
+                ? `${input.length}/${MAX_INPUT_LENGTH}`
+                : `最多 ${MAX_INPUT_LENGTH} 字`}
+            </span>
+            {input.length > MAX_INPUT_LENGTH && (
+              <span className="text-xs text-red-500 font-medium">
+                超出 {input.length - MAX_INPUT_LENGTH} 字
+              </span>
+            )}
+          </div>
         </div>
 
         {error && (
-          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
+            <p className="text-sm text-red-600 dark:text-red-400 flex-1">{error}</p>
+            {lastInput && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                disabled={loading}
+                className="text-xs px-3 py-1.5 rounded-md font-medium bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-800/50 transition-colors shrink-0"
+              >
+                重试
+              </button>
+            )}
           </div>
         )}
 
@@ -380,6 +442,21 @@ export function ChatBox() {
           {loading ? '生成中...' : '生成提示词'}
         </button>
       </form>
+
+      {/* Skeleton loading cards */}
+      {loading && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              生成中
+            </h2>
+            <span className="inline-block w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+          {Array.from({ length: shotCount }, (_, i) => (
+            <SkeletonCard key={i} index={i} />
+          ))}
+        </div>
+      )}
 
       {/* Prompt cards */}
       {prompts.length > 0 && (
@@ -689,5 +766,25 @@ function HistoryPanel({
         </div>
       )}
     </section>
+  );
+}
+
+function SkeletonCard({ index }: { index: number }) {
+  return (
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3 animate-pulse">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="flex gap-2">
+          <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6" />
+      </div>
+    </div>
   );
 }
