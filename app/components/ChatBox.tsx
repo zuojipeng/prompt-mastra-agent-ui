@@ -197,21 +197,29 @@ export function ChatBox() {
       await refreshHistory();
     } catch (err) {
       const msg = err instanceof Error ? err.message : '优化失败，请重试';
-      // Auto-retry: format error with multi-shot → retry as single shot
-      if (msg.includes('格式异常') && shotCount > 1) {
-        setError(msg + '，正在重试...');
-        const singleOpts = { ...options, shotCount: 1 };
-        try {
-          const optimization = await optimizePrompt(input, singleOpts);
-          setResult(optimization);
-          setSessionInfo(getSessionInfo());
-          await refreshHistory();
-          return;
-        } catch (retryErr) {
-          setError(retryErr instanceof Error ? retryErr.message : '重试失败，请稍后再试');
-          return;
+
+      // Auto-retry on format errors: try up to 3 times with fallbacks
+      if (msg.includes('格式异常')) {
+        const fallbacks = [
+          { ...options, shotCount: 1 },          // attempt 1: single shot
+          { ...options, shotCount: 1, style: '' }, // attempt 2: single + no style
+        ];
+        let lastError = msg;
+        for (const fallbackOpts of fallbacks) {
+          try {
+            const optimization = await optimizePrompt(input, fallbackOpts);
+            setResult(optimization);
+            setSessionInfo(getSessionInfo());
+            await refreshHistory();
+            return;
+          } catch (retryErr) {
+            lastError = retryErr instanceof Error ? retryErr.message : '重试失败';
+          }
         }
+        setError(`生成服务暂时不稳定，请稍后重试。${lastError}`);
+        return;
       }
+
       setError(msg);
     } finally {
       setLoading(false);
