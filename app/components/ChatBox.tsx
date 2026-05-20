@@ -40,6 +40,68 @@ const PLATFORM_TARGETS = [
   { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋' },
 ] as const;
 
+const PROMPT_TEMPLATES = [
+  {
+    label: '🌧 雨中叙事',
+    prompt: '雨夜街头，一个女孩停在霓虹招牌下，听见身后脚步声后缓慢回头',
+    style: 'wong-kar-wai',
+    shots: 3,
+  },
+  {
+    label: '🏮 古风武侠',
+    prompt: '竹林深处，一名白衣剑客立于风中，衣袂翻飞，剑尖指向远方的落日',
+    style: 'epic',
+    shots: 3,
+  },
+  {
+    label: '🌃 赛博都市',
+    prompt: '未来都市夜景，全息广告牌闪烁，一个穿雨衣的身影走在湿漉漉的天桥上',
+    style: 'cyberpunk',
+    shots: 3,
+  },
+  {
+    label: '🏜 西部荒漠',
+    prompt: '黄昏的荒漠小镇，一名牛仔策马而来，风滚草从马蹄前滚过',
+    style: 'epic',
+    shots: 1,
+  },
+  {
+    label: '🎭 韦斯·安德森',
+    prompt: '对称构图的酒店大堂，一个穿粉色套装的女孩在红色电话亭前打电话',
+    style: 'wes-anderson',
+    shots: 3,
+  },
+  {
+    label: '🍜 美食诱惑',
+    prompt: '深夜路边摊，一锅热气腾腾的拉面被端上桌，蒸汽与霓虹灯交织',
+    style: '',
+    shots: 1,
+  },
+] as const;
+
+function formatForPlatform(platform: string, text: string): string {
+  switch (platform) {
+    case 'xyq':
+      return text;
+    case 'seedance':
+      return `【中文提示词】${text}\n【翻译】${text.slice(0, 200)}`;
+    case 'kling':
+      return `Cinematic shot: ${text.slice(0, 300)}. 4K cinematic quality, professional lighting.`;
+    case 'runway':
+    case 'pika':
+    case 'sora':
+      return text;
+    case 'clipboard_json':
+      return JSON.stringify(
+        { platform: 'video-prompt', prompts: [text], timestamp: Date.now() },
+        null,
+        2,
+      );
+    default:
+      return text;
+  }
+}
+
 function hasBibleValues(bible: ProjectBible): boolean {
   return !!(
     bible.protagonist ||
@@ -73,6 +135,8 @@ export function ChatBox() {
   const [refiningLoading, setRefiningLoading] = useState(false);
   const [refiningError, setRefiningError] = useState('');
   const [showBible, setShowBible] = useState(false);
+  const [showBatchMenu, setShowBatchMenu] = useState(false);
+  const batchExportRef = useRef<HTMLDivElement>(null);
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -154,6 +218,19 @@ export function ChatBox() {
     }
   };
 
+  // Close batch menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (batchExportRef.current && !batchExportRef.current.contains(e.target as Node)) {
+        setShowBatchMenu(false);
+      }
+    };
+    if (showBatchMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showBatchMenu]);
+
   const handleNewSession = () => {
     createNewSession();
     setSessionInfo(getSessionInfo());
@@ -221,6 +298,28 @@ export function ChatBox() {
         break;
       }
     }
+  };
+
+  const handleApplyTemplate = (template: (typeof PROMPT_TEMPLATES)[number]) => {
+    setInput(template.prompt);
+    setStyle(template.style);
+    setShotCount(template.shots);
+    setError('');
+    setShowBible(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBatchExport = (platform: string) => {
+    if (!prompts.length) return;
+    const formatted = prompts
+      .map((prompt, i) => {
+        const platformText = formatForPlatform(platform, prompt);
+        return `【镜头 ${i + 1}】\n${platformText}`;
+      })
+      .join('\n\n---\n\n');
+    navigator.clipboard.writeText(formatted);
+    setCopiedIndex(-1);
+    window.setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   const startRefine = (index: number) => {
@@ -418,6 +517,25 @@ export function ChatBox() {
           </div>
         </div>
 
+        {/* Template chips — quick-start ideas */}
+        {!input && !result && !loading && (
+          <div>
+            <p className="text-xs text-gray-400 mb-2">快速开始：选择一个模板</p>
+            <div className="flex flex-wrap gap-2">
+              {PROMPT_TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.label}
+                  type="button"
+                  onClick={() => handleApplyTemplate(tmpl)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 hover:shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all"
+                >
+                  {tmpl.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
             <p className="text-sm text-red-600 dark:text-red-400 flex-1">{error}</p>
@@ -466,6 +584,33 @@ export function ChatBox() {
               生成结果
             </h2>
             <span className="text-xs text-gray-400">{prompts.length} 个镜头</span>
+            <div className="ml-auto relative" ref={batchExportRef}>
+              <button
+                type="button"
+                onClick={() => setShowBatchMenu(!showBatchMenu)}
+                className="text-xs px-3 py-1.5 rounded-md font-medium bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:hover:bg-orange-800/50 transition-colors flex items-center gap-1"
+              >
+                📦 批量导出 ▼
+              </button>
+              {showBatchMenu && (
+                <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
+                  {PLATFORM_TARGETS.filter((p) => p.id !== 'clipboard_json').map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => {
+                        handleBatchExport(p.id);
+                        setShowBatchMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <span className="mr-1.5">{p.icon}</span>
+                      全部导出到 {p.label.replace(/\(.*?\)/, '').trim()}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           {prompts.map((prompt, index) => (
             <PromptCard
