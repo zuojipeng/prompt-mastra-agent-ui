@@ -137,6 +137,8 @@ export function ChatBox() {
   const [showBible, setShowBible] = useState(false);
   const [showBatchMenu, setShowBatchMenu] = useState(false);
   const batchExportRef = useRef<HTMLDivElement>(null);
+  const [shotHistory, setShotHistory] = useState<Record<number, string[]>>({});
+  const [showPrevVersion, setShowPrevVersion] = useState<Record<number, boolean>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -357,6 +359,16 @@ export function ChatBox() {
 
       // Replace the refined shot in the prompts array
       const updatedPrompts = [...prompts];
+      const prevText = updatedPrompts[index];
+
+      // Save to history before replacing
+      setShotHistory((prev) => ({
+        ...prev,
+        [index]: [...(prev[index] ?? []), prevText],
+      }));
+      // Hide previous version view on new refinement
+      setShowPrevVersion((prev) => ({ ...prev, [index]: false }));
+
       updatedPrompts[index] = refinementResult.prompts?.[0] ?? refinementResult.fullPrompt;
       if (!updatedPrompts[index]) {
         throw new Error('优化结果为空');
@@ -629,6 +641,24 @@ export function ChatBox() {
               onRefineInputChange={setRefineInput}
               onSubmitRefine={() => submitRefine(index)}
               onPlatformExport={handlePlatformExport}
+              hasHistory={!!shotHistory[index]?.length}
+              showPrev={!!showPrevVersion[index]}
+              onTogglePrev={() =>
+                setShowPrevVersion((prev) => ({ ...prev, [index]: !prev[index] }))
+              }
+              prevText={showPrevVersion[index] ? shotHistory[index]?.at(-1) ?? null : null}
+              onRevert={() => {
+                const prevVersions = shotHistory[index];
+                if (!prevVersions?.length) return;
+                const prevText = prevVersions.pop()!;
+                setShotHistory((h) => ({ ...h, [index]: [...prevVersions] }));
+                setResult((r) => {
+                  if (!r) return r;
+                  const newPrompts = [...(r.prompts ?? [r.fullPrompt])];
+                  newPrompts[index] = prevText;
+                  return { ...r, prompts: newPrompts, fullPrompt: newPrompts[0] };
+                });
+              }}
             />
           ))}
         </div>
@@ -665,6 +695,11 @@ function PromptCard({
   onRefineInputChange,
   onSubmitRefine,
   onPlatformExport,
+  hasHistory,
+  showPrev,
+  onTogglePrev,
+  prevText,
+  onRevert,
 }: {
   index: number;
   text: string;
@@ -680,6 +715,11 @@ function PromptCard({
   onRefineInputChange: (value: string) => void;
   onSubmitRefine: () => void;
   onPlatformExport: (platform: string, text: string) => void;
+  hasHistory: boolean;
+  showPrev: boolean;
+  onTogglePrev: () => void;
+  prevText: string | null;
+  onRevert: () => void;
 }) {
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
   const platformMenuRef = useRef<HTMLDivElement>(null);
@@ -750,6 +790,19 @@ function PromptCard({
               </div>
             )}
           </div>
+          {!isRefining && hasHistory && (
+            <button
+              type="button"
+              onClick={onTogglePrev}
+              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+                showPrev
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 ring-1 ring-amber-300 dark:ring-amber-700'
+                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40'
+              }`}
+            >
+              查看原版
+            </button>
+          )}
           {!isRefining && (
             <button
               type="button"
@@ -764,6 +817,32 @@ function PromptCard({
       <p className="text-base sm:text-lg leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
         {text}
       </p>
+      {showPrev && prevText && (
+        <div className="space-y-2 pt-2 border-t border-amber-200 dark:border-amber-800/40">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded">
+              原版对比
+            </span>
+            <button
+              type="button"
+              onClick={onRevert}
+              className="text-xs px-2 py-0.5 rounded font-medium text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
+            >
+              恢复到此版本
+            </button>
+          </div>
+          <div className="rounded-lg border border-amber-200 dark:border-amber-800/40 bg-amber-50/50 dark:bg-amber-950/20 p-3">
+            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words line-through opacity-70">
+              {prevText}
+            </p>
+          </div>
+          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-3">
+            <p className="text-sm leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
+              {text}
+            </p>
+          </div>
+        </div>
+      )}
       {isRefining && (
         <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div>
