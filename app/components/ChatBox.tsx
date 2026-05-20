@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   fetchPromptHistory,
   HistoryRecord,
   optimizePrompt,
   OptimizationResult,
+  ProjectBible,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
+import { ProjectBiblePanel } from './ProjectBiblePanel';
 
 const STYLES = [
   { id: '', label: '默认' },
@@ -18,6 +20,28 @@ const STYLES = [
 ];
 
 const SHOT_COUNTS = [1, 3, 5];
+
+const PLATFORM_TARGETS = [
+  { id: 'xyq', label: '小云雀 (AI视频)', icon: '🎬' },
+  { id: 'seedance', label: 'Seedance', icon: '🎞' },
+  { id: 'kling', label: '可灵 Kling', icon: '🎥' },
+  { id: 'runway', label: 'Runway Gen-3', icon: '🎬' },
+  { id: 'pika', label: 'Pika', icon: '✨' },
+  { id: 'sora', label: 'OpenAI Sora', icon: '🤖' },
+  { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋' },
+] as const;
+
+function hasBibleValues(bible: ProjectBible): boolean {
+  return !!(
+    bible.protagonist ||
+    bible.mission ||
+    bible.world ||
+    bible.lookAndFeel ||
+    bible.shotIntent ||
+    (bible.visualSymbols && bible.visualSymbols.length > 0) ||
+    (bible.continuityRules && bible.continuityRules.length > 0)
+  );
+}
 
 type SessionInfo = ReturnType<typeof getSessionInfo>;
 
@@ -39,6 +63,8 @@ export function ChatBox() {
   const [refineInput, setRefineInput] = useState('');
   const [refiningLoading, setRefiningLoading] = useState(false);
   const [refiningError, setRefiningError] = useState('');
+  const [showBible, setShowBible] = useState(false);
+  const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
@@ -77,6 +103,7 @@ export function ChatBox() {
       const optimization = await optimizePrompt(input, {
         ...(style ? { style } : {}),
         ...(shotCount > 1 ? { shotCount } : {}),
+        ...(hasBibleValues(projectBible) ? { projectBible } : {}),
       });
       setResult(optimization);
       setSessionInfo(getSessionInfo());
@@ -113,6 +140,48 @@ export function ChatBox() {
   const openInXiaoYunQue = (text: string) => {
     const encoded = encodeURIComponent(text);
     window.open(`https://xyq.jianying.com/?prompt=${encoded}`, '_blank');
+  };
+
+  const handlePlatformExport = (platform: string, text: string) => {
+    switch (platform) {
+      case 'xyq':
+        openInXiaoYunQue(text);
+        break;
+      case 'seedance': {
+        const seedanceText = `【中文提示词】${text}\n【翻译】${text.slice(0, 200)}`;
+        navigator.clipboard.writeText(seedanceText);
+        setCopiedIndex(-1);
+        window.setTimeout(() => setCopiedIndex(null), 2000);
+        break;
+      }
+      case 'kling': {
+        const klingPrompt = `Cinematic shot, ${text.slice(0, 300)}. 4K, high quality, cinematic lighting.`;
+        navigator.clipboard.writeText(klingPrompt);
+        setCopiedIndex(-1);
+        window.setTimeout(() => setCopiedIndex(null), 2000);
+        break;
+      }
+      case 'runway':
+      case 'pika':
+      case 'sora': {
+        // Open text+prompt preparation page
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(-1);
+        window.setTimeout(() => setCopiedIndex(null), 2000);
+        break;
+      }
+      case 'clipboard_json': {
+        const jsonBlob = JSON.stringify(
+          { platform: 'video-prompt', shotIndex: -1, prompt: text, timestamp: Date.now() },
+          null,
+          2,
+        );
+        navigator.clipboard.writeText(jsonBlob);
+        setCopiedIndex(-1);
+        window.setTimeout(() => setCopiedIndex(null), 2000);
+        break;
+      }
+    }
   };
 
   const startRefine = (index: number) => {
@@ -268,7 +337,21 @@ export function ChatBox() {
               {n} 镜
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setShowBible(!showBible)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+              showBible || hasBibleValues(projectBible)
+                ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-300 dark:ring-indigo-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          >
+            {hasBibleValues(projectBible) ? '📖 导演模式 ✓' : '📖 导演模式'}
+          </button>
         </div>
+        {showBible && (
+          <ProjectBiblePanel bible={projectBible} onChange={setProjectBible} />
+        )}
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             输入你的视频创意
@@ -323,6 +406,7 @@ export function ChatBox() {
               onCancelRefine={cancelRefine}
               onRefineInputChange={setRefineInput}
               onSubmitRefine={() => submitRefine(index)}
+              onPlatformExport={handlePlatformExport}
             />
           ))}
         </div>
@@ -358,6 +442,7 @@ function PromptCard({
   onCancelRefine,
   onRefineInputChange,
   onSubmitRefine,
+  onPlatformExport,
 }: {
   index: number;
   text: string;
@@ -372,7 +457,24 @@ function PromptCard({
   onCancelRefine: () => void;
   onRefineInputChange: (value: string) => void;
   onSubmitRefine: () => void;
+  onPlatformExport: (platform: string, text: string) => void;
 }) {
+  const [showPlatformMenu, setShowPlatformMenu] = useState(false);
+  const platformMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (platformMenuRef.current && !platformMenuRef.current.contains(e.target as Node)) {
+        setShowPlatformMenu(false);
+      }
+    };
+    if (showPlatformMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPlatformMenu]);
+
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -398,6 +500,34 @@ function PromptCard({
           >
             在小云雀打开
           </button>
+          {/* Platform export dropdown */}
+          <div className="relative" ref={platformMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowPlatformMenu(!showPlatformMenu)}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-orange-50 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+            >
+              导出到 ▼
+            </button>
+            {showPlatformMenu && (
+              <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
+                {PLATFORM_TARGETS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      onPlatformExport(p.id, text);
+                      setShowPlatformMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <span className="mr-1.5">{p.icon}</span>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {!isRefining && (
             <button
               type="button"
