@@ -46,12 +46,20 @@
 
 ## 待完成
 
-### P1 (继续)
-- 骨架屏加载状态（skeleton loading for prompt cards）
-- 生成失败时的重试按钮
-- 输入校验强化（空输入、超长输入）
+### P1 UX (继续)
+- 骨架屏加载状态（skeleton loading for prompt cards）✅
+- 生成失败时的重试按钮 ✅
+- 输入校验强化（空输入、超长输入、字符计数器）✅
 
-### P2
-- 单元测试（API client、Session manager）
-- E2E smoke test 更新
-- 技术债务：类型安全统一、代码注释
+### P2 测试体系 ✅
+- **单元测试**：vitest 框架安装 + 2 个测试文件
+  - `session-manager.test.ts`：12 个测试，覆盖 getUserId/createNewSession/getSessionInfo 等全部 7 个函数
+  - `api-client.test.ts`：17 个测试，覆盖 normalizeTimeline/normalizePrompts/parseAssistantResult 等 6 个纯函数
+  - 全部 29 个测试通过
+- **Smoke test** 重写：4 阶段检查（HTML静态内容 → JS特性 → 包大小 → 无 localhost 泄露）
+- **npm scripts**：`npm test`（vitest）、`npm run test:all`（vitest + smoke）
+
+### P2 技术债务 ✅
+- 修复测试文件中 `unknown` 类型转换的 tsc 错误
+- vitest.config.ts 配置 alias（`@` → 根目录）
+
