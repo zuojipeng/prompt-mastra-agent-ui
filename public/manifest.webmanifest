@@ -1,0 +1,17 @@
+{
+  "name": "镜词 · AI 视频提示词工坊",
+  "short_name": "镜词",
+  "description": "输入创意，秒出专业中文画面描述。多镜头叙事、导演模式、一键导出到各大 AI 视频平台。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#059669",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
