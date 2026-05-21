@@ -41,6 +41,33 @@ const PLATFORM_TARGETS = [
   { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋', url: null },
 ] as const;
 
+const FEEDBACK_KEY = 'prompt-feedback';
+
+interface PromptFeedback {
+  id: string;
+  timestamp: number;
+  input: string;
+  prompt: string;
+  shotIndex: number;
+  rating: 'like' | 'dislike' | null;
+  comment: string;
+}
+
+function loadFeedback(): PromptFeedback[] {
+  try {
+    const raw = localStorage.getItem(FEEDBACK_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveFeedback(feedback: PromptFeedback[]) {
+  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(feedback)); } catch {}
+}
+
+function generateFeedbackId(): string {
+  return `fb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 const PROMPT_TEMPLATES = [
   {
     label: '🌧 雨中叙事',
@@ -141,6 +168,9 @@ export function ChatBox() {
   const batchExportRef = useRef<HTMLDivElement>(null);
   const [shotHistory, setShotHistory] = useState<Record<number, string[]>>({});
   const [showPrevVersion, setShowPrevVersion] = useState<Record<number, boolean>>({});
+  const [feedback, setFeedback] = useState<PromptFeedback[]>(loadFeedback);
+  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
+  const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -408,6 +438,47 @@ export function ChatBox() {
     window.setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleFeedback = (shotIndex: number, promptText: string, rating: 'like' | 'dislike') => {
+    const existing = feedback.find((f) => f.prompt === promptText && f.shotIndex === shotIndex);
+    if (existing) {
+      if (existing.rating === rating) {
+        const updated = feedback.map((f) =>
+          f.id === existing.id ? { ...f, rating: null as null } : f,
+        );
+        setFeedback(updated);
+        saveFeedback(updated);
+      } else {
+        const updated = feedback.map((f) =>
+          f.id === existing.id ? { ...f, rating } : f,
+        );
+        setFeedback(updated);
+        saveFeedback(updated);
+      }
+    } else {
+      const newEntry: PromptFeedback = {
+        id: generateFeedbackId(),
+        timestamp: Date.now(),
+        input,
+        prompt: promptText,
+        shotIndex,
+        rating,
+        comment: '',
+      };
+      const updated = [...feedback, newEntry];
+      setFeedback(updated);
+      saveFeedback(updated);
+    }
+  };
+
+  const handleFeedbackComment = (id: string, comment: string) => {
+    const updated = feedback.map((f) => (f.id === id ? { ...f, comment } : f));
+    setFeedback(updated);
+    saveFeedback(updated);
+  };
+
+  const getFeedbackFor = (promptText: string, shotIdx: number): 'like' | 'dislike' | null =>
+    feedback.find((f) => f.prompt === promptText && f.shotIndex === shotIdx)?.rating ?? null;
+
   const startRefine = (index: number) => {
     setRefiningIndex(index);
     setRefineInput('');
@@ -504,6 +575,19 @@ export function ChatBox() {
             className="px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors text-xs font-medium"
           >
             新建创作
+          </button>
+        )}
+        {feedback.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowFeedbackPanel(!showFeedbackPanel)}
+            className={`px-3 py-1.5 rounded-md transition-colors text-xs font-medium ${
+              showFeedbackPanel
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          >
+            📊 反馈 ({feedback.length})
           </button>
         )}
       </div>
@@ -749,6 +833,8 @@ export function ChatBox() {
                   return { ...r, prompts: newPrompts, fullPrompt: newPrompts[0] };
                 });
               }}
+              feedbackRating={getFeedbackFor(prompt, index)}
+              onFeedback={(rating) => handleFeedback(index, prompt, rating)}
             />
           ))}
         </div>
@@ -766,6 +852,71 @@ export function ChatBox() {
           window.setTimeout(() => setCopiedIndex(null), 2000);
         }}
       />
+
+      {/* Feedback panel */}
+      {showFeedbackPanel && feedback.length > 0 && (
+        <section className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-amber-800 dark:text-amber-200">
+              📊 你的反馈
+            </h2>
+            <span className="text-xs text-amber-500 dark:text-amber-400">
+              {feedback.filter((f) => f.rating === 'like').length} 👍{' '}
+              {feedback.filter((f) => f.rating === 'dislike').length} 👎
+            </span>
+          </div>
+          <div className="grid gap-2 max-h-80 overflow-y-auto">
+            {[...feedback].reverse().map((fb) => (
+              <div
+                key={fb.id}
+                className="rounded-lg border border-amber-200/60 dark:border-amber-800/30 bg-white dark:bg-gray-900 p-3 space-y-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-gray-500">
+                    {new Date(fb.timestamp).toLocaleString('zh-CN', {
+                      month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </span>
+                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                    fb.rating === 'like'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                  }`}>
+                    {fb.rating === 'like' ? '👍 满意' : '👎 不满意'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                  创意: {fb.input}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
+                  提示词: {fb.prompt}
+                </p>
+                <div className="flex gap-2 items-center mt-1">
+                  <input
+                    type="text"
+                    value={feedbackComment[fb.id] ?? fb.comment}
+                    onChange={(e) => {
+                      setFeedbackComment((prev) => ({ ...prev, [fb.id]: e.target.value }));
+                    }}
+                    onBlur={() => {
+                      const val = feedbackComment[fb.id]?.trim();
+                      if (val !== undefined) handleFeedbackComment(fb.id, val);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = (e.target as HTMLInputElement).value.trim();
+                        handleFeedbackComment(fb.id, val);
+                      }
+                    }}
+                    placeholder="有什么建议？告诉我们哪里不够好..."
+                    className="flex-1 px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-amber-500 placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -790,6 +941,8 @@ function PromptCard({
   onTogglePrev,
   prevText,
   onRevert,
+  feedbackRating,
+  onFeedback,
 }: {
   index: number;
   text: string;
@@ -810,6 +963,8 @@ function PromptCard({
   onTogglePrev: () => void;
   prevText: string | null;
   onRevert: () => void;
+  feedbackRating: 'like' | 'dislike' | null;
+  onFeedback: (rating: 'like' | 'dislike') => void;
 }) {
   const [showPlatformMenu, setShowPlatformMenu] = useState(false);
   const platformMenuRef = useRef<HTMLDivElement>(null);
@@ -907,6 +1062,40 @@ function PromptCard({
       <p className="text-base sm:text-lg leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
         {text}
       </p>
+
+      {/* Feedback: like/dislike */}
+      <div className="flex items-center gap-1.5 pt-1">
+        <button
+          type="button"
+          onClick={() => onFeedback('like')}
+          className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
+            feedbackRating === 'like'
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+              : 'text-gray-400 hover:text-emerald-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+          }`}
+          title="生成效果好"
+        >
+          👍 {feedbackRating === 'like' && <span className="ml-0.5 text-[10px] opacity-70">已赞</span>}
+        </button>
+        <button
+          type="button"
+          onClick={() => onFeedback('dislike')}
+          className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
+            feedbackRating === 'dislike'
+              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+              : 'text-gray-400 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+          }`}
+          title="生成效果不好"
+        >
+          👎 {feedbackRating === 'dislike' && <span className="ml-0.5 text-[10px] opacity-70">已踩</span>}
+        </button>
+        {feedbackRating && (
+          <span className="text-[10px] text-gray-400 ml-1">
+            你的反馈帮助我们改进
+          </span>
+        )}
+      </div>
+
       {showPrev && prevText && (
         <div className="space-y-2 pt-2 border-t border-amber-200 dark:border-amber-800/40">
           <div className="flex items-center gap-2">
