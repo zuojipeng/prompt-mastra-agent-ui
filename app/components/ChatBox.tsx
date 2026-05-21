@@ -32,13 +32,13 @@ function validateInput(input: string): string | null {
 }
 
 const PLATFORM_TARGETS = [
-  { id: 'xyq', label: '小云雀 (AI视频)', icon: '🎬' },
-  { id: 'seedance', label: 'Seedance', icon: '🎞' },
-  { id: 'kling', label: '可灵 Kling', icon: '🎥' },
-  { id: 'runway', label: 'Runway Gen-3', icon: '🎬' },
-  { id: 'pika', label: 'Pika', icon: '✨' },
-  { id: 'sora', label: 'OpenAI Sora', icon: '🤖' },
-  { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋' },
+  { id: 'xyq', label: '小云雀 (AI视频)', icon: '🎬', url: 'https://xyq.jianying.com' },
+  { id: 'seedance', label: 'Seedance', icon: '🎞', url: 'https://seedance.cn/create' },
+  { id: 'kling', label: '可灵 Kling', icon: '🎥', url: 'https://klingai.com/create' },
+  { id: 'runway', label: 'Runway Gen-3', icon: '🎬', url: 'https://app.runwayml.com/create' },
+  { id: 'pika', label: 'Pika', icon: '✨', url: 'https://pika.art/create' },
+  { id: 'sora', label: 'OpenAI Sora', icon: '🤖', url: 'https://sora.com/create' },
+  { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋', url: null },
 ] as const;
 
 const PROMPT_TEMPLATES = [
@@ -136,6 +136,7 @@ export function ChatBox() {
   const [refiningLoading, setRefiningLoading] = useState(false);
   const [refiningError, setRefiningError] = useState('');
   const [showBible, setShowBible] = useState(false);
+  const [smartExtractLoading, setSmartExtractLoading] = useState(false);
   const [showBatchMenu, setShowBatchMenu] = useState(false);
   const batchExportRef = useRef<HTMLDivElement>(null);
   const [shotHistory, setShotHistory] = useState<Record<number, string[]>>({});
@@ -315,29 +316,23 @@ export function ChatBox() {
   };
 
   const handlePlatformExport = (platform: string, text: string) => {
+    const target = PLATFORM_TARGETS.find((p) => p.id === platform);
+    const openInNewTab = (url: string) => window.open(url, '_blank', 'noopener');
+
     switch (platform) {
-      case 'xyq':
-        openInXiaoYunQue(text);
-        break;
-      case 'seedance': {
-        const seedanceText = `【中文提示词】${text}\n【翻译】${text.slice(0, 200)}`;
-        navigator.clipboard.writeText(seedanceText);
-        setCopiedIndex(-1);
-        window.setTimeout(() => setCopiedIndex(null), 2000);
+      case 'xyq': {
+        const encoded = encodeURIComponent(text);
+        openInNewTab(`https://xyq.jianying.com/?prompt=${encoded}`);
         break;
       }
-      case 'kling': {
-        const klingPrompt = `Cinematic shot, ${text.slice(0, 300)}. 4K, high quality, cinematic lighting.`;
-        navigator.clipboard.writeText(klingPrompt);
-        setCopiedIndex(-1);
-        window.setTimeout(() => setCopiedIndex(null), 2000);
-        break;
-      }
+      case 'seedance':
+      case 'kling':
       case 'runway':
       case 'pika':
       case 'sora': {
-        // Open text+prompt preparation page
+        // Copy text first, then open platform page
         navigator.clipboard.writeText(text);
+        if (target?.url) openInNewTab(target.url);
         setCopiedIndex(-1);
         window.setTimeout(() => setCopiedIndex(null), 2000);
         break;
@@ -363,6 +358,41 @@ export function ChatBox() {
     setError('');
     setShowBible(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSmartExtract = async () => {
+    if (!input.trim()) return;
+    setSmartExtractLoading(true);
+    try {
+      const result = await optimizePrompt(
+        `请从以下创意中提取导演模式信息，返回JSON格式：\n${input.trim()}\n\n格式：{"protagonist":"...","mission":"...","world":"...","lookAndFeel":"...","shotIntent":"...","visualSymbols":["..."],"continuityRules":["..."]}\n只输出JSON，不要Markdown。`,
+        {},
+      );
+      const text = result.fullPrompt || result.prompts?.[0] || '';
+      const jsonMatch = text.match(/\{[\s\S]*"protagonist"[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setProjectBible((prev) => ({
+          ...prev,
+          protagonist: parsed.protagonist || prev.protagonist,
+          mission: parsed.mission || prev.mission,
+          world: parsed.world || prev.world,
+          lookAndFeel: parsed.lookAndFeel || prev.lookAndFeel,
+          shotIntent: parsed.shotIntent || prev.shotIntent,
+          visualSymbols: parsed.visualSymbols?.length
+            ? [...new Set([...(prev.visualSymbols ?? []), ...parsed.visualSymbols])]
+            : prev.visualSymbols,
+          continuityRules: parsed.continuityRules?.length
+            ? [...new Set([...(prev.continuityRules ?? []), ...parsed.continuityRules])]
+            : prev.continuityRules,
+        }));
+        setShowBible(true);
+      }
+    } catch {
+      // silent fail — user can still fill manually
+    } finally {
+      setSmartExtractLoading(false);
+    }
   };
 
   const handleBatchExport = (platform: string) => {
@@ -554,7 +584,13 @@ export function ChatBox() {
           </button>
         </div>
         {showBible && (
-          <ProjectBiblePanel bible={projectBible} onChange={setProjectBible} />
+          <ProjectBiblePanel
+            bible={projectBible}
+            onChange={setProjectBible}
+            onSmartExtract={handleSmartExtract}
+            smartExtractLoading={smartExtractLoading}
+            creativeInput={input}
+          />
         )}
         <div>
           <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

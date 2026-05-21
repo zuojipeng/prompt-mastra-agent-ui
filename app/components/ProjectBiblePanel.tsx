@@ -136,9 +136,15 @@ function TextField({ label, placeholder, value, onChange, multiline }: TextField
 export function ProjectBiblePanel({
   bible,
   onChange,
+  onSmartExtract,
+  smartExtractLoading,
+  creativeInput,
 }: {
   bible: ProjectBible;
   onChange: (bible: ProjectBible) => void;
+  onSmartExtract?: () => void;
+  smartExtractLoading?: boolean;
+  creativeInput?: string;
 }) {
   const [showGuide, setShowGuide] = useState(false);
   const [presets, setPresets] = useState<Preset[]>([]);
@@ -217,6 +223,20 @@ export function ProjectBiblePanel({
           <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
             📖 高级导演模式
           </span>
+          {onSmartExtract && creativeInput && (
+            <button
+              type="button"
+              onClick={onSmartExtract}
+              disabled={smartExtractLoading || !creativeInput.trim()}
+              className="text-xs px-2 py-1 rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 disabled:opacity-40 dark:bg-indigo-900/40 dark:text-indigo-300 dark:hover:bg-indigo-800/50 transition-colors flex items-center gap-1"
+            >
+              {smartExtractLoading ? (
+                <><span className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full inline-block animate-spin" /> 提取中</>
+              ) : (
+                <>✨ 智能提取</>
+              )}
+            </button>
+          )}
           {hasAnyValue && (
             <span className="text-xs text-indigo-500 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 rounded-full">
               已填 {fieldCount} 项
