@@ -2,8 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI 视频分镜 Prompt 工作台",
-  description: "为 AI 视频生成工具产出分镜时间轴、positive prompt、negative prompt 和平台适配版本",
+  title: "镜词 · AI 视频提示词工坊 | 输入创意，秒出中文画面描述",
+  description:
+    "专为中文 AI 视频创作者设计。输入一句创意，自动生成多镜头中文画面描述，支持 Seedance、小云雀、可灵 Kling、Runway、Pika、Sora 等主流平台一键导出。",
+  openGraph: {
+    title: "镜词 · AI 视频提示词工坊",
+    description:
+      "输入创意，秒出专业中文画面描述。多镜头叙事、导演模式、一键导出到各大 AI 视频平台。",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -13,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
