@@ -995,11 +995,11 @@ function PromptCard({
         <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400">
           镜头 {index + 1}
         </h3>
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2 flex-wrap">
           <button
             type="button"
             onClick={onCopy}
-            className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
+            className={`text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium transition-colors ${
               isCopied
                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
@@ -1010,9 +1010,10 @@ function PromptCard({
           <button
             type="button"
             onClick={onOpenInXYQ}
-            className="text-xs px-3 py-1.5 rounded-md font-medium bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
+            className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
           >
-            在小云雀打开
+            <span className="hidden sm:inline">在小云雀打开</span>
+            <span className="sm:hidden">小云雀</span>
           </button>
           {/* Platform export dropdown */}
           <div className="relative" ref={platformMenuRef}>

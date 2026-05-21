@@ -47,10 +47,9 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* ── Value Prop ── */}
         <div className="text-center mb-8 sm:mb-12 space-y-3 max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+          <h2 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
             输入一句话创意
-            <br className="sm:hidden" />
-            <span className="text-emerald-600 dark:text-emerald-400">
+            <span className="block sm:inline text-emerald-600 dark:text-emerald-400">
               秒出专业中文画面描述
             </span>
           </h2>
