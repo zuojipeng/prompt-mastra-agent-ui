@@ -168,7 +168,8 @@ export function ChatBox() {
   const batchExportRef = useRef<HTMLDivElement>(null);
   const [shotHistory, setShotHistory] = useState<Record<number, string[]>>({});
   const [showPrevVersion, setShowPrevVersion] = useState<Record<number, boolean>>({});
-  const [feedback, setFeedback] = useState<PromptFeedback[]>(loadFeedback);
+  const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
+  const [feedbackLoaded, setFeedbackLoaded] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
@@ -186,6 +187,12 @@ export function ChatBox() {
   useEffect(() => {
     setSessionInfo(getSessionInfo());
     refreshHistory();
+  }, []);
+
+  // Load feedback from localStorage on client only (hydration safety)
+  useEffect(() => {
+    setFeedback(loadFeedback());
+    setFeedbackLoaded(true);
   }, []);
 
   // Keyboard shortcuts
