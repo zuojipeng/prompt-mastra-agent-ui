@@ -10,6 +10,7 @@ import {
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { ProjectBiblePanel } from './ProjectBiblePanel';
+import { HistoryPanel } from './HistoryPanel';
 
 const STYLES = [
   { id: '', label: '默认' },
@@ -943,106 +944,6 @@ function PromptCard({
         </div>
       )}
     </div>
-  );
-}
-
-function HistoryPanel({
-  history,
-  loading,
-  error,
-  onRefresh,
-  onContinue,
-  onCopy,
-}: {
-  history: HistoryRecord[];
-  loading: boolean;
-  error: string;
-  onRefresh: () => void;
-  onContinue: (record: HistoryRecord) => void;
-  onCopy: (text: string, label?: string) => void;
-}) {
-  return (
-    <section className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-semibold text-gray-900 dark:text-gray-100">历史记录</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            查看最近生成记录，复制结果或带回输入区。
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={loading}
-          className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-        >
-          {loading ? '读取中...' : '刷新'}
-        </button>
-      </div>
-
-      {error && (
-        <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200">
-          {error}
-        </p>
-      )}
-
-      {!loading && history.length === 0 && !error && (
-        <p className="mt-4 rounded-md bg-gray-50 px-3 py-4 text-sm text-gray-500 dark:bg-gray-950 dark:text-gray-400">
-          当前会话还没有历史记录。生成一次提示词后，这里会显示最近结果。
-        </p>
-      )}
-
-      {history.length > 0 && (
-        <div className="mt-4 grid gap-3">
-          {history.slice(0, 5).map((record) => (
-            <article
-              key={record.timestamp}
-              className="rounded-lg border border-gray-200 p-3 dark:border-gray-800"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-gray-500">
-                    {new Date(record.timestamp).toLocaleString()}
-                  </div>
-                  <p className="mt-1 line-clamp-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {record.userPrompt || '未识别到原始输入'}
-                  </p>
-                  {record.result ? (
-                    <p className="mt-1 text-xs text-gray-500">
-                      {record.result.prompts?.length || (record.result.fullPrompt ? 1 : 0)} 条提示词
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">
-                      旧记录无法解析结构化结果
-                    </p>
-                  )}
-                </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => onContinue(record)}
-                    className="rounded-md bg-emerald-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-800"
-                  >
-                    继续
-                  </button>
-                  {record.result?.fullPrompt ? (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onCopy(record.result?.fullPrompt ?? '', '历史 Prompt')
-                      }
-                      className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                    >
-                      复制
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
   );
 }
 
