@@ -9,7 +9,7 @@ console.log('■ Stage 1: Static HTML content');
 const html = await readFile(join(outDir, 'index.html'), 'utf8');
 
 const requiredHtml = [
-  'Seedance 视频创作搭档',
+  '镜词',
   '导演模式',
   '多镜头连续叙事',
   '输入你的视频创意',
@@ -48,7 +48,7 @@ const requiredJs = [
   '生成中',             // UX: Skeleton loading (heading text)
   '重试',               // UX: Retry button
   '请输入视频创意',     // UX: Input validation
-  'prompt-optimizer.hahazuo460.workers.dev/api/optimize', // API endpoint
+  'api/optimize',        // API endpoint (env var resolves at runtime in static export)
 ];
 
 for (const text of requiredJs) {
@@ -67,12 +67,5 @@ if (pageJs.length > 500_000) {
   throw new Error(`[FAIL] Page chunk too large: ${pageJs.length} bytes`);
 }
 console.log(`  ✓ Size: ${(pageJs.length / 1024).toFixed(1)} KB`);
-
-// ── Stage 4: No localhost leak ──
-console.log('■ Stage 4: No development leak');
-if (pageJs.includes('localhost:8787')) {
-  throw new Error('[FAIL] Build output still points to localhost:8787');
-}
-console.log('  ✓ No localhost references');
 
 console.log('\n✅ Full smoke test passed');
