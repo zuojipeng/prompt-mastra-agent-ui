@@ -389,6 +389,37 @@ export async function optimizePrompt(
   throw new Error(json.error ?? '后端返回数据格式无效');
 }
 
+export async function uploadFeedback(feedback: {
+  input: string;
+  prompt: string;
+  shotIndex: number;
+  rating: 'like' | 'dislike';
+  comment?: string;
+}): Promise<void> {
+  const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
+  const userId = getUserId();
+  await fetch(apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+    body: JSON.stringify(feedback),
+  }).catch(() => {});
+}
+
+export async function fetchFeedbackStats(): Promise<{
+  total: number;
+  likes: number;
+  dislikes: number;
+  ratio: string;
+}> {
+  const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
+  const userId = getUserId();
+  try {
+    const res = await fetch(apiUrl, { headers: { 'X-User-Id': userId } });
+    const json = await res.json();
+    return json.data ?? { total: 0, likes: 0, dislikes: 0, ratio: '0' };
+  } catch { return { total: 0, likes: 0, dislikes: 0, ratio: '0' }; }
+}
+
 export async function fetchPromptHistory(): Promise<HistoryRecord[]> {
   const userId = getUserId();
   const sessionId = getSessionId();

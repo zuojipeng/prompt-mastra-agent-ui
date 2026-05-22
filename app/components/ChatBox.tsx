@@ -7,6 +7,7 @@ import {
   optimizePrompt,
   OptimizationResult,
   ProjectBible,
+  uploadFeedback,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { ProjectBiblePanel } from './ProjectBiblePanel';
@@ -460,6 +461,7 @@ export function ChatBox() {
         );
         setFeedback(updated);
         saveFeedback(updated);
+        uploadFeedback({ input, prompt: promptText, shotIndex, rating });
       }
     } else {
       const newEntry: PromptFeedback = {
@@ -474,6 +476,8 @@ export function ChatBox() {
       const updated = [...feedback, newEntry];
       setFeedback(updated);
       saveFeedback(updated);
+      // Upload to backend (fire-and-forget)
+      uploadFeedback({ input, prompt: promptText, shotIndex, rating });
     }
   };
 
@@ -569,7 +573,7 @@ export function ChatBox() {
   const prompts = result ? getPrompts(result) : [];
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
       {/* Hero */}
       <div className="text-center space-y-3">
         <p className="text-lg text-gray-600 dark:text-gray-400">
