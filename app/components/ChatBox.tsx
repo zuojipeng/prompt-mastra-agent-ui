@@ -8,6 +8,7 @@ import {
   OptimizationResult,
   ProjectBible,
   uploadFeedback,
+  fetchFeedbackStats,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { ProjectBiblePanel } from './ProjectBiblePanel';
@@ -172,6 +173,7 @@ export function ChatBox() {
   const [showPrevVersion, setShowPrevVersion] = useState<Record<number, boolean>>({});
   const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
   const [feedbackLoaded, setFeedbackLoaded] = useState(false);
+  const [cloudStats, setCloudStats] = useState<{ total: number; likes: number; dislikes: number; ratio: string } | null>(null);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
@@ -195,6 +197,8 @@ export function ChatBox() {
   useEffect(() => {
     setFeedback(loadFeedback());
     setFeedbackLoaded(true);
+    // Also fetch cloud stats
+    fetchFeedbackStats().then(setCloudStats).catch(() => {});
   }, []);
 
   // Keyboard shortcuts
@@ -852,11 +856,38 @@ export function ChatBox() {
             <h2 className="font-semibold text-amber-800 dark:text-amber-200">
               📊 你的反馈
             </h2>
-            <span className="text-xs text-amber-500 dark:text-amber-400">
-              {feedback.filter((f) => f.rating === 'like').length} 👍{' '}
-              {feedback.filter((f) => f.rating === 'dislike').length} 👎
-            </span>
+            <div className="flex items-center gap-3">
+              {cloudStats && (
+                <span className="text-[11px] text-amber-500 dark:text-amber-400">
+                  云端: {cloudStats.total} 条 · {cloudStats.ratio}% 👍
+                </span>
+              )}
+              <span className="text-xs text-amber-500 dark:text-amber-400">
+                本地: {feedback.filter((f) => f.rating === 'like').length} 👍{' '}
+                {feedback.filter((f) => f.rating === 'dislike').length} 👎
+              </span>
+            </div>
           </div>
+          {/* Satisfaction bar */}
+          {(() => {
+            const total = feedback.length;
+            const likes = feedback.filter((f) => f.rating === 'like').length;
+            const rate = total > 0 ? Math.round((likes / total) * 100) : 0;
+            return (
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                  <span>好评率</span>
+                  <span className="font-medium">{rate}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-500"
+                    style={{ width: `${rate}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid gap-2 max-h-80 overflow-y-auto">
             {[...feedback].reverse().map((fb) => (
               <div
