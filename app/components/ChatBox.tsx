@@ -164,6 +164,7 @@ export function ChatBox() {
   const [refiningLoading, setRefiningLoading] = useState(false);
   const [refiningError, setRefiningError] = useState('');
   const [showBible, setShowBible] = useState(false);
+  const [showMoreOpts, setShowMoreOpts] = useState(false);
   const [smartExtractLoading, setSmartExtractLoading] = useState(false);
   const [showBatchMenu, setShowBatchMenu] = useState(false);
   const batchExportRef = useRef<HTMLDivElement>(null);
@@ -574,110 +575,131 @@ export function ChatBox() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
-      {/* Hero */}
-      <div className="text-center space-y-3">
-        <p className="text-lg text-gray-600 dark:text-gray-400">
-          把一句创意拆成可直接复制到小云雀的中文画面描述
-        </p>
-        {sessionInfo.hasSession && (
-          <button
-            type="button"
-            onClick={handleNewSession}
-            className="px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition-colors text-xs font-medium"
-          >
-            新建创作
-          </button>
-        )}
-        {feedback.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowFeedbackPanel(!showFeedbackPanel)}
-            className={`px-3 py-1.5 rounded-md transition-colors text-xs font-medium ${
-              showFeedbackPanel
-                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-            }`}
-          >
-            📊 反馈 ({feedback.length})
-          </button>
+      {/* Hero — minimal */}
+      <div className="text-center">
+        {!result && !loading && (
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            输入创意，秒出画面描述
+          </p>
         )}
       </div>
 
       {/* Onboarding guide — shown when no results */}
       {!result && !loading && (
-        <div className="grid md:grid-cols-3 gap-3 text-sm">
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-              💡 输入你的视频创意
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              一句画面描述即可，比如雨夜街头、角色动作、情绪氛围。
-            </p>
-          </div>
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-              ✨ 秒出中文画面描述
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              自动生成可直接复制到小云雀、Seedance 的中文提示词。
-            </p>
-          </div>
-          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-              🎬 多镜头连续叙事
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              一个创意拆成 1/3/5 个连续镜头，保持角色和风格一致。
-            </p>
-          </div>
+        <div className="text-center py-8">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-1">
+            输入你的视频创意，3 秒出中文画面描述
+          </p>
+          <p className="text-[11px] text-gray-300 dark:text-gray-600">
+            可直接复制到小云雀、Seedance、可灵等平台使用
+          </p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Style + Shot Count toolbar */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <span className="text-sm text-gray-500 dark:text-gray-400">风格</span>
-          {STYLES.map((s) => (
-            <button
-              key={s.id || 'default'}
-              type="button"
-              onClick={() => setStyle(s.id)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                style === s.id
-                  ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 dark:ring-emerald-700'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">镜头</span>
-          {SHOT_COUNTS.map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setShotCount(n)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                shotCount === n
-                  ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-              }`}
-            >
-              {n} 镜
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowBible(!showBible)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-              showBible || hasBibleValues(projectBible)
-                ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-300 dark:ring-indigo-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-            }`}
-          >
-            {hasBibleValues(projectBible) ? '📖 导演模式 ✓' : '📖 导演模式'}
-          </button>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div>
+          <textarea
+            id="prompt"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="例如：雨夜街头，一个女孩回头..."
+            className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
+            disabled={loading}
+            maxLength={MAX_INPUT_LENGTH + 100}
+          />
+          <div className="flex justify-between items-center mt-1">
+            <span className="text-[11px] text-gray-400">
+              {input.length > 0
+                ? `${input.length}/${MAX_INPUT_LENGTH}`
+                : `按 Ctrl+Enter 快速提交`}
+            </span>
+            {input.length > MAX_INPUT_LENGTH && (
+              <span className="text-[11px] text-red-500 font-medium">
+                超出 {input.length - MAX_INPUT_LENGTH} 字
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Templates as inline suggestions */}
+        {!input && !result && !loading && (
+          <div className="flex flex-wrap gap-1.5">
+            <span className="text-[11px] text-gray-400 leading-6">没想法？试试</span>
+            {PROMPT_TEMPLATES.slice(0, 4).map((tmpl) => (
+              <button
+                key={tmpl.label}
+                type="button"
+                onClick={() => handleApplyTemplate(tmpl)}
+                className="text-[11px] px-2 py-0.5 rounded-full bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all"
+              >
+                {tmpl.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Advanced options — collapsed by default */}
+        {result && (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setShowMoreOpts(!showMoreOpts)}
+              className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              {showMoreOpts ? '▼' : '▶'} 更多方式
+            </button>
+            {showMoreOpts && (
+              <div className="p-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 space-y-3">
+                {/* Style + Shot count */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-gray-500">风格</span>
+                  {STYLES.map((s) => (
+                    <button
+                      key={s.id || 'default'}
+                      type="button"
+                      onClick={() => setStyle(s.id)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                        style === s.id
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                  <span className="text-[11px] text-gray-500 ml-1">镜头</span>
+                  {SHOT_COUNTS.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setShotCount(n)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                        shotCount === n
+                          ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                {/* Director mode toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowBible(!showBible)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-all ${
+                    showBible || hasBibleValues(projectBible)
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                  }`}
+                >
+                  {hasBibleValues(projectBible) ? '📖 导演模式 ✓' : '📖 导演模式'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {showBible && (
           <ProjectBiblePanel
             bible={projectBible}
@@ -686,51 +708,6 @@ export function ChatBox() {
             smartExtractLoading={smartExtractLoading}
             creativeInput={input}
           />
-        )}
-        <div>
-          <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            输入你的视频创意
-          </label>
-          <textarea
-            id="prompt"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="例如：雨夜街头，一个女孩停在霓虹招牌下，听见身后脚步声后缓慢回头..."
-            className="w-full min-h-[120px] px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
-            disabled={loading}
-            maxLength={MAX_INPUT_LENGTH + 100}
-          />
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">
-              {input.length > 0
-                ? `${input.length}/${MAX_INPUT_LENGTH}`
-                : `最多 ${MAX_INPUT_LENGTH} 字`}
-            </span>
-            {input.length > MAX_INPUT_LENGTH && (
-              <span className="text-xs text-red-500 font-medium">
-                超出 {input.length - MAX_INPUT_LENGTH} 字
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Template chips — quick-start ideas */}
-        {!input && !result && !loading && (
-          <div>
-            <p className="text-xs text-gray-400 mb-2">快速开始：选择一个模板</p>
-            <div className="flex flex-wrap gap-2">
-              {PROMPT_TEMPLATES.map((tmpl) => (
-                <button
-                  key={tmpl.label}
-                  type="button"
-                  onClick={() => handleApplyTemplate(tmpl)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-gray-50 text-gray-700 hover:bg-gray-100 hover:shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all"
-                >
-                  {tmpl.label}
-                </button>
-              ))}
-            </div>
-          </div>
         )}
 
         {error && (
@@ -752,9 +729,13 @@ export function ChatBox() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          className="w-full px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
         >
-          {loading ? '生成中...' : '生成提示词'}
+          {loading ? (
+            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> 生成中</>
+          ) : (
+            <>{result ? '✨ 再来一次' : '✨ 生成'}</>
+          )}
         </button>
       </form>
 

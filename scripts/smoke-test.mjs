@@ -11,7 +11,7 @@ const html = await readFile(join(outDir, 'index.html'), 'utf8');
 const requiredHtml = [
   '镜词',
   '导演模式',
-  '多镜头连续叙事',
+  '秒出画面描述',
   '输入你的视频创意',
   '历史记录',
 ];
