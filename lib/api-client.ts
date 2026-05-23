@@ -420,6 +420,30 @@ export async function fetchFeedbackStats(): Promise<{
   } catch { return { total: 0, likes: 0, dislikes: 0, ratio: '0' }; }
 }
 
+export async function syncUserData(payload: Record<string, unknown>): Promise<boolean> {
+  const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/user-data');
+  const userId = getUserId();
+  try {
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      body: JSON.stringify(payload),
+    });
+    return res.ok;
+  } catch { return false; }
+}
+
+export async function fetchUserData(): Promise<Record<string, unknown> | null> {
+  const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/user-data');
+  const userId = getUserId();
+  try {
+    const res = await fetch(apiUrl, { headers: { 'X-User-Id': userId } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data ?? null;
+  } catch { return null; }
+}
+
 export async function fetchPromptHistory(): Promise<HistoryRecord[]> {
   const userId = getUserId();
   const sessionId = getSessionId();

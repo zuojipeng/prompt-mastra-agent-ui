@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
+  fetchFeedbackStats,
   fetchPromptHistory,
+  fetchUserData,
   HistoryRecord,
   optimizePrompt,
   OptimizationResult,
   ProjectBible,
+  syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
@@ -173,6 +176,13 @@ export function ChatBox() {
   const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
   const [feedbackLoaded, setFeedbackLoaded] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
+  const [cloudStats, setCloudStats] = useState<{
+    total: number;
+    likes: number;
+    dislikes: number;
+    ratio: string;
+  } | null>(null);
+  const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
@@ -189,6 +199,20 @@ export function ChatBox() {
   useEffect(() => {
     setSessionInfo(getSessionInfo());
     refreshHistory();
+    fetchFeedbackStats().then(setCloudStats).catch(() => {});
+    fetchUserData()
+      .then((data) => {
+        if (data?.feedback) {
+          try {
+            const parsed = JSON.parse(data.feedback as string);
+            if (Array.isArray(parsed)) {
+              setFeedback(parsed);
+              localStorage.setItem(FEEDBACK_KEY, data.feedback as string);
+            }
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Load feedback from localStorage on client only (hydration safety)
@@ -595,6 +619,63 @@ export function ChatBox() {
           </p>
         </div>
       )}
+
+      {/* Sync button & cloud stats */}
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={async () => {
+            setSyncState('syncing');
+            try {
+              const raw = localStorage.getItem(FEEDBACK_KEY);
+              if (raw) {
+                const ok = await syncUserData({ feedback: raw });
+                setSyncState(ok ? 'done' : 'error');
+              } else {
+                setSyncState('done');
+              }
+              const stats = await fetchFeedbackStats();
+              setCloudStats(stats);
+            } catch {
+              setSyncState('error');
+            }
+            setTimeout(() => setSyncState('idle'), 3000);
+          }}
+          disabled={syncState === 'syncing'}
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors
+            bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+            text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700
+            disabled:opacity-50"
+        >
+          <span className="text-sm">☁️</span>
+          <span>同步</span>
+          {syncState === 'syncing' && <span className="text-blue-500 ml-0.5">...</span>}
+          {syncState === 'done' && <span className="text-emerald-500 ml-0.5">✓</span>}
+          {syncState === 'error' && <span className="text-red-500 ml-0.5">✗</span>}
+        </button>
+
+        {/* Approval rate progress bar */}
+        {cloudStats && (() => {
+          const ratedTotal = cloudStats.total;
+          const pct = ratedTotal > 0 ? Math.round((cloudStats.likes / ratedTotal) * 100) : 0;
+          return (
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="whitespace-nowrap">☁️ 好评率</span>
+              <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: pct > 60 ? '#10b981' : pct > 30 ? '#f59e0b' : '#ef4444',
+                  }}
+                />
+              </div>
+              <span className="font-medium tabular-nums w-10 text-right">{pct}%</span>
+              <span className="text-[10px] text-gray-400">({cloudStats.likes}/{ratedTotal})</span>
+            </div>
+          );
+        })()}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
