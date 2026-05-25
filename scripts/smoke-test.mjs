@@ -36,9 +36,8 @@ if (!pageChunk) {
 const pageJs = await readFile(join(appChunkDir, pageChunk), 'utf8');
 
 const requiredJs = [
-  '优化此镜头',        // P0: Refinement UI
   '高级导演',          // P1: Project Bible (高级导演模式)
-  '导出到',             // P1: Platform export dropdown
+  '导出',               // P1: Platform export dropdown (simplified)
   '小云雀',             // P1: XYQ platform export
   'Seedance',           // P1: Seedance platform
   'Kling',              // P1: Kling platform

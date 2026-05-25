@@ -171,8 +171,6 @@ export function ChatBox() {
   const [smartExtractLoading, setSmartExtractLoading] = useState(false);
   const [showBatchMenu, setShowBatchMenu] = useState(false);
   const batchExportRef = useRef<HTMLDivElement>(null);
-  const [shotHistory, setShotHistory] = useState<Record<number, string[]>>({});
-  const [showPrevVersion, setShowPrevVersion] = useState<Record<number, boolean>>({});
   const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
   const [feedbackLoaded, setFeedbackLoaded] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
@@ -373,11 +371,6 @@ export function ChatBox() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openInXiaoYunQue = (text: string) => {
-    const encoded = encodeURIComponent(text);
-    window.open(`https://xyq.jianying.com/?prompt=${encoded}`, '_blank');
-  };
-
   const handlePlatformExport = (platform: string, text: string) => {
     const target = PLATFORM_TARGETS.find((p) => p.id === platform);
     const openInNewTab = (url: string) => window.open(url, '_blank', 'noopener');
@@ -550,16 +543,8 @@ export function ChatBox() {
 
       // Replace the refined shot in the prompts array
       const updatedPrompts = [...prompts];
-      const prevText = updatedPrompts[index];
 
-      // Save to history before replacing
-      setShotHistory((prev) => ({
-        ...prev,
-        [index]: [...(prev[index] ?? []), prevText],
-      }));
-      // Hide previous version view on new refinement
-      setShowPrevVersion((prev) => ({ ...prev, [index]: false }));
-
+      // Replace the prompt with the refinement result
       updatedPrompts[index] = refinementResult.prompts?.[0] ?? refinementResult.fullPrompt;
       if (!updatedPrompts[index]) {
         throw new Error('优化结果为空');
@@ -882,30 +867,11 @@ export function ChatBox() {
               refiningError={refiningError}
               refineInput={refineInput}
               onCopy={() => copyToClipboard(prompt, index)}
-              onOpenInXYQ={() => openInXiaoYunQue(prompt)}
               onStartRefine={() => startRefine(index)}
               onCancelRefine={cancelRefine}
               onRefineInputChange={setRefineInput}
               onSubmitRefine={() => submitRefine(index)}
               onPlatformExport={handlePlatformExport}
-              hasHistory={!!shotHistory[index]?.length}
-              showPrev={!!showPrevVersion[index]}
-              onTogglePrev={() =>
-                setShowPrevVersion((prev) => ({ ...prev, [index]: !prev[index] }))
-              }
-              prevText={showPrevVersion[index] ? shotHistory[index]?.at(-1) ?? null : null}
-              onRevert={() => {
-                const prevVersions = shotHistory[index];
-                if (!prevVersions?.length) return;
-                const prevText = prevVersions.pop()!;
-                setShotHistory((h) => ({ ...h, [index]: [...prevVersions] }));
-                setResult((r) => {
-                  if (!r) return r;
-                  const newPrompts = [...(r.prompts ?? [r.fullPrompt])];
-                  newPrompts[index] = prevText;
-                  return { ...r, prompts: newPrompts, fullPrompt: newPrompts[0] };
-                });
-              }}
               feedbackRating={getFeedbackFor(prompt, index)}
               onFeedback={(rating) => handleFeedback(index, prompt, rating)}
             />
@@ -1003,17 +969,11 @@ function PromptCard({
   refiningError,
   refineInput,
   onCopy,
-  onOpenInXYQ,
   onStartRefine,
   onCancelRefine,
   onRefineInputChange,
   onSubmitRefine,
   onPlatformExport,
-  hasHistory,
-  showPrev,
-  onTogglePrev,
-  prevText,
-  onRevert,
   feedbackRating,
   onFeedback,
 }: {
@@ -1025,17 +985,11 @@ function PromptCard({
   refiningError: string;
   refineInput: string;
   onCopy: () => void;
-  onOpenInXYQ: () => void;
   onStartRefine: () => void;
   onCancelRefine: () => void;
   onRefineInputChange: (value: string) => void;
   onSubmitRefine: () => void;
   onPlatformExport: (platform: string, text: string) => void;
-  hasHistory: boolean;
-  showPrev: boolean;
-  onTogglePrev: () => void;
-  prevText: string | null;
-  onRevert: () => void;
   feedbackRating: 'like' | 'dislike' | null;
   onFeedback: (rating: 'like' | 'dislike') => void;
 }) {
@@ -1071,24 +1025,16 @@ function PromptCard({
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
             }`}
           >
-            {isCopied ? '已复制' : '复制'}
+            {isCopied ? '✓ 已复制' : '复制'}
           </button>
-          <button
-            type="button"
-            onClick={onOpenInXYQ}
-            className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
-          >
-            <span className="hidden sm:inline">在小云雀打开</span>
-            <span className="sm:hidden">小云雀</span>
-          </button>
-          {/* Platform export dropdown */}
+          {/* Platform export dropdown — consolidated */}
           <div className="relative" ref={platformMenuRef}>
             <button
               type="button"
               onClick={() => setShowPlatformMenu(!showPlatformMenu)}
-              className="text-xs px-3 py-1.5 rounded-md font-medium bg-orange-50 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+              className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-orange-50 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:hover:bg-orange-900/50 transition-colors"
             >
-              导出到 ▼
+              导出 ▼
             </button>
             {showPlatformMenu && (
               <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
@@ -1109,26 +1055,13 @@ function PromptCard({
               </div>
             )}
           </div>
-          {!isRefining && hasHistory && (
-            <button
-              type="button"
-              onClick={onTogglePrev}
-              className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors ${
-                showPrev
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200 ring-1 ring-amber-300 dark:ring-amber-700'
-                  : 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-300 dark:hover:bg-amber-900/40'
-              }`}
-            >
-              查看原版
-            </button>
-          )}
           {!isRefining && (
             <button
               type="button"
               onClick={onStartRefine}
-              className="text-xs px-3 py-1.5 rounded-md font-medium bg-purple-50 text-purple-800 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+              className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-purple-50 text-purple-800 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900/50 transition-colors"
             >
-              优化此镜头
+              优化
             </button>
           )}
         </div>
@@ -1170,32 +1103,6 @@ function PromptCard({
         )}
       </div>
 
-      {showPrev && prevText && (
-        <div className="space-y-2 pt-2 border-t border-amber-200 dark:border-amber-800/40">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded">
-              原版对比
-            </span>
-            <button
-              type="button"
-              onClick={onRevert}
-              className="text-xs px-2 py-0.5 rounded font-medium text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
-            >
-              恢复到此版本
-            </button>
-          </div>
-          <div className="rounded-lg border border-amber-200 dark:border-amber-800/40 bg-amber-50/50 dark:bg-amber-950/20 p-3">
-            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words line-through opacity-70">
-              {prevText}
-            </p>
-          </div>
-          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-3">
-            <p className="text-sm leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
-              {text}
-            </p>
-          </div>
-        </div>
-      )}
       {isRefining && (
         <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
           <div>
