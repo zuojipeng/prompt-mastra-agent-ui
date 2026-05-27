@@ -147,17 +147,12 @@ export function ProjectBiblePanel({
   creativeInput?: string;
 }) {
   const [showGuide, setShowGuide] = useState(false);
-  const [presets, setPresets] = useState<Preset[]>([]);
+  const [presets, setPresets] = useState<Preset[]>(() => loadPresets());
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [showPresetMenu, setShowPresetMenu] = useState(false);
   const presetMenuRef = useRef<HTMLDivElement>(null);
   const saveInputRef = useRef<HTMLInputElement>(null);
-
-  // Load presets on mount
-  useEffect(() => {
-    setPresets(loadPresets());
-  }, []);
 
   // Close preset menu on click outside
   useEffect(() => {

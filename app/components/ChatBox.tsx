@@ -16,6 +16,8 @@ import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { ProjectBiblePanel } from './ProjectBiblePanel';
 import { HistoryPanel } from './HistoryPanel';
 
+const ONBOARDING_KEY = 'jingci-onboarding-done';
+
 const STYLES = [
   { id: '', label: '默认' },
   { id: 'wong-kar-wai', label: '王家卫' },
@@ -181,6 +183,7 @@ export function ChatBox() {
     ratio: string;
   } | null>(null);
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
+  const [onboardingStep, setOnboardingStep] = useState<number | null>(null);
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
@@ -211,7 +214,18 @@ export function ChatBox() {
         }
       })
       .catch(() => {});
+    // Onboarding: show guide on first visit
+    if (!localStorage.getItem(ONBOARDING_KEY)) {
+      setOnboardingStep(0);
+    }
   }, []);
+
+  // Onboarding: advance to step 2 when results appear
+  useEffect(() => {
+    if (onboardingStep !== null && result !== null && !loading) {
+      setOnboardingStep(2);
+    }
+  }, [result, loading, onboardingStep]);
 
   // Load feedback from localStorage on client only (hydration safety)
   useEffect(() => {
@@ -263,6 +277,10 @@ export function ChatBox() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Onboarding: advance to generating step
+    if (onboardingStep !== null) {
+      setOnboardingStep(1);
+    }
 
     const validationError = validateInput(input);
     if (validationError) {
@@ -362,6 +380,11 @@ export function ChatBox() {
     await navigator.clipboard.writeText(text);
     setCopiedIndex(index);
     window.setTimeout(() => setCopiedIndex(null), 2000);
+    // Onboarding: step 3 complete
+    if (onboardingStep !== null) {
+      localStorage.setItem(ONBOARDING_KEY, '1');
+      setOnboardingStep(null);
+    }
   };
 
   const continueFromHistory = (record: HistoryRecord) => {
@@ -372,6 +395,11 @@ export function ChatBox() {
   };
 
   const handlePlatformExport = (platform: string, text: string) => {
+    // Onboarding: step 3 complete
+    if (onboardingStep !== null) {
+      localStorage.setItem(ONBOARDING_KEY, '1');
+      setOnboardingStep(null);
+    }
     const target = PLATFORM_TARGETS.find((p) => p.id === platform);
     const openInNewTab = (url: string) => window.open(url, '_blank', 'noopener');
 
@@ -584,6 +612,78 @@ export function ChatBox() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+      {/* Onboarding guide — first visit only, progressive steps */}
+      {onboardingStep !== null && (
+        <div className={`rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-900 p-5 space-y-4 ${
+          onboardingStep >= 2 ? 'opacity-80 scale-[0.98]' : ''
+        }`}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎬</span>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+                三步上手
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {onboardingStep === 0 && '输入视频创意，开始你的第一个作品'}
+                {onboardingStep === 1 && '正在生成画面描述...'}
+                {onboardingStep === 2 && '复制提示词到视频平台，一键创作！'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.setItem(ONBOARDING_KEY, '1');
+                setOnboardingStep(null);
+              }}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors shrink-0"
+            >
+              跳过
+            </button>
+          </div>
+          <div className="flex gap-2">
+            {[
+              { num: 0, label: '输入创意', desc: '' },
+              { num: 1, label: '生成描述', desc: '' },
+              { num: 2, label: '复制到平台', desc: '' },
+            ].map((step) => {
+              const isDone = onboardingStep > step.num;
+              const isActive = onboardingStep === step.num;
+              return (
+                <div
+                  key={step.num}
+                  className={`flex-1 rounded-lg p-2.5 text-center transition-all duration-300 ${
+                    isDone
+                      ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                      : isActive
+                        ? 'bg-emerald-100 dark:bg-emerald-900/30 ring-1 ring-emerald-300 dark:ring-emerald-700'
+                        : 'bg-gray-50 dark:bg-gray-800/50'
+                  }`}
+                >
+                  <div className={`text-lg font-bold ${
+                    isDone
+                      ? 'text-emerald-500 dark:text-emerald-400'
+                      : isActive
+                        ? 'text-emerald-600 dark:text-emerald-300'
+                        : 'text-gray-300 dark:text-gray-600'
+                  }`}>
+                    {isDone ? '✓' : step.num + 1}
+                  </div>
+                  <div className={`text-[11px] mt-0.5 ${
+                    isDone
+                      ? 'text-emerald-600 dark:text-emerald-300 font-medium'
+                      : isActive
+                        ? 'text-emerald-700 dark:text-emerald-200 font-medium'
+                        : 'text-gray-400 dark:text-gray-500'
+                  }`}>
+                    {step.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Hero — minimal */}
       <div className="text-center">
         {!result && !loading && (
@@ -593,8 +693,8 @@ export function ChatBox() {
         )}
       </div>
 
-      {/* Onboarding guide — shown when no results */}
-      {!result && !loading && (
+      {/* Empty state hint — only when onboarding is not active */}
+      {!result && !loading && onboardingStep === null && (
         <div className="text-center py-8">
           <p className="text-sm text-gray-400 dark:text-gray-500 mb-1">
             输入你的视频创意，3 秒出中文画面描述
