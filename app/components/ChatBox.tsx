@@ -1,34 +1,26 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  createDirectorKit,
+  CreativeDiagnosis,
+  DirectorKit,
   fetchFeedbackStats,
   fetchPromptHistory,
   fetchUserData,
   HistoryRecord,
   optimizePrompt,
   OptimizationResult,
-  ProjectBible,
+  ReconstructVersion,
   syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
-import { ProjectBiblePanel } from './ProjectBiblePanel';
 import { HistoryPanel } from './HistoryPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
 
-const STYLES = [
-  { id: '', label: '默认' },
-  { id: 'wong-kar-wai', label: '王家卫' },
-  { id: 'wes-anderson', label: '韦斯·安德森' },
-  { id: 'cyberpunk', label: '赛博朋克' },
-  { id: 'epic', label: '史诗感' },
-];
-
-const SHOT_COUNTS = [1, 3, 5];
 const MAX_INPUT_LENGTH = 2000;
-
 function validateInput(input: string): string | null {
   const trimmed = input.trim();
   if (!trimmed) return '请输入视频创意';
@@ -136,18 +128,6 @@ function formatForPlatform(platform: string, text: string): string {
   }
 }
 
-function hasBibleValues(bible: ProjectBible): boolean {
-  return !!(
-    bible.protagonist ||
-    bible.mission ||
-    bible.world ||
-    bible.lookAndFeel ||
-    bible.shotIntent ||
-    (bible.visualSymbols && bible.visualSymbols.length > 0) ||
-    (bible.continuityRules && bible.continuityRules.length > 0)
-  );
-}
-
 type SessionInfo = ReturnType<typeof getSessionInfo>;
 
 const INITIAL_SESSION_INFO: SessionInfo = {
@@ -160,19 +140,6 @@ export function ChatBox() {
   const [input, setInput] = useState('');
   const [style, setStyle] = useState('');
   const [shotCount, setShotCount] = useState(1);
-  const [result, setResult] = useState<OptimizationResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
-  const [refineInput, setRefineInput] = useState('');
-  const [refiningLoading, setRefiningLoading] = useState(false);
-  const [refiningError, setRefiningError] = useState('');
-  const [showBible, setShowBible] = useState(false);
-  const [showMoreOpts, setShowMoreOpts] = useState(false);
-  const [smartExtractLoading, setSmartExtractLoading] = useState(false);
-  const [showBatchMenu, setShowBatchMenu] = useState(false);
-  const batchExportRef = useRef<HTMLDivElement>(null);
   const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
   const [feedbackLoaded, setFeedbackLoaded] = useState(false);
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
@@ -185,17 +152,31 @@ export function ChatBox() {
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
   const [onboardingStep, setOnboardingStep] = useState<number | null>(null);
   const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
-  const [projectBible, setProjectBible] = useState<ProjectBible>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
   const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
-  const [lastInput, setLastInput] = useState('');
-  const [lastOptions, setLastOptions] = useState<{
-    style?: string;
-    shotCount?: number;
-    projectBible?: ProjectBible;
-  }>({});
+  const [result, setResult] = useState<OptimizationResult | null>(null);
+
+  // ===== V2 状态 =====
+  const TARGET_DURATIONS = ['30s', '60s', '90s'];
+  const TARGET_TYPES = [
+    { id: 'wasteland', label: '废土' },
+    { id: 'ancient', label: '古风' },
+    { id: 'cyberpunk', label: '赛博朋克' },
+    { id: 'wuxia', label: '武侠' },
+    { id: 'thriller', label: '悬疑' },
+    { id: 'romance', label: '言情' },
+    { id: 'scifi', label: '科幻' },
+    { id: 'comedy', label: '喜剧' },
+  ];
+  const [v2State, setV2State] = useState<'input' | 'diagnosis' | 'reconstruct' | 'result'>('input');
+  const [directorKit, setDirectorKit] = useState<DirectorKit | null>(null);
+  const [targetDuration, setTargetDuration] = useState('30s');
+  const [targetType, setTargetType] = useState('wasteland');
+  const [selectedVersionIndex, setSelectedVersionIndex] = useState<number | null>(null);
+  const [v2Loading, setV2Loading] = useState(false);
+  const [v2Error, setV2Error] = useState('');
 
   useEffect(() => {
     setSessionInfo(getSessionInfo());
@@ -222,10 +203,10 @@ export function ChatBox() {
 
   // Onboarding: advance to step 2 when results appear
   useEffect(() => {
-    if (onboardingStep !== null && result !== null && !loading) {
+    if (onboardingStep !== null && result !== null && !v2Loading) {
       setOnboardingStep(2);
     }
-  }, [result, loading, onboardingStep]);
+  }, [result, v2Loading, onboardingStep]);
 
   // Load feedback from localStorage on client only (hydration safety)
   useEffect(() => {
@@ -240,27 +221,15 @@ export function ChatBox() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         // Don't submit if already loading
-        if (!loading && input.trim() && !validateInput(input)) {
-          // Simulate form submission by triggering handleSubmit
-          // We need access to the form ref, so we'll dispatch from the submit button
+        if (!v2Loading && input.trim() && !validateInput(input)) {
           const submitBtn = document.querySelector<HTMLButtonElement>('button[type="submit"]');
           submitBtn?.click();
-        }
-      }
-      // Escape → close refinement / bible panel
-      if (e.key === 'Escape') {
-        if (refiningIndex !== null) {
-          cancelRefine();
-        } else if (showBible) {
-          setShowBible(false);
-        } else if (showBatchMenu) {
-          setShowBatchMenu(false);
         }
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [loading, input, refiningIndex, showBible, showBatchMenu]);
+  }, [v2Loading, input]);
 
   const refreshHistory = async () => {
     setHistoryLoading(true);
@@ -275,256 +244,29 @@ export function ChatBox() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Onboarding: advance to generating step
-    if (onboardingStep !== null) {
-      setOnboardingStep(1);
-    }
-
-    const validationError = validateInput(input);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setResult(null);
-
-    const options = {
-      ...(style ? { style } : {}),
-      ...(shotCount > 1 ? { shotCount } : {}),
-      ...(hasBibleValues(projectBible) ? { projectBible } : {}),
-    };
-    setLastInput(input);
-    setLastOptions(options);
-
-    try {
-      const optimization = await optimizePrompt(input, options);
-      setResult(optimization);
-      setSessionInfo(getSessionInfo());
-      await refreshHistory();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '优化失败，请重试';
-
-      // Auto-retry on format errors: try up to 3 times with fallbacks
-      if (msg.includes('格式异常')) {
-        const fallbacks = [
-          { ...options, shotCount: 1 },          // attempt 1: single shot
-          { ...options, shotCount: 1, style: '' }, // attempt 2: single + no style
-        ];
-        let lastError = msg;
-        for (const fallbackOpts of fallbacks) {
-          try {
-            const optimization = await optimizePrompt(input, fallbackOpts);
-            setResult(optimization);
-            setSessionInfo(getSessionInfo());
-            await refreshHistory();
-            return;
-          } catch (retryErr) {
-            lastError = retryErr instanceof Error ? retryErr.message : '重试失败';
-          }
-        }
-        setError(`生成服务暂时不稳定，请稍后重试。${lastError}`);
-        return;
-      }
-
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetry = () => {
-    if (lastInput) {
-      setLoading(true);
-      setError('');
-
-      optimizePrompt(lastInput, lastOptions)
-        .then((optimization) => {
-          setResult(optimization);
-          setSessionInfo(getSessionInfo());
-          refreshHistory();
-        })
-        .catch((err) => {
-          setError(err instanceof Error ? err.message : '重试失败，请稍后再试');
-        })
-        .finally(() => setLoading(false));
-    }
-  };
-
-  // Close batch menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (batchExportRef.current && !batchExportRef.current.contains(e.target as Node)) {
-        setShowBatchMenu(false);
-      }
-    };
-    if (showBatchMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showBatchMenu]);
-
   const handleNewSession = () => {
     createNewSession();
     setSessionInfo(getSessionInfo());
     setResult(null);
-    setError('');
+    setV2State('input');
+    setV2Error('');
     setInput('');
     setHistory([]);
   };
 
-  const copyToClipboard = async (text: string, index: number) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    window.setTimeout(() => setCopiedIndex(null), 2000);
-    // Onboarding: step 3 complete
-    if (onboardingStep !== null) {
-      localStorage.setItem(ONBOARDING_KEY, '1');
-      setOnboardingStep(null);
-    }
-  };
-
   const continueFromHistory = (record: HistoryRecord) => {
     setInput(record.userPrompt);
-    setResult(record.result);
-    setError('');
+    if (record.result) {
+      setResult(record.result);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handlePlatformExport = (platform: string, text: string) => {
-    // Onboarding: step 3 complete
-    if (onboardingStep !== null) {
-      localStorage.setItem(ONBOARDING_KEY, '1');
-      setOnboardingStep(null);
-    }
-    const target = PLATFORM_TARGETS.find((p) => p.id === platform);
-    const openInNewTab = (url: string) => window.open(url, '_blank', 'noopener');
-
-    switch (platform) {
-      case 'xyq': {
-        const encoded = encodeURIComponent(text);
-        openInNewTab(`https://xyq.jianying.com/?prompt=${encoded}`);
-        break;
-      }
-      case 'seedance':
-      case 'kling':
-      case 'runway':
-      case 'pika':
-      case 'sora': {
-        // Copy text first, then open platform page
-        navigator.clipboard.writeText(text);
-        if (target?.url) openInNewTab(target.url);
-        setCopiedIndex(-1);
-        window.setTimeout(() => setCopiedIndex(null), 2000);
-        break;
-      }
-      case 'clipboard_json': {
-        const jsonBlob = JSON.stringify(
-          { platform: 'video-prompt', shotIndex: -1, prompt: text, timestamp: Date.now() },
-          null,
-          2,
-        );
-        navigator.clipboard.writeText(jsonBlob);
-        setCopiedIndex(-1);
-        window.setTimeout(() => setCopiedIndex(null), 2000);
-        break;
-      }
-    }
   };
 
   const handleApplyTemplate = (template: (typeof PROMPT_TEMPLATES)[number]) => {
     setInput(template.prompt);
     setStyle(template.style);
     setShotCount(template.shots);
-    setError('');
-    setShowBible(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSmartExtract = async () => {
-    if (!input.trim()) return;
-    setSmartExtractLoading(true);
-    try {
-      const result = await optimizePrompt(
-        `请从以下创意中提取导演模式信息，返回JSON格式：\n${input.trim()}\n\n格式：{"protagonist":"...","mission":"...","world":"...","lookAndFeel":"...","shotIntent":"...","visualSymbols":["..."],"continuityRules":["..."]}\n只输出JSON，不要Markdown。`,
-        {},
-      );
-      const text = result.fullPrompt || result.prompts?.[0] || '';
-      const jsonMatch = text.match(/\{[\s\S]*"protagonist"[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setProjectBible((prev) => ({
-          ...prev,
-          protagonist: parsed.protagonist || prev.protagonist,
-          mission: parsed.mission || prev.mission,
-          world: parsed.world || prev.world,
-          lookAndFeel: parsed.lookAndFeel || prev.lookAndFeel,
-          shotIntent: parsed.shotIntent || prev.shotIntent,
-          visualSymbols: parsed.visualSymbols?.length
-            ? [...new Set([...(prev.visualSymbols ?? []), ...parsed.visualSymbols])]
-            : prev.visualSymbols,
-          continuityRules: parsed.continuityRules?.length
-            ? [...new Set([...(prev.continuityRules ?? []), ...parsed.continuityRules])]
-            : prev.continuityRules,
-        }));
-        setShowBible(true);
-      }
-    } catch {
-      // silent fail — user can still fill manually
-    } finally {
-      setSmartExtractLoading(false);
-    }
-  };
-
-  const handleBatchExport = (platform: string) => {
-    if (!prompts.length) return;
-    const formatted = prompts
-      .map((prompt, i) => {
-        const platformText = formatForPlatform(platform, prompt);
-        return `【镜头 ${i + 1}】\n${platformText}`;
-      })
-      .join('\n\n---\n\n');
-    navigator.clipboard.writeText(formatted);
-    setCopiedIndex(-1);
-    window.setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
-  const handleFeedback = (shotIndex: number, promptText: string, rating: 'like' | 'dislike') => {
-    const existing = feedback.find((f) => f.prompt === promptText && f.shotIndex === shotIndex);
-    if (existing) {
-      if (existing.rating === rating) {
-        const updated = feedback.map((f) =>
-          f.id === existing.id ? { ...f, rating: null as null } : f,
-        );
-        setFeedback(updated);
-        saveFeedback(updated);
-      } else {
-        const updated = feedback.map((f) =>
-          f.id === existing.id ? { ...f, rating } : f,
-        );
-        setFeedback(updated);
-        saveFeedback(updated);
-        uploadFeedback({ input, prompt: promptText, shotIndex, rating });
-      }
-    } else {
-      const newEntry: PromptFeedback = {
-        id: generateFeedbackId(),
-        timestamp: Date.now(),
-        input,
-        prompt: promptText,
-        shotIndex,
-        rating,
-        comment: '',
-      };
-      const updated = [...feedback, newEntry];
-      setFeedback(updated);
-      saveFeedback(updated);
-      // Upload to backend (fire-and-forget)
-      uploadFeedback({ input, prompt: promptText, shotIndex, rating });
-    }
   };
 
   const handleFeedbackComment = (id: string, comment: string) => {
@@ -533,82 +275,57 @@ export function ChatBox() {
     saveFeedback(updated);
   };
 
-  const getFeedbackFor = (promptText: string, shotIdx: number): 'like' | 'dislike' | null =>
-    feedback.find((f) => f.prompt === promptText && f.shotIndex === shotIdx)?.rating ?? null;
+  // ===== V2 处理函数 =====
 
-  const startRefine = (index: number) => {
-    setRefiningIndex(index);
-    setRefineInput('');
-    setRefiningError('');
-  };
-
-  const cancelRefine = () => {
-    setRefiningIndex(null);
-    setRefineInput('');
-    setRefiningError('');
-  };
-
-  const submitRefine = async (index: number) => {
-    if (!result || !refineInput.trim()) {
-      setRefiningError('请输入优化要求');
+  const handleDirectorKitSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validationError = validateInput(input);
+    if (validationError) {
+      setV2Error(validationError);
       return;
     }
-
-    const originalPrompt = prompts[index];
-    if (!originalPrompt) return;
-
-    setRefiningLoading(true);
-    setRefiningError('');
-
+    setV2Loading(true);
+    setV2Error('');
+    setDirectorKit(null);
+    setSelectedVersionIndex(null);
     try {
-      const refinementResult = await optimizePrompt(refineInput.trim(), {
-        refinement: {
-          targetType: 'full_prompt',
-          label: `镜头 ${index + 1}`,
-          content: originalPrompt,
-        },
+      const kit = await createDirectorKit({
+        message: input,
+        targetDuration,
+        targetType,
       });
-
-      // Replace the refined shot in the prompts array
-      const updatedPrompts = [...prompts];
-
-      // Replace the prompt with the refinement result
-      updatedPrompts[index] = refinementResult.prompts?.[0] ?? refinementResult.fullPrompt;
-      if (!updatedPrompts[index]) {
-        throw new Error('优化结果为空');
-      }
-
-      setResult((prev) =>
-        prev
-          ? {
-              ...prev,
-              prompts: updatedPrompts,
-              fullPrompt: updatedPrompts[0],
-            }
-          : prev,
-      );
-      setRefiningIndex(null);
-      setRefineInput('');
-      await refreshHistory();
+      setDirectorKit(kit);
+      setV2State('diagnosis');
     } catch (err) {
-      setRefiningError(err instanceof Error ? err.message : '优化失败，请重试');
+      setV2Error(err instanceof Error ? err.message : '创意体检失败，请重试');
     } finally {
-      setRefiningLoading(false);
+      setV2Loading(false);
     }
   };
 
-  // Get prompts from result: prefer new prompts array, fallback to fullPrompt
-  const getPrompts = (res: OptimizationResult): string[] => {
-    if (res.prompts && res.prompts.length > 0) {
-      return res.prompts;
-    }
-    if (res.fullPrompt) {
-      return [res.fullPrompt];
-    }
-    return [];
+  const handleSelectVersion = (index: number) => {
+    setSelectedVersionIndex(index);
   };
 
-  const prompts = result ? getPrompts(result) : [];
+  const handleConfirmVersion = () => {
+    if (selectedVersionIndex === null || !directorKit) return;
+    const updated: DirectorKit = {
+      ...directorKit,
+      selectedVersion: directorKit.versions[selectedVersionIndex],
+    };
+    setDirectorKit(updated);
+    setV2State('result');
+  };
+
+  const handleResetV2 = () => {
+    setV2State('input');
+    setDirectorKit(null);
+    setSelectedVersionIndex(null);
+    setV2Error('');
+    setInput('');
+    setTargetDuration('30s');
+    setTargetType('wasteland');
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
@@ -686,7 +403,7 @@ export function ChatBox() {
 
       {/* Hero — minimal */}
       <div className="text-center">
-        {!result && !loading && (
+        {!result && !v2Loading && (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             输入创意，秒出画面描述
           </p>
@@ -694,7 +411,7 @@ export function ChatBox() {
       </div>
 
       {/* Empty state hint — only when onboarding is not active */}
-      {!result && !loading && onboardingStep === null && (
+      {!result && !v2Loading && onboardingStep === null && (
         <div className="text-center py-8">
           <p className="text-sm text-gray-400 dark:text-gray-500 mb-1">
             输入你的视频创意，3 秒出中文画面描述
@@ -762,7 +479,7 @@ export function ChatBox() {
         })()}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleDirectorKitSubmit} className="space-y-3">
         <div>
           <textarea
             id="prompt"
@@ -770,7 +487,7 @@ export function ChatBox() {
             onChange={(e) => setInput(e.target.value)}
             placeholder="例如：雨夜街头，一个女孩回头..."
             className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
-            disabled={loading}
+            disabled={v2Loading}
             maxLength={MAX_INPUT_LENGTH + 100}
           />
           <div className="flex justify-between items-center mt-1">
@@ -787,8 +504,46 @@ export function ChatBox() {
           </div>
         </div>
 
+        {/* 目标时长选择器 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gray-500">目标时长</span>
+          {TARGET_DURATIONS.map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setTargetDuration(d)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                targetDuration === d
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+
+        {/* 类型偏好选择器 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-gray-500">类型偏好</span>
+          {TARGET_TYPES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTargetType(t.id)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                targetType === t.id
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {/* Templates as inline suggestions */}
-        {!input && !result && !loading && (
+        {!input && !directorKit && !v2Loading && (
           <div className="flex flex-wrap gap-1.5">
             <span className="text-[11px] text-gray-400 leading-6">没想法？试试</span>
             {PROMPT_TEMPLATES.slice(0, 4).map((tmpl) => (
@@ -804,178 +559,397 @@ export function ChatBox() {
           </div>
         )}
 
-        {/* Advanced options — collapsed by default */}
-        {result && (
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => setShowMoreOpts(!showMoreOpts)}
-              className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            >
-              {showMoreOpts ? '▼' : '▶'} 更多方式
-            </button>
-            {showMoreOpts && (
-              <div className="p-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 space-y-3">
-                {/* Style + Shot count */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] text-gray-500">风格</span>
-                  {STYLES.map((s) => (
-                    <button
-                      key={s.id || 'default'}
-                      type="button"
-                      onClick={() => setStyle(s.id)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                        style === s.id
-                          ? 'bg-emerald-600 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                  <span className="text-[11px] text-gray-500 ml-1">镜头</span>
-                  {SHOT_COUNTS.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => setShotCount(n)}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                        shotCount === n
-                          ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
-                      }`}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                {/* Director mode toggle */}
-                <button
-                  type="button"
-                  onClick={() => setShowBible(!showBible)}
-                  className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-all ${
-                    showBible || hasBibleValues(projectBible)
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
-                  }`}
-                >
-                  {hasBibleValues(projectBible) ? '📖 导演模式 ✓' : '📖 导演模式'}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {showBible && (
-          <ProjectBiblePanel
-            bible={projectBible}
-            onChange={setProjectBible}
-            onSmartExtract={handleSmartExtract}
-            smartExtractLoading={smartExtractLoading}
-            creativeInput={input}
-          />
-        )}
-
-        {error && (
+        {/* V2 错误提示 */}
+        {v2Error && (
           <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
-            <p className="text-sm text-red-600 dark:text-red-400 flex-1">{error}</p>
-            {lastInput && (
-              <button
-                type="button"
-                onClick={handleRetry}
-                disabled={loading}
-                className="text-xs px-3 py-1.5 rounded-md font-medium bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-800/50 transition-colors shrink-0"
-              >
-                重试
-              </button>
-            )}
+            <p className="text-sm text-red-600 dark:text-red-400 flex-1">{v2Error}</p>
           </div>
         )}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={v2Loading}
           className="w-full px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 text-sm"
         >
-          {loading ? (
-            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> 生成中</>
+          {v2Loading ? (
+            <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> 体检中</>
           ) : (
-            <>{result ? '✨ 再来一次' : '✨ 生成'}</>
+            <>🩺 先做创意体检</>
           )}
         </button>
       </form>
 
-      {/* Skeleton loading cards */}
-      {loading && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              生成中
-            </h2>
-            <span className="inline-block w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      {/* ===== V2 创意体检（诊断区） ===== */}
+      {v2State === 'diagnosis' && directorKit && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* 诊断结果 */}
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                🩺 创意体检报告
+              </h2>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                directorKit.diagnosis.riskLevel === 'low'
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                  : directorKit.diagnosis.riskLevel === 'medium'
+                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+              }`}>
+                {directorKit.diagnosis.riskLevel === 'low' ? '低风险' : directorKit.diagnosis.riskLevel === 'medium' ? '中风险' : '高风险'}
+              </span>
+            </div>
+
+            {/* 可拍性评分 */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">可拍性评分</span>
+                <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{directorKit.diagnosis.feasibilityScore}/100</span>
+              </div>
+              <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${directorKit.diagnosis.feasibilityScore}%`,
+                    backgroundColor:
+                      directorKit.diagnosis.feasibilityScore >= 70
+                        ? '#10b981'
+                        : directorKit.diagnosis.feasibilityScore >= 40
+                          ? '#f59e0b'
+                          : '#ef4444',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 风险标签 */}
+            {directorKit.diagnosis.keyRisks.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">⚠️ 关键风险</span>
+                <div className="flex flex-wrap gap-2">
+                  {directorKit.diagnosis.keyRisks.map((risk, i) => (
+                    <span
+                      key={i}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                        directorKit.diagnosis.riskLevel === 'high'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                          : directorKit.diagnosis.riskLevel === 'medium'
+                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                      }`}
+                    >
+                      {risk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 改造建议 */}
+            {directorKit.diagnosis.suggestedAdjustments.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">🔧 改造建议</span>
+                <ul className="space-y-1.5">
+                  {directorKit.diagnosis.suggestedAdjustments.map((adj, i) => (
+                    <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                      <span className="text-emerald-500 mt-0.5">•</span>
+                      {adj}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 推荐方向 */}
+            {directorKit.diagnosis.recommendedDirection && (
+              <div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/40">
+                <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">🎯 推荐方向</span>
+                <p className="text-sm text-indigo-600 dark:text-indigo-400 mt-1">{directorKit.diagnosis.recommendedDirection}</p>
+              </div>
+            )}
           </div>
-          {Array.from({ length: shotCount }, (_, i) => (
-            <SkeletonCard key={i} index={i} />
-          ))}
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setV2State('reconstruct')}
+              className="flex-1 px-6 py-3 bg-indigo-700 hover:bg-indigo-800 text-white font-medium rounded-xl transition-colors text-sm"
+            >
+              查看重构版本 →
+            </button>
+            <button
+              type="button"
+              onClick={handleResetV2}
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors text-sm"
+            >
+              返回修改
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Prompt cards */}
-      {prompts.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              生成结果
-            </h2>
-            <span className="text-xs text-gray-400">{prompts.length} 个镜头</span>
-            <div className="ml-auto relative" ref={batchExportRef}>
-              <button
-                type="button"
-                onClick={() => setShowBatchMenu(!showBatchMenu)}
-                className="text-xs px-3 py-1.5 rounded-md font-medium bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-200 dark:hover:bg-orange-800/50 transition-colors flex items-center gap-1"
+      {/* ===== V2 重构选择 ===== */}
+      {v2State === 'reconstruct' && directorKit && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            🎨 选择重构版本
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">选择一个版本，生成完整的导演执行包</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {directorKit.versions.map((version, i) => (
+              <div
+                key={i}
+                onClick={() => handleSelectVersion(i)}
+                className={`rounded-xl border-2 p-5 cursor-pointer transition-all space-y-3 ${
+                  selectedVersionIndex === i
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-600 shadow-md'
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
               >
-                📦 批量导出 ▼
-              </button>
-              {showBatchMenu && (
-                <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
-                  {PLATFORM_TARGETS.filter((p) => p.id !== 'clipboard_json').map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => {
-                        handleBatchExport(p.id);
-                        setShowBatchMenu(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <span className="mr-1.5">{p.icon}</span>
-                      全部导出到 {p.label.replace(/\(.*?\)/, '').trim()}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold px-2 py-1 rounded ${
+                    version.versionType === 'safest'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                      : version.versionType === 'stylish'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                  }`}>
+                    {version.versionType === 'safest' ? '🛡 最稳妥' : version.versionType === 'stylish' ? '✨ 最风格化' : '🎬 最电影感'}
+                  </span>
+                  {selectedVersionIndex === i && <span className="text-emerald-600 text-lg">✓</span>}
                 </div>
+                <h3 className="font-bold text-gray-900 dark:text-gray-100">{version.label}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-3">{version.summary}</p>
+                <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+                  <p><span className="font-medium">为什么有效：</span>{version.whyThisWorks}</p>
+                  <p><span className="font-medium">最佳适用：</span>{version.bestFor}</p>
+                </div>
+                {version.reducedRisks.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">降低的风险：</span>
+                    <ul className="text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5">
+                      {version.reducedRisks.map((risk, ri) => (
+                        <li key={ri} className="flex items-start gap-1">• {risk}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg italic line-clamp-3">
+                  &ldquo;{version.rewrittenIdea}&rdquo;
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleConfirmVersion}
+              disabled={selectedVersionIndex === null}
+              className="flex-1 px-6 py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 text-white font-medium rounded-xl transition-colors text-sm"
+            >
+              {selectedVersionIndex !== null ? '用此版本生成执行包 →' : '请选择一个版本'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setV2State('diagnosis')}
+              className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors text-sm"
+            >
+              返回诊断
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== V2 结果页（导演执行包） ===== */}
+      {v2State === 'result' && directorKit && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              🎬 导演执行包
+            </h2>
+            <button
+              type="button"
+              onClick={handleResetV2}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            >
+              重新开始
+            </button>
+          </div>
+
+          {/* 故事设定 */}
+          {directorKit.storySetting && (
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">📖 故事设定</h3>
+              <div className="grid gap-2 text-sm">
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">核心梗概：</span>{directorKit.storySetting.logline}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">导演意图：</span>{directorKit.storySetting.directorIntent}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">主角：</span>{directorKit.storySetting.protagonist}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">世界观：</span>{directorKit.storySetting.worldSetting}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">视觉主题：</span>{directorKit.storySetting.visualMotif}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 分镜卡片 */}
+          {directorKit.shotCards.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎥 分镜卡片（{directorKit.shotCards.length} 个镜头）</h3>
+              <div className="grid gap-3">
+                {directorKit.shotCards.map((card) => (
+                  <div
+                    key={card.shotId}
+                    className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">镜头 {card.shotId}</span>
+                      <span className="text-xs text-gray-400">时长 {card.duration}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                      <p><span className="font-medium">景别：</span>{card.framing}</p>
+                      <p><span className="font-medium">目的：</span>{card.purpose}</p>
+                      <p><span className="font-medium">情绪：</span>{card.mood}</p>
+                      <p><span className="font-medium">运镜：</span>{card.motion}</p>
+                    </div>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{card.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.action}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium ${
+                        card.generationMode === 'text-to-video'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                          : card.generationMode === 'image-to-video'
+                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                      }`}>
+                        {card.generationMode === 'text-to-video' ? '文生视频' : card.generationMode === 'image-to-video' ? '图生视频' : '参考图'}
+                      </span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium ${
+                        card.riskLevel === 'low'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                          : card.riskLevel === 'medium'
+                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                      }`}>
+                        风险: {card.riskLevel === 'low' ? '低' : card.riskLevel === 'medium' ? '中' : '高'}
+                      </span>
+                      <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                        一致性: {card.consistencyNeed === 'low' ? '低' : card.consistencyNeed === 'medium' ? '中' : '高'}
+                      </span>
+                    </div>
+                    {card.riskTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {card.riskTags.map((tag, ti) => (
+                          <span key={ti} className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-400">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                    {card.fixSuggestion && (
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 p-2 rounded-lg">
+                        💡 {card.fixSuggestion}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 主 Prompt */}
+          {directorKit.masterPrompt && (
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-2">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">📝 主 Prompt</h3>
+              <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">{directorKit.masterPrompt}</p>
+              {directorKit.negativePrompt && (
+                <>
+                  <h4 className="font-medium text-sm text-gray-500 dark:text-gray-400 mt-3">Negative Prompt</h4>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">{directorKit.negativePrompt}</p>
+                </>
               )}
             </div>
-          </div>
-          {prompts.map((prompt, index) => (
-            <PromptCard
-              key={index}
-              index={index}
-              text={prompt}
-              isCopied={copiedIndex === index}
-              isRefining={refiningIndex === index}
-              refiningLoading={refiningLoading}
-              refiningError={refiningError}
-              refineInput={refineInput}
-              onCopy={() => copyToClipboard(prompt, index)}
-              onStartRefine={() => startRefine(index)}
-              onCancelRefine={cancelRefine}
-              onRefineInputChange={setRefineInput}
-              onSubmitRefine={() => submitRefine(index)}
-              onPlatformExport={handlePlatformExport}
-              feedbackRating={getFeedbackFor(prompt, index)}
-              onFeedback={(rating) => handleFeedback(index, prompt, rating)}
-            />
-          ))}
+          )}
+
+          {/* 平台建议 */}
+          {directorKit.platformAdvice.length > 0 && (
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🖥 平台建议</h3>
+              <div className="grid gap-2">
+                {directorKit.platformAdvice.map((advice, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 mt-0.5 ${
+                      advice.recommended
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                        : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                    }`}>
+                      {advice.recommended ? '推荐' : '可选'}
+                    </span>
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{advice.platform}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{advice.note}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 后期建议 */}
+          {directorKit.postProductionAdvice && (
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">✂️ 后期制作建议</h3>
+              <div className="grid gap-3 text-sm">
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">剪辑节奏：</span>{directorKit.postProductionAdvice.editingRhythm}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">音效：</span>{directorKit.postProductionAdvice.soundEffects.join('、')}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">配乐：</span>{directorKit.postProductionAdvice.music}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">字幕：</span>{directorKit.postProductionAdvice.subtitles}</p>
+              </div>
+            </div>
+          )}
+
+          {/* 风险补救 */}
+          {directorKit.riskRemediation && (
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">⚠️ 风险补救</h3>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-500 dark:text-gray-400">首要风险</span>
+                  <ul className="mt-1 space-y-1">
+                    {directorKit.riskRemediation.topRisks.map((risk, i) => (
+                      <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                        <span className="text-red-500 mt-0.5">•</span>{risk}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-500 dark:text-gray-400">替代镜头方案</span>
+                  <ul className="mt-1 space-y-1">
+                    {directorKit.riskRemediation.alternativeShots.map((alt, i) => (
+                      <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                        <span className="text-amber-500 mt-0.5">•</span>{alt}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-500 dark:text-gray-400">备用策略</span>
+                  <ul className="mt-1 space-y-1">
+                    {directorKit.riskRemediation.backupStrategies.map((strategy, i) => (
+                      <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                        <span className="text-emerald-500 mt-0.5">•</span>{strategy}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 选中的重构版本摘要 */}
+          {directorKit.selectedVersion && (
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-950/20 p-5 space-y-2">
+              <h3 className="font-semibold text-emerald-700 dark:text-emerald-300">✅ 选中的重构版本</h3>
+              <p className="font-medium text-gray-900 dark:text-gray-100">{directorKit.selectedVersion.label}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{directorKit.selectedVersion.summary}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -987,8 +961,6 @@ export function ChatBox() {
         onContinue={continueFromHistory}
         onCopy={(text) => {
           navigator.clipboard.writeText(text);
-          setCopiedIndex(-1);
-          window.setTimeout(() => setCopiedIndex(null), 2000);
         }}
       />
 
@@ -1056,219 +1028,6 @@ export function ChatBox() {
           </div>
         </section>
       )}
-    </div>
-  );
-}
-
-function PromptCard({
-  index,
-  text,
-  isCopied,
-  isRefining,
-  refiningLoading,
-  refiningError,
-  refineInput,
-  onCopy,
-  onStartRefine,
-  onCancelRefine,
-  onRefineInputChange,
-  onSubmitRefine,
-  onPlatformExport,
-  feedbackRating,
-  onFeedback,
-}: {
-  index: number;
-  text: string;
-  isCopied: boolean;
-  isRefining: boolean;
-  refiningLoading: boolean;
-  refiningError: string;
-  refineInput: string;
-  onCopy: () => void;
-  onStartRefine: () => void;
-  onCancelRefine: () => void;
-  onRefineInputChange: (value: string) => void;
-  onSubmitRefine: () => void;
-  onPlatformExport: (platform: string, text: string) => void;
-  feedbackRating: 'like' | 'dislike' | null;
-  onFeedback: (rating: 'like' | 'dislike') => void;
-}) {
-  const [showPlatformMenu, setShowPlatformMenu] = useState(false);
-  const platformMenuRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (platformMenuRef.current && !platformMenuRef.current.contains(e.target as Node)) {
-        setShowPlatformMenu(false);
-      }
-    };
-    if (showPlatformMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showPlatformMenu]);
-
-  return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400">
-          镜头 {index + 1}
-        </h3>
-        <div className="flex gap-1 sm:gap-2 flex-wrap">
-          <button
-            type="button"
-            onClick={onCopy}
-            className={`text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium transition-colors ${
-              isCopied
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
-            }`}
-          >
-            {isCopied ? '✓ 已复制' : '复制'}
-          </button>
-          {/* Platform export dropdown — consolidated */}
-          <div className="relative" ref={platformMenuRef}>
-            <button
-              type="button"
-              onClick={() => setShowPlatformMenu(!showPlatformMenu)}
-              className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-orange-50 text-orange-800 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-            >
-              导出 ▼
-            </button>
-            {showPlatformMenu && (
-              <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
-                {PLATFORM_TARGETS.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      onPlatformExport(p.id, text);
-                      setShowPlatformMenu(false);
-                    }}
-                    className="w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  >
-                    <span className="mr-1.5">{p.icon}</span>
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {!isRefining && (
-            <button
-              type="button"
-              onClick={onStartRefine}
-              className="text-xs px-2 sm:px-3 py-1.5 rounded-md font-medium bg-purple-50 text-purple-800 hover:bg-purple-100 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-            >
-              优化
-            </button>
-          )}
-        </div>
-      </div>
-      <p className="text-base sm:text-lg leading-relaxed text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
-        {text}
-      </p>
-
-      {/* Feedback: like/dislike */}
-      <div className="flex items-center gap-1.5 pt-1">
-        <button
-          type="button"
-          onClick={() => onFeedback('like')}
-          className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
-            feedbackRating === 'like'
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-              : 'text-gray-400 hover:text-emerald-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
-          title="生成效果好"
-        >
-          👍 {feedbackRating === 'like' && <span className="ml-0.5 text-[10px] opacity-70">已赞</span>}
-        </button>
-        <button
-          type="button"
-          onClick={() => onFeedback('dislike')}
-          className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
-            feedbackRating === 'dislike'
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-              : 'text-gray-400 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
-          title="生成效果不好"
-        >
-          👎 {feedbackRating === 'dislike' && <span className="ml-0.5 text-[10px] opacity-70">已踩</span>}
-        </button>
-        {feedbackRating && (
-          <span className="text-[10px] text-gray-400 ml-1">
-            你的反馈帮助我们改进
-          </span>
-        )}
-      </div>
-
-      {isRefining && (
-        <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-              输入优化要求（如：加强光影对比、改为白天场景）
-            </label>
-            <textarea
-              value={refineInput}
-              onChange={(e) => onRefineInputChange(e.target.value)}
-              placeholder="例如：加强光影对比，把环境改为黄昏，强化雨滴反光..."
-              className="w-full min-h-[80px] px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
-              disabled={refiningLoading}
-            />
-          </div>
-          {refiningError && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-xs text-red-600 dark:text-red-400">{refiningError}</p>
-            </div>
-          )}
-          <div className="flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={onCancelRefine}
-              disabled={refiningLoading}
-              className="text-xs px-3 py-1.5 rounded-md font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              onClick={onSubmitRefine}
-              disabled={refiningLoading || !refineInput.trim()}
-              className="text-xs px-4 py-1.5 rounded-md font-medium bg-purple-700 text-white hover:bg-purple-800 disabled:bg-gray-400 transition-colors flex items-center gap-1.5"
-            >
-              {refiningLoading ? (
-                <>
-                  <span className="inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  优化中...
-                </>
-              ) : (
-                '确认优化'
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SkeletonCard({ index }: { index: number }) {
-  return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3 animate-pulse">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
-        <div className="flex gap-2">
-          <div className="h-7 w-14 bg-gray-200 dark:bg-gray-700 rounded-md" />
-          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md" />
-          <div className="h-7 w-20 bg-gray-200 dark:bg-gray-700 rounded-md" />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6" />
-      </div>
     </div>
   );
 }

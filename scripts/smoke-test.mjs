@@ -10,9 +10,7 @@ const html = await readFile(join(outDir, 'index.html'), 'utf8');
 
 const requiredHtml = [
   '镜词',
-  '导演模式',
-  '秒出画面描述',
-  '输入你的视频创意',
+  '时长',
   '历史记录',
 ];
 
@@ -36,18 +34,12 @@ if (!pageChunk) {
 const pageJs = await readFile(join(appChunkDir, pageChunk), 'utf8');
 
 const requiredJs = [
-  '高级导演',          // P1: Project Bible (高级导演模式)
-  '导出',               // P1: Platform export dropdown (simplified)
-  '小云雀',             // P1: XYQ platform export
-  'Seedance',           // P1: Seedance platform
-  'Kling',              // P1: Kling platform
-  'Runway',             // P1: Runway platform
-  'Pika',               // P1: Pika platform
-  'Sora',               // P1: Sora platform
-  '生成中',             // UX: Skeleton loading (heading text)
-  '重试',               // UX: Retry button
-  '请输入视频创意',     // UX: Input validation
-  'api/optimize',        // API endpoint (env var resolves at runtime in static export)
+  '创意体检',           // P0: V2 creative diagnosis
+  '导演执行包',          // P0: V2 director kit result
+  '可拍性',              // P0: feasibility score
+  '风险补救',            // P0: risk remediation
+  'Seedance',            // P1: Seedance platform
+  'api/optimize',        // API endpoint
 ];
 
 for (const text of requiredJs) {

@@ -54,6 +54,74 @@ export interface HistoryRecord {
   result: OptimizationResult | null;
 }
 
+// ===== V2 类型定义 =====
+
+export interface CreativeDiagnosis {
+  feasibilityScore: number;
+  keyRisks: string[];
+  riskLevel: 'low' | 'medium' | 'high';
+  suggestedAdjustments: string[];
+  recommendedDirection: string;
+}
+
+export interface ReconstructVersion {
+  versionType: 'safest' | 'stylish' | 'cinematic';
+  label: string;
+  summary: string;
+  rewrittenIdea: string;
+  whyThisWorks: string;
+  reducedRisks: string[];
+  bestFor: string;
+}
+
+export interface ShotCard {
+  shotId: number;
+  duration: string;
+  purpose: string;
+  framing: string;
+  description: string;
+  action: string;
+  mood: string;
+  motion: string;
+  generationMode: 'text-to-video' | 'image-to-video' | 'reference-image';
+  consistencyNeed: 'low' | 'medium' | 'high';
+  riskLevel: 'low' | 'medium' | 'high';
+  riskTags: string[];
+  fixSuggestion: string;
+}
+
+export interface DirectorKit {
+  diagnosis: CreativeDiagnosis;
+  versions: [ReconstructVersion, ReconstructVersion, ReconstructVersion];
+  selectedVersion: ReconstructVersion | null;
+  storySetting: {
+    logline: string;
+    directorIntent: string;
+    protagonist: string;
+    worldSetting: string;
+    visualMotif: string;
+  };
+  shotCards: ShotCard[];
+  masterPrompt: string;
+  negativePrompt: string;
+  platformAdvice: {
+    platform: string;
+    note: string;
+    recommended: boolean;
+  }[];
+  postProductionAdvice: {
+    editingRhythm: string;
+    soundEffects: string[];
+    music: string;
+    subtitles: string;
+  };
+  riskRemediation: {
+    topRisks: string[];
+    alternativeShots: string[];
+    backupStrategies: string[];
+  };
+}
+
 export type RefinementTargetType =
   | 'full_prompt'
   | 'negative_prompt'
@@ -387,6 +455,52 @@ export async function optimizePrompt(
   }
 
   throw new Error(json.error ?? '后端返回数据格式无效');
+}
+
+// ===== V2 API 函数 =====
+
+export async function createDirectorKit(params: {
+  message: string;
+  targetDuration: string;
+  targetType: string;
+}): Promise<DirectorKit> {
+  const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/v2/director-kit');
+  const userId = getUserId();
+  const sessionId = getOrCreateSessionId();
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-User-Id': userId,
+      'X-Session-Id': sessionId,
+    },
+    body: JSON.stringify({
+      message: params.message,
+      targetDuration: params.targetDuration,
+      targetType: params.targetType,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+  }
+
+  const json = await response.json() as {
+    success?: boolean;
+    error?: string;
+    data?: DirectorKit;
+  };
+
+  if (json.success === false || !json.data) {
+    throw new Error(json.error ?? '导演执行包生成失败');
+  }
+
+  return {
+    ...json.data,
+    selectedVersion: null,
+  };
 }
 
 export async function uploadFeedback(feedback: {
