@@ -1,0 +1,33 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+const source = readFileSync(join(process.cwd(), 'app/components/ChatBox.tsx'), 'utf8');
+
+describe('ChatBox V2 source states', () => {
+  it('keeps failed generation recoverable', () => {
+    expect(source).toContain('role="alert"');
+    expect(source).toContain('重试生成');
+    expect(source).toContain('handleRetryDirectorKit');
+    expect(source).toContain('handleReturnToEdit');
+  });
+
+  it('shows a visible loading state and prevents target drift while loading', () => {
+    expect(source).toContain('正在生成导演执行包');
+    expect(source).toContain('aria-live="polite"');
+    expect(source).toContain('disabled={v2Loading}');
+  });
+
+  it('keeps reconstruct selection keyboard accessible', () => {
+    expect(source).toContain('role="radiogroup"');
+    expect(source).toContain('role="radio"');
+    expect(source).toContain("event.key === 'ArrowRight'");
+    expect(source).toContain("event.key === 'ArrowLeft'");
+  });
+
+  it('guards incomplete result sections', () => {
+    expect(source).toContain('执行包内容不完整');
+    expect(source).toContain('directorKit.shotCards ?? []');
+    expect(source).toContain('directorKit.platformAdvice ?? []');
+  });
+});

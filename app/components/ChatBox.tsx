@@ -272,6 +272,10 @@ export function ChatBox() {
 
   const handleDirectorKitSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await submitDirectorKit();
+  };
+
+  const submitDirectorKit = async () => {
     const validationError = validateInput(input);
     if (validationError) {
       setV2Error(validationError);
@@ -296,6 +300,10 @@ export function ChatBox() {
     }
   };
 
+  const handleRetryDirectorKit = async () => {
+    await submitDirectorKit();
+  };
+
   const handleSelectVersion = (index: number) => {
     setSelectedVersionIndex(index);
   };
@@ -318,6 +326,13 @@ export function ChatBox() {
     setInput('');
     setTargetDuration('30s');
     setTargetType('wasteland');
+  };
+
+  const handleReturnToEdit = () => {
+    setV2State('input');
+    setDirectorKit(null);
+    setSelectedVersionIndex(null);
+    setV2Error('');
   };
 
   return (
@@ -504,6 +519,7 @@ export function ChatBox() {
             <button
               key={d}
               type="button"
+              disabled={v2Loading}
               onClick={() => setTargetDuration(d)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                 targetDuration === d
@@ -523,6 +539,7 @@ export function ChatBox() {
             <button
               key={t.id}
               type="button"
+              disabled={v2Loading}
               onClick={() => setTargetType(t.id)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
                 targetType === t.id
@@ -554,8 +571,38 @@ export function ChatBox() {
 
         {/* V2 错误提示 */}
         {v2Error && (
-          <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-3">
+          <div
+            role="alert"
+            className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex flex-col gap-3 sm:flex-row sm:items-center"
+          >
             <p className="text-sm text-red-600 dark:text-red-400 flex-1">{v2Error}</p>
+            <button
+              type="button"
+              onClick={handleRetryDirectorKit}
+              disabled={v2Loading || !!validateInput(input)}
+              className="px-3 py-1.5 rounded-md text-xs font-medium bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-700 dark:disabled:text-gray-400 transition-colors"
+            >
+              重试生成
+            </button>
+          </div>
+        )}
+
+        {v2Loading && (
+          <div
+            aria-live="polite"
+            className="rounded-xl border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50 dark:bg-emerald-950/20 p-4"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-600 rounded-full animate-spin shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                  正在生成导演执行包
+                </p>
+                <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-0.5">
+                  正在体检创意、重构版本并拆解分镜策略，请保持当前页面。
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -615,11 +662,11 @@ export function ChatBox() {
             </div>
 
             {/* 风险标签 */}
-            {directorKit.diagnosis.keyRisks.length > 0 && (
+            {(directorKit.diagnosis.keyRisks ?? []).length > 0 && (
               <div className="space-y-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">⚠️ 关键风险</span>
                 <div className="flex flex-wrap gap-2">
-                  {directorKit.diagnosis.keyRisks.map((risk, i) => (
+                  {(directorKit.diagnosis.keyRisks ?? []).map((risk, i) => (
                     <span
                       key={i}
                       className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -638,11 +685,11 @@ export function ChatBox() {
             )}
 
             {/* 改造建议 */}
-            {directorKit.diagnosis.suggestedAdjustments.length > 0 && (
+            {(directorKit.diagnosis.suggestedAdjustments ?? []).length > 0 && (
               <div className="space-y-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">🔧 改造建议</span>
                 <ul className="space-y-1.5">
-                  {directorKit.diagnosis.suggestedAdjustments.map((adj, i) => (
+                  {(directorKit.diagnosis.suggestedAdjustments ?? []).map((adj, i) => (
                     <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-start gap-2">
                       <span className="text-emerald-500 mt-0.5">•</span>
                       {adj}
@@ -671,7 +718,7 @@ export function ChatBox() {
             </button>
             <button
               type="button"
-              onClick={handleResetV2}
+              onClick={handleReturnToEdit}
               className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 font-medium rounded-xl transition-colors text-sm"
             >
               返回修改
@@ -687,12 +734,29 @@ export function ChatBox() {
             🎨 选择重构版本
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">选择一个版本，生成完整的导演执行包</p>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3" role="radiogroup" aria-label="重构版本">
             {directorKit.versions.map((version, i) => (
               <div
                 key={i}
+                role="radio"
+                aria-checked={selectedVersionIndex === i}
+                tabIndex={0}
                 onClick={() => handleSelectVersion(i)}
-                className={`rounded-xl border-2 p-5 cursor-pointer transition-all space-y-3 ${
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleSelectVersion(i);
+                  }
+                  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    handleSelectVersion((i + 1) % directorKit.versions.length);
+                  }
+                  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    handleSelectVersion((i - 1 + directorKit.versions.length) % directorKit.versions.length);
+                  }
+                }}
+                className={`rounded-xl border-2 p-5 cursor-pointer transition-all space-y-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950 ${
                   selectedVersionIndex === i
                     ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-600 shadow-md'
                     : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600'
@@ -768,6 +832,17 @@ export function ChatBox() {
             </button>
           </div>
 
+          {(!(directorKit.shotCards ?? []).length || !directorKit.masterPrompt) && (
+            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-4">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                执行包内容不完整
+              </p>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                当前结果缺少关键分镜或主 Prompt，可返回修改创意后重新生成。
+              </p>
+            </div>
+          )}
+
           {/* 故事设定 */}
           {directorKit.storySetting && (
             <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
@@ -783,11 +858,11 @@ export function ChatBox() {
           )}
 
           {/* 分镜卡片 */}
-          {directorKit.shotCards.length > 0 && (
+          {(directorKit.shotCards ?? []).length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎥 分镜卡片（{directorKit.shotCards.length} 个镜头）</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎥 分镜卡片（{(directorKit.shotCards ?? []).length} 个镜头）</h3>
               <div className="grid gap-3">
-                {directorKit.shotCards.map((card) => (
+                {(directorKit.shotCards ?? []).map((card) => (
                   <div
                     key={card.shotId}
                     className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3"
@@ -827,9 +902,9 @@ export function ChatBox() {
                         一致性: {card.consistencyNeed === 'low' ? '低' : card.consistencyNeed === 'medium' ? '中' : '高'}
                       </span>
                     </div>
-                    {card.riskTags.length > 0 && (
+                    {(card.riskTags ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {card.riskTags.map((tag, ti) => (
+                        {(card.riskTags ?? []).map((tag, ti) => (
                           <span key={ti} className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-400">{tag}</span>
                         ))}
                       </div>
@@ -860,11 +935,11 @@ export function ChatBox() {
           )}
 
           {/* 平台建议 */}
-          {directorKit.platformAdvice.length > 0 && (
+          {(directorKit.platformAdvice ?? []).length > 0 && (
             <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">🖥 平台建议</h3>
               <div className="grid gap-2">
-                {directorKit.platformAdvice.map((advice, i) => (
+                {(directorKit.platformAdvice ?? []).map((advice, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 mt-0.5 ${
                       advice.recommended
@@ -889,7 +964,7 @@ export function ChatBox() {
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">✂️ 后期制作建议</h3>
               <div className="grid gap-3 text-sm">
                 <p><span className="font-medium text-gray-500 dark:text-gray-400">剪辑节奏：</span>{directorKit.postProductionAdvice.editingRhythm}</p>
-                <p><span className="font-medium text-gray-500 dark:text-gray-400">音效：</span>{directorKit.postProductionAdvice.soundEffects.join('、')}</p>
+                <p><span className="font-medium text-gray-500 dark:text-gray-400">音效：</span>{(directorKit.postProductionAdvice.soundEffects ?? []).join('、')}</p>
                 <p><span className="font-medium text-gray-500 dark:text-gray-400">配乐：</span>{directorKit.postProductionAdvice.music}</p>
                 <p><span className="font-medium text-gray-500 dark:text-gray-400">字幕：</span>{directorKit.postProductionAdvice.subtitles}</p>
               </div>
@@ -904,7 +979,7 @@ export function ChatBox() {
                 <div>
                   <span className="font-medium text-gray-500 dark:text-gray-400">首要风险</span>
                   <ul className="mt-1 space-y-1">
-                    {directorKit.riskRemediation.topRisks.map((risk, i) => (
+                    {(directorKit.riskRemediation.topRisks ?? []).map((risk, i) => (
                       <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
                         <span className="text-red-500 mt-0.5">•</span>{risk}
                       </li>
@@ -914,7 +989,7 @@ export function ChatBox() {
                 <div>
                   <span className="font-medium text-gray-500 dark:text-gray-400">替代镜头方案</span>
                   <ul className="mt-1 space-y-1">
-                    {directorKit.riskRemediation.alternativeShots.map((alt, i) => (
+                    {(directorKit.riskRemediation.alternativeShots ?? []).map((alt, i) => (
                       <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
                         <span className="text-amber-500 mt-0.5">•</span>{alt}
                       </li>
@@ -924,7 +999,7 @@ export function ChatBox() {
                 <div>
                   <span className="font-medium text-gray-500 dark:text-gray-400">备用策略</span>
                   <ul className="mt-1 space-y-1">
-                    {directorKit.riskRemediation.backupStrategies.map((strategy, i) => (
+                    {(directorKit.riskRemediation.backupStrategies ?? []).map((strategy, i) => (
                       <li key={i} className="text-gray-600 dark:text-gray-400 flex items-start gap-2">
                         <span className="text-emerald-500 mt-0.5">•</span>{strategy}
                       </li>

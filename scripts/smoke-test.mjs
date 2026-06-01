@@ -38,6 +38,9 @@ const requiredJs = [
   '导演执行包',          // P0: V2 director kit result
   '可拍性',              // P0: feasibility score
   '风险补救',            // P0: risk remediation
+  '正在生成导演执行包',    // Slice 2: visible loading state
+  '重试生成',             // Slice 2: recoverable error action
+  '执行包内容不完整',      // Slice 2: incomplete result fallback
   'Seedance',            // P1: Seedance platform
   'api/optimize',        // API endpoint
 ];
