@@ -148,5 +148,9 @@ Hermes 总执行在每个任务周期输出以下信号，供 L0 和其他层判
 | WEEKLY-REVIEW.md     | 周报模板与复盘结构                    |
 | CRON-REPORTING-PLAN.md | 定期汇报的执行方案                  |
 | QA-CHECKLIST.md      | 代码质量门禁清单（已存在）             |
+| AGENTS.md            | 子 Agent 职责、输入输出和打回规则       |
+| DELIVERY-WORKFLOW.md | 多 Agent 从规划到上线的交付流程         |
+| PRODUCT-ROADMAP.md   | 镜词产品阶段路线和优先级                |
+| V2-STABILIZATION-PLAN.md | V2 导演执行包稳定发布计划           |
 | CORE-STRATEGY.md     | 核心竞争力战略（已存在）               |
 | PRODUCT-STRATEGY.md  | 产品策略文档（已存在）                 |
