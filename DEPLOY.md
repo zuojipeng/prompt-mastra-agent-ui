@@ -8,7 +8,7 @@
 Framework preset: Next.js
 构建命令: npm run build
 构建输出目录: out
-Node 版本: 18
+Node 版本: 20+
 ```
 
 ### 步骤
@@ -19,7 +19,7 @@ Node 版本: 18
 4. **配置构建**（见上面）
 5. **环境变量**（可选）:
    ```
-   NODE_VERSION = 18
+   NODE_VERSION = 20
    NEXT_PUBLIC_API_URL = https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
    ```
 6. **点击部署** → 完成！
@@ -69,7 +69,7 @@ Cloudflare Pages:
 ### 构建失败
 
 **检查**：
-1. Node 版本是否设置为 18
+1. Node 版本是否设置为 20+
 2. 构建命令是否为 `npm run build`
 3. 输出目录是否为 `out`（静态导出目录）
 
@@ -95,4 +95,3 @@ Cloudflare Dashboard → Pages → Deployments → 点击失败的部署
 ---
 
 **就这么简单！🎉**
-

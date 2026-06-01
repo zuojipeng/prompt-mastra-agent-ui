@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "AI 视频分镜 Prompt 工作台 - 前端应用",
+  "engines": {
+    "node": ">=20.12.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
