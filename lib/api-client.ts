@@ -3,6 +3,20 @@
  */
 
 import { getSessionId, getUserId, getOrCreateSessionId } from './session-manager';
+import type {
+  DirectorKit,
+  DirectorKitTargetDuration,
+  DirectorKitTargetType,
+} from './director-kit-contract';
+
+export type {
+  CreativeDiagnosis,
+  DirectorKit,
+  DirectorKitTargetDuration,
+  DirectorKitTargetType,
+  ReconstructVersion,
+  ShotCard,
+} from './director-kit-contract';
 
 export interface PromptVersion {
   style: string;
@@ -55,72 +69,6 @@ export interface HistoryRecord {
 }
 
 // ===== V2 类型定义 =====
-
-export interface CreativeDiagnosis {
-  feasibilityScore: number;
-  keyRisks: string[];
-  riskLevel: 'low' | 'medium' | 'high';
-  suggestedAdjustments: string[];
-  recommendedDirection: string;
-}
-
-export interface ReconstructVersion {
-  versionType: 'safest' | 'stylish' | 'cinematic';
-  label: string;
-  summary: string;
-  rewrittenIdea: string;
-  whyThisWorks: string;
-  reducedRisks: string[];
-  bestFor: string;
-}
-
-export interface ShotCard {
-  shotId: number;
-  duration: string;
-  purpose: string;
-  framing: string;
-  description: string;
-  action: string;
-  mood: string;
-  motion: string;
-  generationMode: 'text-to-video' | 'image-to-video' | 'reference-image';
-  consistencyNeed: 'low' | 'medium' | 'high';
-  riskLevel: 'low' | 'medium' | 'high';
-  riskTags: string[];
-  fixSuggestion: string;
-}
-
-export interface DirectorKit {
-  diagnosis: CreativeDiagnosis;
-  versions: [ReconstructVersion, ReconstructVersion, ReconstructVersion];
-  selectedVersion: ReconstructVersion | null;
-  storySetting: {
-    logline: string;
-    directorIntent: string;
-    protagonist: string;
-    worldSetting: string;
-    visualMotif: string;
-  };
-  shotCards: ShotCard[];
-  masterPrompt: string;
-  negativePrompt: string;
-  platformAdvice: {
-    platform: string;
-    note: string;
-    recommended: boolean;
-  }[];
-  postProductionAdvice: {
-    editingRhythm: string;
-    soundEffects: string[];
-    music: string;
-    subtitles: string;
-  };
-  riskRemediation: {
-    topRisks: string[];
-    alternativeShots: string[];
-    backupStrategies: string[];
-  };
-}
 
 export type RefinementTargetType =
   | 'full_prompt'
@@ -461,8 +409,8 @@ export async function optimizePrompt(
 
 export async function createDirectorKit(params: {
   message: string;
-  targetDuration: string;
-  targetType: string;
+  targetDuration: DirectorKitTargetDuration;
+  targetType: DirectorKitTargetType;
 }): Promise<DirectorKit> {
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/v2/director-kit');
   const userId = getUserId();

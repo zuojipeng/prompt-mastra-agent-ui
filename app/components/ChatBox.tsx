@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import {
   createDirectorKit,
-  CreativeDiagnosis,
   DirectorKit,
   fetchFeedbackStats,
   fetchPromptHistory,
@@ -11,10 +10,15 @@ import {
   HistoryRecord,
   optimizePrompt,
   OptimizationResult,
-  ReconstructVersion,
   syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
+import {
+  DIRECTOR_KIT_TARGET_DURATIONS,
+  DIRECTOR_KIT_TARGET_TYPES,
+  type DirectorKitTargetDuration,
+  type DirectorKitTargetType,
+} from '@/lib/director-kit-contract';
 import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { HistoryPanel } from './HistoryPanel';
 
@@ -159,21 +163,10 @@ export function ChatBox() {
   const [result, setResult] = useState<OptimizationResult | null>(null);
 
   // ===== V2 状态 =====
-  const TARGET_DURATIONS = ['30s', '60s', '90s'];
-  const TARGET_TYPES = [
-    { id: 'wasteland', label: '废土' },
-    { id: 'ancient', label: '古风' },
-    { id: 'cyberpunk', label: '赛博朋克' },
-    { id: 'wuxia', label: '武侠' },
-    { id: 'thriller', label: '悬疑' },
-    { id: 'romance', label: '言情' },
-    { id: 'scifi', label: '科幻' },
-    { id: 'comedy', label: '喜剧' },
-  ];
   const [v2State, setV2State] = useState<'input' | 'diagnosis' | 'reconstruct' | 'result'>('input');
   const [directorKit, setDirectorKit] = useState<DirectorKit | null>(null);
-  const [targetDuration, setTargetDuration] = useState('30s');
-  const [targetType, setTargetType] = useState('wasteland');
+  const [targetDuration, setTargetDuration] = useState<DirectorKitTargetDuration>('30s');
+  const [targetType, setTargetType] = useState<DirectorKitTargetType>('wasteland');
   const [selectedVersionIndex, setSelectedVersionIndex] = useState<number | null>(null);
   const [v2Loading, setV2Loading] = useState(false);
   const [v2Error, setV2Error] = useState('');
@@ -507,7 +500,7 @@ export function ChatBox() {
         {/* 目标时长选择器 */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-gray-500">目标时长</span>
-          {TARGET_DURATIONS.map((d) => (
+          {DIRECTOR_KIT_TARGET_DURATIONS.map((d) => (
             <button
               key={d}
               type="button"
@@ -526,7 +519,7 @@ export function ChatBox() {
         {/* 类型偏好选择器 */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-gray-500">类型偏好</span>
-          {TARGET_TYPES.map((t) => (
+          {DIRECTOR_KIT_TARGET_TYPES.map((t) => (
             <button
               key={t.id}
               type="button"
