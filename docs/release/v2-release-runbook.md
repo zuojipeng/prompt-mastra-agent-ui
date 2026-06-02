@@ -73,6 +73,31 @@ npx wrangler deploy
 
 For backend D1 schema changes, apply schema before exposing new frontend behavior.
 
+Fallback when Wrangler cannot reach Cloudflare API but direct `curl` works:
+
+```bash
+npx wrangler deploy --dry-run --outdir /private/tmp/prompt-optimizer-worker-dry-run
+```
+
+Upload the generated module worker through the Cloudflare Workers REST API with metadata that includes:
+
+```json
+{
+  "main_module": "workers-entry-d1.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "bindings": [
+    {
+      "type": "d1",
+      "name": "DB",
+      "id": "f02d2d29-2553-4fd9-bb5b-acf29abd6a42"
+    }
+  ]
+}
+```
+
+This fallback is for deploy-channel recovery only. It does not replace normal Wrangler deployment.
+
 ## Production Verification
 
 After deploy:
@@ -103,5 +128,6 @@ Rollback is required when:
 - Frontend production page is unavailable.
 - `/api/health` fails.
 - `/api/v2/director-kit` cannot produce a contract-valid response.
+- `/api/v2/director-kit` returns sustained model upstream 502.
 - CORS blocks the production frontend.
 - V2 core flow cannot complete.

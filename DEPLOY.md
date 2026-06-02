@@ -104,7 +104,42 @@ git push origin main
 
 推送后 Cloudflare Pages 会自动构建部署。
 
-## 6. 上线后验证
+## 6. 后端 Worker 部署
+
+正常部署：
+
+```bash
+npx wrangler deploy
+```
+
+D1 schema 变更必须先于前端功能暴露完成。
+
+如果 `wrangler deploy` 因本机 Wrangler fetch 通道失败而无法连接 Cloudflare API，但 `curl` 能正常访问 Cloudflare API，可以使用 dry-run 产物走 Workers REST API 作为临时 fallback：
+
+```bash
+npx wrangler deploy --dry-run --outdir /private/tmp/prompt-optimizer-worker-dry-run
+```
+
+REST API 上传 metadata 必须包含：
+
+```json
+{
+  "main_module": "workers-entry-d1.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "bindings": [
+    {
+      "type": "d1",
+      "name": "DB",
+      "id": "f02d2d29-2553-4fd9-bb5b-acf29abd6a42"
+    }
+  ]
+}
+```
+
+REST API fallback 只用于 Wrangler 通道异常时；正常发布仍优先使用 `wrangler deploy`。
+
+## 7. 上线后验证
 
 前端页面：
 
@@ -129,7 +164,7 @@ curl --silent https://prompt-optimizer.hahazuo460.workers.dev/api/health
 - 移动端核心流程没有明显布局溢出。
 - 浏览器控制台没有阻塞级红色错误。
 
-## 7. 回滚
+## 8. 回滚
 
 前端回滚：
 1. 打开 Cloudflare Dashboard。
@@ -152,7 +187,7 @@ curl --silent https://prompt-optimizer.hahazuo460.workers.dev/api/health
 - CORS 或环境变量错误导致线上不可用。
 - 发布后核心路径无法完成。
 
-## 8. 发布记录
+## 9. 发布记录
 
 每次发布需要补一条记录：
 
