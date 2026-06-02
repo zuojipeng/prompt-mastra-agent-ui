@@ -9,17 +9,14 @@ Prove the V2 DirectorKit user journey works in a real browser, not only through 
 
 ## Current Capability
 
-Status: BLOCKED FOR AUTOMATION
+Status: AUTOMATION READY
 
 The repo currently has:
 - Vitest unit/source tests
 - Static smoke test
 - Live API E2E scripts
 
-The repo does not currently have:
-- `@playwright/test`
-- Cypress
-- A configured browser E2E runner
+The repo intentionally uses Playwright for this gate rather than Cypress.
 
 Readiness command:
 
@@ -28,7 +25,7 @@ npm run test:e2e:browser:check
 ```
 
 Expected current result:
-- FAIL with setup guidance until Playwright is installed.
+- PASS after Playwright installation.
 
 Release gate command:
 
@@ -37,7 +34,7 @@ npm run qa:v2
 ```
 
 Expected current result:
-- FAIL at browser readiness until Playwright is installed.
+- PASS when API and browser checks both pass.
 
 ## Recommended Automation Stack
 
