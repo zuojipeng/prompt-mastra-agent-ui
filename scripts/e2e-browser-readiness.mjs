@@ -1,8 +1,7 @@
 /**
  * Browser E2E readiness check.
  *
- * This project does not currently ship a browser automation runner. The check
- * fails with actionable setup guidance until Playwright is added deliberately.
+ * Fails with actionable setup guidance when Playwright is missing.
  */
 
 function resolvePackage(name) {

@@ -1,97 +1,170 @@
-# ☁️ 部署指南
+# 镜词 V2 发布运行手册
 
-## 🚀 Cloudflare Pages 部署（推荐）
+本手册覆盖前端 Cloudflare Pages 发布、后端 Worker 依赖、发布前质量门禁、上线验证和回滚。V2 发布目标是可验证、可回滚，而不是只完成一次构建。
 
-### 配置（重要）⭐
+## 1. 发布对象
 
-```yaml
+前端：
+
+```text
+GitHub: zuojipeng/prompt-mastra-agent-ui
+Runtime: Cloudflare Pages static export
+Build: npm run build
+Output: out
+Node: 20.12+
+```
+
+后端：
+
+```text
+GitHub: zuojipeng/zuo-mastra
+Runtime: Cloudflare Worker
+Database: Cloudflare D1
+Health: /api/health
+V2 API: /api/v2/director-kit
+```
+
+## 2. 必要环境变量
+
+前端 Cloudflare Pages：
+
+```text
+NODE_VERSION=20
+NEXT_PUBLIC_API_URL=https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
+```
+
+后端 Worker：
+
+```text
+DEEPSEEK_API_KEY=<secret>
+DB=<D1 binding>
+ALLOWED_ORIGINS=<frontend origin list>
+API_KEY=<optional service key>
+DEBUG_ERRORS=false
+```
+
+不要把 `.env.local`、`.env`、`.dev.vars` 或真实 token 提交到仓库。
+
+## 3. 发布前门禁
+
+本地发布前执行：
+
+```bash
+npm ci
+npx playwright install chromium
+npm run release:v2:check
+```
+
+`release:v2:check` 会按顺序执行：
+
+```text
+npm run build
+npx tsc --noEmit
+npm run lint
+npm run qa:v2
+```
+
+说明：
+- Next build 当前配置会跳过 TypeScript 和 ESLint，因此必须单独运行 `tsc` 和 `lint`。
+- `qa:v2` 包含单元测试、smoke、V2 live API E2E、Playwright readiness 和浏览器 E2E。
+- Playwright 浏览器测试会 mock `/api/v2/director-kit`，用于验证 UI 流程，不消耗 LLM 调用。
+- V2 live API E2E 会调用部署中的 Worker，用于验证线上后端契约。
+
+## 4. CI 门禁
+
+GitHub Actions 工作流：
+
+```text
+.github/workflows/v2-quality-gate.yml
+```
+
+触发条件：
+- push 到 `main`
+- PR 到 `main`
+- 手动 `workflow_dispatch`
+
+CI 失败时不得发布，除非 Hermes 记录豁免原因并由 L0 明确确认。
+
+## 5. Cloudflare Pages 配置
+
+Pages 项目配置：
+
+```text
 Framework preset: Next.js
-构建命令: npm run build
-构建输出目录: out
-Node 版本: 20+
+Build command: npm run build
+Build output directory: out
+Node version: 20+
 ```
 
-### 步骤
-
-1. **登录** https://dash.cloudflare.com/
-2. **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-3. **选择仓库**: `zuojipeng/prompt-mastra-agent-ui`
-4. **配置构建**（见上面）
-5. **环境变量**（可选）:
-   ```
-   NODE_VERSION = 20
-   NEXT_PUBLIC_API_URL = https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
-   ```
-6. **点击部署** → 完成！
-
-### 结果
-
-```
-https://prompt-optimizer-frontend.pages.dev
-```
-
----
-
-## 🔄 自动部署
-
-推送代码自动触发：
+部署方式：
 
 ```bash
 git push origin main
-# Cloudflare 自动构建并部署
 ```
 
----
+推送后 Cloudflare Pages 会自动构建部署。
 
-## 🌐 Vercel 部署（备选）
+## 6. 上线后验证
 
-1. 访问 https://vercel.com/
-2. 导入 GitHub 仓库
-3. 点击 Deploy
-4. 完成！
+前端页面：
 
-**优势**：零配置，一键部署
+```text
+https://prompt-mastra-agent-ui.pages.dev
+```
 
----
+如实际 Pages 域名不同，以 Cloudflare Dashboard 中当前 production deployment URL 为准。
 
-## 🎨 自定义域名
+后端健康检查：
 
-Cloudflare Pages:
-1. **Custom domains** → **Set up**
-2. 输入域名（如 `prompt.your-domain.com`）
-3. Cloudflare 自动配置 DNS
-4. 等待 SSL 证书（1-5分钟）
+```bash
+curl --silent https://prompt-optimizer.hahazuo460.workers.dev/api/health
+```
 
----
+线上验证清单：
+- 页面能正常打开。
+- 输入创意后能进入创意体检。
+- 三个重构版本能展示并可选择。
+- 选择版本后能生成导演执行包。
+- 错误态可重试，输入不会丢失。
+- 移动端核心流程没有明显布局溢出。
+- 浏览器控制台没有阻塞级红色错误。
 
-## 🐛 常见问题
+## 7. 回滚
 
-### 构建失败
+前端回滚：
+1. 打开 Cloudflare Dashboard。
+2. 进入 Pages 项目。
+3. 打开 Deployments。
+4. 选择上一个健康 production deployment。
+5. 点击 Rollback。
+6. 回滚后重新执行上线后验证。
 
-**检查**：
-1. Node 版本是否设置为 20+
-2. 构建命令是否为 `npm run build`
-3. 输出目录是否为 `out`（静态导出目录）
+后端回滚：
+1. 进入后端 repo。
+2. 找到上一个健康 commit 或 Worker deployment。
+3. 使用 Cloudflare Dashboard 回滚 Worker deployment，或从健康 commit 重新 deploy。
+4. 验证 `/api/health` 和 `/api/v2/director-kit`。
 
-**查看日志**：
-Cloudflare Dashboard → Pages → Deployments → 点击失败的部署
+回滚触发条件：
+- 首页无法访问。
+- V2 API 500/502 持续出现。
+- DirectorKit 输出结构破坏前端主流程。
+- CORS 或环境变量错误导致线上不可用。
+- 发布后核心路径无法完成。
 
-### CORS 错误
+## 8. 发布记录
 
-确保后端配置了 CORS 允许前端域名。
+每次发布需要补一条记录：
 
----
+```text
+docs/test-reports/<date>-v2-release.md
+docs/agent-runs/<date>-v2-release.md
+```
 
-## ✅ 部署检查清单
-
-- [ ] 代码已推送到 GitHub
-- [ ] 已连接 Cloudflare Pages
-- [ ] 构建配置正确
-- [ ] 首次部署成功
-- [ ] 网站可以访问
-- [ ] API 调用正常
-- [ ] 记忆功能工作
-
----
-
-**就这么简单！🎉**
+记录至少包含：
+- commit hash
+- 执行命令和结果
+- 线上 URL
+- 健康检查结果
+- 已知风险
+- 是否需要回滚

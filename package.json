@@ -2,7 +2,7 @@
   "name": "prompt-optimizer-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "AI 视频分镜 Prompt 工作台 - 前端应用",
+  "description": "镜词 · AI 短片导演执行包工作台",
   "engines": {
     "node": ">=20.12.0"
   },
@@ -20,7 +20,8 @@
     "test:e2e:browser:check": "node scripts/e2e-browser-readiness.mjs",
     "test:e2e:browser": "playwright test",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
-    "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test"
+    "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",
+    "release:v2:check": "node scripts/release-gate-v2.mjs"
   },
   "dependencies": {
     "next": "15.0.3",

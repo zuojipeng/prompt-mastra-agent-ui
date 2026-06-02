@@ -1,56 +1,67 @@
-# QA 验收标准
+# 镜词 V2 QA 清单
 
-以下任何一项不通过则阻塞发布。
+以下任一 P0 项失败即阻塞发布。
 
-## 1. 构建检查 (`npm run build`)
-- [x] `next build` 无错误退出
-- [x] 包大小不超过 200 KB (First Load JS: 114 KB)
+## 1. 自动化门禁
 
-## 2. 类型检查 (`npx tsc --noEmit`)
-- [x] 源文件（不含 node_modules）无 TypeScript 错误
+```bash
+npm run release:v2:check
+```
 
-## 3. Lint 检查 (`npm run lint`)
-- [x] 0 errors, 9 pre-existing warnings
+必须通过：
+- `npm run build`
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm test`
+- `npm run test:smoke`
+- `npm run test:e2e:v2`
+- `npm run test:e2e:browser:check`
+- `npm run test:e2e:browser`
 
-## 4. 单元测试 (`npm run test`)
-- [x] 全部 29 tests 通过（api-client: 17, session-manager: 12）
+## 2. V2 核心路径
 
-## 5. 冒烟测试 (`npm run test:smoke`)
-- [x] Stage 1: 静态 HTML 包含关键文本
-- [x] Stage 2: JS bundle 包含所有功能字符串
-- [x] Stage 3: 包大小在合理范围 (48.2 KB)
+- [ ] 输入有效创意后出现 loading 状态。
+- [ ] 创意体检报告可见。
+- [ ] 三个重构版本可见。
+- [ ] 未选择版本时确认按钮 disabled。
+- [ ] 鼠标点击可选择版本。
+- [ ] 键盘方向键可切换版本。
+- [ ] 选择版本后可生成导演执行包。
+- [ ] 导演执行包包含故事设定、分镜卡片、主 prompt、平台建议、后期建议、风险补救。
 
-## 6. PWA
-- [x] manifest.json 存在
-- [x] 可安装到桌面
+## 3. 错误恢复
 
-## 7. 新手引导
-- [x] 首次访问显示 3 步引导浮层
-- [x] 步骤逐步推进：输入 → 生成 → 复制
-- [x] 完成复制后自动关闭
-- [x] "跳过"按钮可手动关闭
+- [ ] 空输入提交时提示 `请输入视频创意`。
+- [ ] API 失败后显示错误提示。
+- [ ] API 失败后原输入仍保留。
+- [ ] `重试生成` 可恢复流程。
+- [ ] `返回修改` 不清空原输入。
 
-## 8. 手动验收（浏览器）
+## 4. 移动端
 
-### 核心功能
-- [ ] 页面加载不报错（控制台无红色错误）
-- [ ] 输入框输入文字，提交后生成提示词
-- [ ] 多镜头（3镜/5镜）生成正常
-- [ ] 风格选择生效
+- [ ] 目标时长和类型按钮不会溢出。
+- [ ] 重构卡片纵向堆叠且可读。
+- [ ] 结果页长文本不横向溢出。
+- [ ] 主要按钮在小屏上可点击。
 
-### 导演模式
-- [ ] 导演模式展开/收起，填字段后提交
+## 5. 线上验证
 
-### 交互功能
-- [ ] 复制按钮工作
-- [ ] 导出到各平台功能正常
-- [ ] 批量导出功能正常
-- [ ] 新手引导逐步推进正确
+- [ ] 前端 production URL 可访问。
+- [ ] 后端 `/api/health` 返回成功。
+- [ ] V2 live API E2E 通过。
+- [ ] 浏览器控制台无阻塞级错误。
+- [ ] CORS 配置允许当前前端域名。
 
-### 历史与反馈
-- [ ] 历史记录加载/继续/复制正常
-- [ ] 点赞/踩反馈功能正常
+## 6. 发布结论
 
-### 视觉
-- [ ] 夜间模式正常
-- [ ] 移动端适配正常
+发布前记录：
+
+```text
+Commit:
+Frontend URL:
+Backend URL:
+release:v2:check:
+Health check:
+Known risks:
+Rollback needed: yes/no
+```
