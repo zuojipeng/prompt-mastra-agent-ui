@@ -17,7 +17,9 @@
     "test:all": "vitest run && node scripts/smoke-test.mjs",
     "test:e2e": "node scripts/e2e-api-test.mjs",
     "test:e2e:v2": "node scripts/e2e-director-kit-test.mjs",
-    "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs"
+    "test:e2e:browser:check": "node scripts/e2e-browser-readiness.mjs",
+    "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
+    "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs"
   },
   "dependencies": {
     "next": "15.0.3",
