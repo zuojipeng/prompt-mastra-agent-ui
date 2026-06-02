@@ -1,23 +1,55 @@
-# AI 视频分镜 Prompt 工作台
+# 镜词 · AI 短片导演执行包工作台
 
-这是 AI 视频分镜 Prompt 工作台的前端应用。用户输入一句视频创意后，应用会请求服务端生成 15 秒分镜时间轴、完整 positive prompt、negative prompt、平台适配版本和后续优化建议。
+镜词是一个面向 AI 视频创作者的短片导演工作台。用户输入一句创意后，系统会先做创意体检，再给出三种重构方向，最终生成一套可执行的导演执行包，帮助用户更稳定地把创意做成 10-90 秒 AI 短片。
 
-## 功能
+项目重点不是泛 prompt 生成，而是把 AI 视频创作中容易翻车的部分结构化：创意是否适合生成、风险在哪里、镜头怎么拆、用文生视频还是图生视频、平台怎么选、失败后怎么补救。
 
-- 视频创意输入
-- 导演/视觉风格选择
-- 15 秒分镜时间轴展示
-- Positive prompt 与 negative prompt 一键复制
-- Kling、Runway、Pika、Sora、Seedance 平台适配版本
-- 历史工作台，可查看最近生成记录并继续优化
-- 单项继续优化，可针对主 prompt、负向词、单个镜头或平台版本继续生成
-- 单项继续优化会通过结构化 `refinement` 请求告诉服务端目标类型和目标内容
-- 高级导演模式，可选填主角、任务、世界观、固定视觉符号、统一风格和连续性规则
-- 结果页展示导演连续性，用于验收主角锁定、固定视觉符号、世界规则和镜头目的
-- 会话 ID 与用户 ID 自动管理
-- 响应式界面和深色模式
+## 产品能力
+
+- 创意体检：评估可拍性、风险等级、关键风险和推荐改造方向。
+- 三版重构：提供稳妥版、风格版、电影版三种短片方向。
+- 导演执行包：输出故事设定、分镜卡片、主 prompt、负向词、平台建议、后期建议和风险补救。
+- 生成策略：每个镜头带有构图、动作、氛围、运动方式、生成模式、一致性要求和修复建议。
+- 状态恢复：覆盖 loading、empty、error、retry、success 等关键交互状态。
+- 浏览器 E2E：使用 Playwright 验证桌面和移动端核心流程。
+
+## 技术栈
+
+- Framework: Next.js 15, React 18
+- Language: TypeScript
+- Styling: Tailwind CSS
+- Testing: Vitest, Playwright, custom smoke/E2E scripts
+- Backend: Cloudflare Worker + D1
+- API Contract: 前端 DirectorKit 类型与后端 schema 对齐
+
+后端仓库：
+
+```text
+https://github.com/zuojipeng/zuo-mastra
+```
+
+## 核心流程
+
+```text
+输入创意
+  -> 创意体检
+  -> 选择重构版本
+  -> 生成导演执行包
+  -> 复制到 AI 视频平台
+  -> 根据反馈继续优化
+```
+
+## 工程亮点
+
+- 前后端 V2 DirectorKit 契约固定，避免 LLM 返回结构漂移污染前端。
+- V2 主路径有单元测试、契约测试、API E2E、浏览器 E2E 和 smoke test。
+- Playwright 覆盖桌面 Chromium 与移动 Chromium。
+- 使用多 Agent 交付文档组织产品、UI、研发、测试、Code Review 和发布门禁。
+- 发布前通过 `qa:v2` 聚合验证核心质量门槛。
 
 ## 本地开发
+
+要求 Node.js 20.12 或更高版本。
 
 ```bash
 npm install
@@ -36,97 +68,119 @@ http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:8787/api/optimize
 ```
 
-如果不配置，应用会使用内置的默认 API 地址。正式构建时建议显式设置 `NEXT_PUBLIC_API_URL`。
+如果不配置，应用会使用内置默认 API 地址。正式构建或部署时建议显式设置 `NEXT_PUBLIC_API_URL`。
 
-## API 契约
+## 常用命令
 
-前端请求：
-
-```json
-{
-  "message": "雨夜街头，一个女孩停在霓虹招牌下，听见身后脚步声后缓慢回头",
-  "scenario": "video",
-  "style": "wong-kar-wai"
-}
+```bash
+npm run dev
+npm run build
+npm run lint
+npm test
+npm run test:smoke
+npm run test:e2e:v2
+npm run test:e2e:browser
+npm run qa:v2
 ```
 
-前端期望响应：
+其中 `qa:v2` 会依次执行：
 
-```json
-{
-  "success": true,
-  "data": {
-    "originalPrompt": "原始输入",
-    "scenario": "video",
-    "style": "wong-kar-wai",
-    "result": {
-      "analysis": "创意诊断",
-      "timeline": [
-        {
-          "time": "0-3s",
-          "shot": "镜头设计",
-          "action": "动作",
-          "expression": "表情",
-          "audio": "声音"
-        }
-      ],
-      "full_prompt": "完整英文 positive prompt",
-      "negative_prompt": "负向提示词",
-      "versions": [
-        {
-          "style": "15秒分镜版",
-          "positive_prompt": "兼容版本 prompt",
-          "negative_prompt": "兼容版本 negative prompt",
-          "reasoning": "设计理由"
-        }
-      ],
-      "platform_variants": [
-        {
-          "platform": "Kling",
-          "prompt": "平台适配 prompt",
-          "usage_notes": "使用建议",
-          "constraint_notes": "限制提醒"
-        }
-      ],
-      "suggestions": ["下一步优化建议"]
-    }
-  }
-}
+```text
+Vitest
+  -> smoke test
+  -> V2 live API E2E
+  -> Playwright readiness check
+  -> Playwright browser E2E
 ```
 
-## 项目结构
+首次运行浏览器 E2E 前需要安装 Chromium：
+
+```bash
+npx playwright install chromium
+```
+
+## 目录结构
 
 ```text
 .
 ├── app/
 │   ├── components/
-│   │   └── ChatBox.tsx
+│   │   ├── ChatBox.tsx
+│   │   ├── HistoryPanel.tsx
+│   │   └── ProjectBiblePanel.tsx
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
 ├── lib/
 │   ├── api-client.ts
+│   ├── director-kit-contract.ts
 │   └── session-manager.ts
-├── package.json
-└── next.config.ts
+├── scripts/
+│   ├── e2e-browser-readiness.mjs
+│   ├── e2e-director-kit-test.mjs
+│   └── smoke-test.mjs
+├── tests/e2e/
+│   └── v2-director-kit.spec.ts
+├── __tests__/
+│   ├── api-client.test.ts
+│   ├── chatbox-v2-source.test.ts
+│   ├── director-kit-contract.test.ts
+│   └── session-manager.test.ts
+├── docs/
+│   ├── agent-runs/
+│   ├── design/
+│   ├── test-plans/
+│   └── test-reports/
+├── playwright.config.ts
+└── package.json
 ```
 
-## 质量门槛
+## V2 DirectorKit 数据结构
+
+前端核心契约位于：
+
+```text
+lib/director-kit-contract.ts
+```
+
+主要输出包括：
+
+- `diagnosis`: 创意体检结果
+- `versions`: 三个重构版本
+- `storySetting`: 故事、主角、世界观和视觉符号
+- `shotCards`: 分镜卡片和每镜生成策略
+- `masterPrompt`: 主 prompt
+- `negativePrompt`: 负向词
+- `platformAdvice`: 平台建议
+- `postProductionAdvice`: 后期建议
+- `riskRemediation`: 风险补救方案
+
+## 发布检查
+
+发布前至少确认：
 
 ```bash
-npm run lint
+npm run qa:v2
 npm run build
-npm run test:smoke
+npx tsc --noEmit
+npm run lint
 ```
 
-每次发布前至少确认：
+线上发布后确认：
 
-- 首页文案是 AI 视频分镜 Prompt 工作台
-- 输入视频创意后可以成功生成结果
-- 时间轴、主 prompt、负向词、平台适配版本都能渲染
-- 复制按钮可用
-- 历史工作台可刷新、复制历史主 prompt、带回输入区继续优化
-- 单项继续优化按钮可把目标内容带回输入区
-- 高级导演模式默认折叠，展开后可填写作品 bible，不影响快速生成
-- 高级导演模式结果会出现导演连续性，并保留固定视觉符号
-- 移动端和桌面端没有明显布局溢出
+- 页面可以访问。
+- V2 导演执行包流程可以完成。
+- API 调用正常。
+- 移动端没有明显布局溢出。
+- 错误态可以重试恢复。
+
+## 当前阶段
+
+项目当前处于 V2 稳定发布阶段，重点是把核心闭环做到可发布、可验证、可回滚。
+
+下一阶段会继续增强：
+
+- 镜头风险标签体系
+- 更具体的平台适配建议
+- 反馈数据结构标准化
+- 项目化创作工作台
