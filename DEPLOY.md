@@ -37,6 +37,9 @@ NEXT_PUBLIC_API_URL=https://prompt-optimizer.hahazuo460.workers.dev/api/optimize
 
 ```text
 DEEPSEEK_API_KEY=<secret>
+OPENAI_API_KEY=<optional fallback secret>
+OPENAI_BASE_URL=<optional fallback base URL>
+OPENAI_MODEL_NAME=<optional fallback model>
 DB=<D1 binding>
 ALLOWED_ORIGINS=<frontend origin list>
 API_KEY=<optional service key>
@@ -55,6 +58,16 @@ npx playwright install chromium
 npm run release:v2:check
 ```
 
+后端模型预检：
+
+```bash
+cd /Users/edy/Desktop/learning/my-prompt-mastra-agent
+set -a
+source .env
+set +a
+npm run check:models
+```
+
 `release:v2:check` 会按顺序执行：
 
 ```text
@@ -69,6 +82,9 @@ npm run qa:v2
 - `qa:v2` 包含单元测试、smoke、V2 live API E2E、Playwright readiness 和浏览器 E2E。
 - Playwright 浏览器测试会 mock `/api/v2/director-kit`，用于验证 UI 流程，不消耗 LLM 调用。
 - V2 live API E2E 会调用部署中的 Worker，用于验证线上后端契约。
+- `check:models` 不打印密钥，只输出 provider 状态、HTTP status 和错误摘要。
+- DeepSeek `402 Insufficient Balance` 表示需要充值或换 key。
+- OpenAI fallback `404` 通常表示 `OPENAI_BASE_URL`、`OPENAI_MODEL_NAME` 或 key 所属平台不匹配。
 
 ## 4. CI 门禁
 

@@ -18,6 +18,16 @@ npm run release:v2:check
 - `npm run test:e2e:browser:check`
 - `npm run test:e2e:browser`
 
+后端模型预检必须至少一个 provider 可用：
+
+```bash
+cd /Users/edy/Desktop/learning/my-prompt-mastra-agent
+set -a
+source .env
+set +a
+npm run check:models
+```
+
 ## 2. V2 核心路径
 
 - [ ] 输入有效创意后出现 loading 状态。
@@ -48,6 +58,7 @@ npm run release:v2:check
 
 - [ ] 前端 production URL 可访问。
 - [ ] 后端 `/api/health` 返回成功。
+- [ ] 后端 `npm run check:models` 至少一个 provider 可用。
 - [ ] V2 live API E2E 通过。
 - [ ] 浏览器控制台无阻塞级错误。
 - [ ] CORS 配置允许当前前端域名。
