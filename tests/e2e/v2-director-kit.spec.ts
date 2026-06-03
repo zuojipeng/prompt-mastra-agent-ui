@@ -103,6 +103,14 @@ const directorKitResponse = {
 
 async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
   let calls = 0;
+  await page.route('**/api/feedback', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { id: `feedback-${Date.now()}` } }),
+    });
+  });
+
   await page.route('**/api/v2/director-kit', async (route: Route) => {
     calls += 1;
     if (options?.failOnce && calls === 1) {
@@ -162,6 +170,13 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('推荐设置')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
+
+    await page.getByRole('button', { name: '有用' }).first().click();
+    await expect(page.getByText('已记录有用')).toBeVisible();
+    await page.getByRole('button', { name: '画面不稳定' }).first().click();
+    await expect(page.getByText('已记录问题')).toHaveCount(1);
+    await page.getByRole('button', { name: '平台不适配' }).last().click();
+    await expect(page.getByText('已记录问题')).toHaveCount(2);
   });
 
   test('validation and retry recovery preserve input', async ({ page }) => {

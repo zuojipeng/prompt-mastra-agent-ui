@@ -10,6 +10,7 @@ import {
   HistoryRecord,
   OptimizationResult,
   syncUserData,
+  uploadFeedback,
 } from '@/lib/api-client';
 import {
   DIRECTOR_KIT_TARGET_DURATIONS,
@@ -31,6 +32,18 @@ function validateInput(input: string): string | null {
 }
 
 const FEEDBACK_KEY = 'prompt-feedback';
+
+type FeedbackKey = string;
+type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
+type FeedbackRating = 'like' | 'dislike';
+
+const FAILURE_REASONS = [
+  '主体漂移',
+  '动作太复杂',
+  '平台不适配',
+  'Prompt 太泛',
+  '画面不稳定',
+] as const;
 
 const PROMPT_TEMPLATES = [
   {
@@ -80,6 +93,7 @@ export function ChatBox() {
     ratio: string;
   } | null>(null);
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
+  const [feedbackStatus, setFeedbackStatus] = useState<Record<FeedbackKey, FeedbackStatus>>({});
   const [onboardingStep, setOnboardingStep] = useState<number | null>(null);
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -164,6 +178,96 @@ export function ChatBox() {
   const handleApplyTemplate = (template: (typeof PROMPT_TEMPLATES)[number]) => {
     setInput(template.prompt);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const submitV2Feedback = async ({
+    key,
+    rating,
+    eventType,
+    prompt,
+    comment,
+    shotIndex = 0,
+    platform,
+    generationMode,
+    riskLevel,
+    riskTags,
+    failureReasons,
+  }: {
+    key: FeedbackKey;
+    rating: FeedbackRating;
+    eventType: 'director_kit' | 'shot_card' | 'platform_advice';
+    prompt: string;
+    comment?: string;
+    shotIndex?: number;
+    platform?: string;
+    generationMode?: 'text-to-video' | 'image-to-video' | 'reference-image';
+    riskLevel?: 'low' | 'medium' | 'high';
+    riskTags?: string[];
+    failureReasons?: string[];
+  }) => {
+    setFeedbackStatus((prev) => ({ ...prev, [key]: 'sending' }));
+    try {
+      await uploadFeedback({
+        input,
+        prompt,
+        shotIndex,
+        rating,
+        comment,
+        eventType,
+        source: 'v2',
+        targetDuration,
+        targetType,
+        selectedVersionType: directorKit?.selectedVersion?.versionType,
+        platform,
+        generationMode,
+        riskLevel,
+        riskTags,
+        failureReasons,
+      });
+      setFeedbackStatus((prev) => ({ ...prev, [key]: rating === 'like' ? 'liked' : 'disliked' }));
+      fetchFeedbackStats().then(setCloudStats).catch(() => {});
+    } catch {
+      setFeedbackStatus((prev) => ({ ...prev, [key]: 'error' }));
+    }
+  };
+
+  const renderFeedbackButtons = ({
+    feedbackKey,
+    onRate,
+  }: {
+    feedbackKey: FeedbackKey;
+    onRate: (rating: FeedbackRating, failureReasons?: string[]) => void;
+  }) => {
+    const status = feedbackStatus[feedbackKey] ?? 'idle';
+    const disabled = status === 'sending';
+
+    return (
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onRate('like')}
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-60 dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:text-emerald-300"
+        >
+          有用
+        </button>
+        {FAILURE_REASONS.map((reason) => (
+          <button
+            key={reason}
+            type="button"
+            disabled={disabled}
+            onClick={() => onRate('dislike', [reason])}
+            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            {reason}
+          </button>
+        ))}
+        {status === 'sending' && <span className="text-[11px] text-blue-500">记录中...</span>}
+        {status === 'liked' && <span className="text-[11px] text-emerald-600 dark:text-emerald-300">已记录有用</span>}
+        {status === 'disliked' && <span className="text-[11px] text-amber-600 dark:text-amber-300">已记录问题</span>}
+        {status === 'error' && <span className="text-[11px] text-red-500">未同步，不影响继续使用</span>}
+      </div>
+    );
   };
 
   // ===== V2 处理函数 =====
@@ -729,6 +833,18 @@ export function ChatBox() {
               重新开始
             </button>
           </div>
+          {renderFeedbackButtons({
+            feedbackKey: 'director-kit',
+            onRate: (rating, failureReasons) =>
+              submitV2Feedback({
+                key: 'director-kit',
+                rating,
+                eventType: 'director_kit',
+                prompt: directorKit.masterPrompt,
+                comment: rating === 'like' ? '导演执行包整体有用' : '导演执行包整体存在问题',
+                failureReasons,
+              }),
+          })}
 
           {(!(directorKit.shotCards ?? []).length || !directorKit.masterPrompt) && (
             <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-4">
@@ -837,6 +953,22 @@ export function ChatBox() {
                         💡 {card.fixSuggestion}
                       </p>
                     )}
+                    {renderFeedbackButtons({
+                      feedbackKey: `shot-${card.shotId}`,
+                      onRate: (rating, failureReasons) =>
+                        submitV2Feedback({
+                          key: `shot-${card.shotId}`,
+                          rating,
+                          eventType: 'shot_card',
+                          prompt: `${card.description}\n${card.action}`,
+                          comment: rating === 'like' ? '分镜建议有用' : '分镜生成存在问题',
+                          shotIndex: card.shotId,
+                          generationMode: card.generationMode,
+                          riskLevel: card.riskLevel,
+                          riskTags: card.riskTags,
+                          failureReasons,
+                        }),
+                    })}
                   </div>
                 ))}
               </div>
@@ -898,6 +1030,19 @@ export function ChatBox() {
                           </div>
                         ) : null,
                       )}
+                      {renderFeedbackButtons({
+                        feedbackKey: `platform-${advice.platform}`,
+                        onRate: (rating, failureReasons) =>
+                          submitV2Feedback({
+                            key: `platform-${advice.platform}`,
+                            rating,
+                            eventType: 'platform_advice',
+                            prompt: advice.note,
+                            comment: rating === 'like' ? '平台建议有用' : '平台建议不适配',
+                            platform: advice.platform,
+                            failureReasons,
+                          }),
+                      })}
                     </div>
                   </div>
                 ))}
