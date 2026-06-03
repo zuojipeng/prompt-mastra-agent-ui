@@ -457,6 +457,17 @@ export async function uploadFeedback(feedback: {
   shotIndex: number;
   rating: 'like' | 'dislike';
   comment?: string;
+  eventType?: 'legacy_prompt' | 'director_kit' | 'shot_card' | 'platform_advice';
+  source?: 'v1' | 'v2';
+  directorKitId?: string;
+  targetDuration?: DirectorKitTargetDuration;
+  targetType?: DirectorKitTargetType;
+  selectedVersionType?: 'safest' | 'stylish' | 'cinematic';
+  platform?: string;
+  generationMode?: 'text-to-video' | 'image-to-video' | 'reference-image';
+  riskLevel?: 'low' | 'medium' | 'high';
+  riskTags?: string[];
+  failureReasons?: string[];
 }): Promise<void> {
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
@@ -472,6 +483,16 @@ export async function fetchFeedbackStats(): Promise<{
   likes: number;
   dislikes: number;
   ratio: string;
+  breakdown?: {
+    eventTypes: Record<string, number>;
+    sources: Record<string, number>;
+    targetTypes: Record<string, number>;
+    platforms: Record<string, number>;
+    generationModes: Record<string, number>;
+    riskLevels: Record<string, number>;
+    riskTags: Record<string, number>;
+    failureReasons: Record<string, number>;
+  };
 }> {
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
