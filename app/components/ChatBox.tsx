@@ -807,6 +807,31 @@ export function ChatBox() {
                         ))}
                       </div>
                     )}
+                    {(card.riskTagDetails ?? []).length > 0 && (
+                      <div className="grid gap-2 rounded-lg bg-red-50/70 dark:bg-red-950/20 p-3">
+                        <p className="text-[11px] font-semibold text-red-700 dark:text-red-300">风险标签说明</p>
+                        {(card.riskTagDetails ?? []).map((risk, ri) => (
+                          <div key={`${risk.tag}-${ri}`} className="text-[11px] text-gray-600 dark:text-gray-400">
+                            <span className="font-medium text-gray-800 dark:text-gray-200">{risk.tag}：</span>
+                            {risk.impact}
+                            <span className="ml-1 text-emerald-700 dark:text-emerald-300">规避：{risk.mitigation}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(card.stabilityChecklist ?? []).length > 0 && (
+                      <div className="rounded-lg bg-gray-50 dark:bg-gray-800/70 p-3">
+                        <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">生成前稳定性检查</p>
+                        <ul className="mt-1 grid gap-1">
+                          {(card.stabilityChecklist ?? []).map((item, ci) => (
+                            <li key={ci} className="flex items-start gap-1.5 text-[11px] text-gray-600 dark:text-gray-400">
+                              <span className="mt-0.5 text-emerald-500">✓</span>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {card.fixSuggestion && (
                       <p className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 p-2 rounded-lg">
                         💡 {card.fixSuggestion}
@@ -846,9 +871,33 @@ export function ChatBox() {
                     }`}>
                       {advice.recommended ? '推荐' : '可选'}
                     </span>
-                    <div className="space-y-0.5">
+                    <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{advice.platform}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">{advice.note}</p>
+                      {advice.bestFor && (
+                        <p className="text-xs text-gray-600 dark:text-gray-300">
+                          <span className="font-medium">适合：</span>{advice.bestFor}
+                        </p>
+                      )}
+                      {[
+                        ['Prompt 写法', advice.promptTips],
+                        ['推荐设置', advice.settings],
+                        ['避免', advice.avoid],
+                      ].map(([label, items]) =>
+                        Array.isArray(items) && items.length > 0 ? (
+                          <div key={label as string}>
+                            <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">{label as string}</p>
+                            <ul className="mt-0.5 grid gap-0.5">
+                              {items.map((item, pi) => (
+                                <li key={pi} className="flex items-start gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                                  <span className="mt-0.5 text-gray-400">•</span>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null,
+                      )}
                     </div>
                   </div>
                 ))}

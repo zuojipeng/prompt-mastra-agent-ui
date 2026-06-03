@@ -45,6 +45,12 @@ export interface ShotCard {
   consistencyNeed: 'low' | 'medium' | 'high';
   riskLevel: 'low' | 'medium' | 'high';
   riskTags: string[];
+  riskTagDetails?: {
+    tag: string;
+    impact: string;
+    mitigation: string;
+  }[];
+  stabilityChecklist?: string[];
   fixSuggestion: string;
 }
 
@@ -66,6 +72,10 @@ export interface DirectorKit {
     platform: string;
     note: string;
     recommended: boolean;
+    bestFor?: string;
+    promptTips?: string[];
+    settings?: string[];
+    avoid?: string[];
   }[];
   postProductionAdvice: {
     editingRhythm: string;

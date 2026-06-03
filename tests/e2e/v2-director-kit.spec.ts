@@ -63,12 +63,30 @@ const directorKitResponse = {
         consistencyNeed: 'medium',
         riskLevel: 'low',
         riskTags: ['主体一致性'],
+        riskTagDetails: [
+          {
+            tag: '主体一致性',
+            impact: '机器人外观如果变化会削弱连续性。',
+            mitigation: '先生成主角参考图，并在每镜重复外观锚点。',
+          },
+        ],
+        stabilityChecklist: ['固定机器人轮廓', '红裙人偶保持同一位置', '避免快速横移'],
         fixSuggestion: '保持机器人轮廓和红裙人偶位置稳定。',
       },
     ],
     masterPrompt: '废土小镇里，一个旧清洁机器人守护红裙人偶，风沙、旧广告牌、慢速推镜。',
     negativePrompt: '畸形，闪烁，文字水印，主体漂移',
-    platformAdvice: [{ platform: 'Seedance', note: '适合中文画面描述和短片节奏。', recommended: true }],
+    platformAdvice: [
+      {
+        platform: 'Seedance',
+        note: '适合中文画面描述和短片节奏。',
+        recommended: true,
+        bestFor: '文生视频主路径和慢节奏镜头。',
+        promptTips: ['先写主体和环境，再写镜头运动。'],
+        settings: ['建议 5s 单镜测试', '运动强度保持低到中。'],
+        avoid: ['避免多人同屏复杂动作。'],
+      },
+    ],
     postProductionAdvice: {
       editingRhythm: '慢节奏，镜头之间保留停顿。',
       soundEffects: ['风声', '金属摩擦声'],
@@ -136,8 +154,12 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /故事设定/ })).toBeVisible();
     await expect(page.getByText(/分镜卡片/)).toBeVisible();
+    await expect(page.getByText('风险标签说明')).toBeVisible();
+    await expect(page.getByText('生成前稳定性检查')).toBeVisible();
     await expect(page.getByRole('heading', { name: /主 Prompt/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /平台建议/ })).toBeVisible();
+    await expect(page.getByText('Prompt 写法')).toBeVisible();
+    await expect(page.getByText('推荐设置')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
   });
