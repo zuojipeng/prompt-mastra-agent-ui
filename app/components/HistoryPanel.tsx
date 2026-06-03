@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { HistoryRecord } from '@/lib/api-client';
 
 const FAVORITES_KEY = 'prompt-favorites';

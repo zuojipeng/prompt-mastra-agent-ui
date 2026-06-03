@@ -8,10 +8,8 @@ import {
   fetchPromptHistory,
   fetchUserData,
   HistoryRecord,
-  optimizePrompt,
   OptimizationResult,
   syncUserData,
-  uploadFeedback,
 } from '@/lib/api-client';
 import {
   DIRECTOR_KIT_TARGET_DURATIONS,
@@ -19,7 +17,6 @@ import {
   type DirectorKitTargetDuration,
   type DirectorKitTargetType,
 } from '@/lib/director-kit-contract';
-import { createNewSession, getSessionInfo } from '@/lib/session-manager';
 import { HistoryPanel } from './HistoryPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
@@ -33,42 +30,7 @@ function validateInput(input: string): string | null {
   return null;
 }
 
-const PLATFORM_TARGETS = [
-  { id: 'xyq', label: '小云雀 (AI视频)', icon: '🎬', url: 'https://xyq.jianying.com' },
-  { id: 'seedance', label: 'Seedance', icon: '🎞', url: 'https://seedance.cn/create' },
-  { id: 'kling', label: '可灵 Kling', icon: '🎥', url: 'https://klingai.com/create' },
-  { id: 'runway', label: 'Runway Gen-3', icon: '🎬', url: 'https://app.runwayml.com/create' },
-  { id: 'pika', label: 'Pika', icon: '✨', url: 'https://pika.art/create' },
-  { id: 'sora', label: 'OpenAI Sora', icon: '🤖', url: 'https://sora.com/create' },
-  { id: 'clipboard_json', label: '复制结构化 JSON', icon: '📋', url: null },
-] as const;
-
 const FEEDBACK_KEY = 'prompt-feedback';
-
-interface PromptFeedback {
-  id: string;
-  timestamp: number;
-  input: string;
-  prompt: string;
-  shotIndex: number;
-  rating: 'like' | 'dislike' | null;
-  comment: string;
-}
-
-function loadFeedback(): PromptFeedback[] {
-  try {
-    const raw = localStorage.getItem(FEEDBACK_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-
-function saveFeedback(feedback: PromptFeedback[]) {
-  try { localStorage.setItem(FEEDBACK_KEY, JSON.stringify(feedback)); } catch {}
-}
-
-function generateFeedbackId(): string {
-  return `fb-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 const PROMPT_TEMPLATES = [
   {
@@ -109,44 +71,8 @@ const PROMPT_TEMPLATES = [
   },
 ] as const;
 
-function formatForPlatform(platform: string, text: string): string {
-  switch (platform) {
-    case 'xyq':
-      return text;
-    case 'seedance':
-      return `【中文提示词】${text}\n【翻译】${text.slice(0, 200)}`;
-    case 'kling':
-      return `Cinematic shot: ${text.slice(0, 300)}. 4K cinematic quality, professional lighting.`;
-    case 'runway':
-    case 'pika':
-    case 'sora':
-      return text;
-    case 'clipboard_json':
-      return JSON.stringify(
-        { platform: 'video-prompt', prompts: [text], timestamp: Date.now() },
-        null,
-        2,
-      );
-    default:
-      return text;
-  }
-}
-
-type SessionInfo = ReturnType<typeof getSessionInfo>;
-
-const INITIAL_SESSION_INFO: SessionInfo = {
-  userId: 'server-user',
-  sessionId: null,
-  hasSession: false,
-};
-
 export function ChatBox() {
   const [input, setInput] = useState('');
-  const [style, setStyle] = useState('');
-  const [shotCount, setShotCount] = useState(1);
-  const [feedback, setFeedback] = useState<PromptFeedback[]>([]);
-  const [feedbackLoaded, setFeedbackLoaded] = useState(false);
-  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false);
   const [cloudStats, setCloudStats] = useState<{
     total: number;
     likes: number;
@@ -155,11 +81,9 @@ export function ChatBox() {
   } | null>(null);
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle');
   const [onboardingStep, setOnboardingStep] = useState<number | null>(null);
-  const [feedbackComment, setFeedbackComment] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState('');
-  const [sessionInfo, setSessionInfo] = useState(INITIAL_SESSION_INFO);
   const [result, setResult] = useState<OptimizationResult | null>(null);
 
   // ===== V2 状态 =====
@@ -172,7 +96,6 @@ export function ChatBox() {
   const [v2Error, setV2Error] = useState('');
 
   useEffect(() => {
-    setSessionInfo(getSessionInfo());
     refreshHistory();
     fetchFeedbackStats().then(setCloudStats).catch(() => {});
     fetchUserData()
@@ -181,7 +104,6 @@ export function ChatBox() {
           try {
             const parsed = JSON.parse(data.feedback as string);
             if (Array.isArray(parsed)) {
-              setFeedback(parsed);
               localStorage.setItem(FEEDBACK_KEY, data.feedback as string);
             }
           } catch {}
@@ -200,12 +122,6 @@ export function ChatBox() {
       setOnboardingStep(2);
     }
   }, [result, v2Loading, onboardingStep]);
-
-  // Load feedback from localStorage on client only (hydration safety)
-  useEffect(() => {
-    setFeedback(loadFeedback());
-    setFeedbackLoaded(true);
-  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -237,16 +153,6 @@ export function ChatBox() {
     }
   };
 
-  const handleNewSession = () => {
-    createNewSession();
-    setSessionInfo(getSessionInfo());
-    setResult(null);
-    setV2State('input');
-    setV2Error('');
-    setInput('');
-    setHistory([]);
-  };
-
   const continueFromHistory = (record: HistoryRecord) => {
     setInput(record.userPrompt);
     if (record.result) {
@@ -257,15 +163,7 @@ export function ChatBox() {
 
   const handleApplyTemplate = (template: (typeof PROMPT_TEMPLATES)[number]) => {
     setInput(template.prompt);
-    setStyle(template.style);
-    setShotCount(template.shots);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleFeedbackComment = (id: string, comment: string) => {
-    const updated = feedback.map((f) => (f.id === id ? { ...f, comment } : f));
-    setFeedback(updated);
-    saveFeedback(updated);
   };
 
   // ===== V2 处理函数 =====
@@ -1032,70 +930,6 @@ export function ChatBox() {
         }}
       />
 
-      {/* Feedback panel */}
-      {showFeedbackPanel && feedback.length > 0 && (
-        <section className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/10">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-amber-800 dark:text-amber-200">
-              📊 你的反馈
-            </h2>
-            <span className="text-xs text-amber-500 dark:text-amber-400">
-              {feedback.filter((f) => f.rating === 'like').length} 👍{' '}
-              {feedback.filter((f) => f.rating === 'dislike').length} 👎
-            </span>
-          </div>
-          <div className="grid gap-2 max-h-80 overflow-y-auto">
-            {[...feedback].reverse().map((fb) => (
-              <div
-                key={fb.id}
-                className="rounded-lg border border-amber-200/60 dark:border-amber-800/30 bg-white dark:bg-gray-900 p-3 space-y-1.5"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-gray-500">
-                    {new Date(fb.timestamp).toLocaleString('zh-CN', {
-                      month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
-                    })}
-                  </span>
-                  <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                    fb.rating === 'like'
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                  }`}>
-                    {fb.rating === 'like' ? '👍 满意' : '👎 不满意'}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                  创意: {fb.input}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 line-clamp-2">
-                  提示词: {fb.prompt}
-                </p>
-                <div className="flex gap-2 items-center mt-1">
-                  <input
-                    type="text"
-                    value={feedbackComment[fb.id] ?? fb.comment}
-                    onChange={(e) => {
-                      setFeedbackComment((prev) => ({ ...prev, [fb.id]: e.target.value }));
-                    }}
-                    onBlur={() => {
-                      const val = feedbackComment[fb.id]?.trim();
-                      if (val !== undefined) handleFeedbackComment(fb.id, val);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const val = (e.target as HTMLInputElement).value.trim();
-                        handleFeedbackComment(fb.id, val);
-                      }
-                    }}
-                    placeholder="有什么建议？告诉我们哪里不够好..."
-                    className="flex-1 px-2 py-1 text-xs border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-1 focus:ring-amber-500 placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }

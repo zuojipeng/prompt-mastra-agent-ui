@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // The pure functions from api-client.ts – re-extracted here for testability
 // (They're module-private in the original file; we test via their contracts)
