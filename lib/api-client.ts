@@ -68,6 +68,67 @@ export interface HistoryRecord {
   result: OptimizationResult | null;
 }
 
+export type FeedbackStats = {
+  total: number;
+  likes: number;
+  dislikes: number;
+  ratio: string;
+  breakdown?: {
+    eventTypes: Record<string, number>;
+    sources: Record<string, number>;
+    targetTypes: Record<string, number>;
+    platforms: Record<string, number>;
+    generationModes: Record<string, number>;
+    riskLevels: Record<string, number>;
+    riskTags: Record<string, number>;
+    failureReasons: Record<string, number>;
+  };
+};
+
+export type FeedbackAnalyticsBucket = {
+  key: string;
+  total: number;
+  likes: number;
+  dislikes: number;
+  dislikeRate: number;
+};
+
+export type FeedbackAnalyticsSample = {
+  eventType: string;
+  targetType: string;
+  platform: string;
+  generationMode: string;
+  riskLevel: string;
+  riskTags: string[];
+  failureReasons: string[];
+  input: string;
+  prompt: string;
+  shotIndex: number;
+  comment: string;
+  createdAt: number;
+};
+
+export type FeedbackAnalytics = {
+  windowDays: number;
+  total: number;
+  likes: number;
+  dislikes: number;
+  dislikeRate: number;
+  v2Share: number;
+  minSampleSize: number;
+  qualityFlags: string[];
+  dimensions: {
+    eventTypes: FeedbackAnalyticsBucket[];
+    targetTypes: FeedbackAnalyticsBucket[];
+    platforms: FeedbackAnalyticsBucket[];
+    generationModes: FeedbackAnalyticsBucket[];
+    riskLevels: FeedbackAnalyticsBucket[];
+    riskTags: FeedbackAnalyticsBucket[];
+    failureReasons: FeedbackAnalyticsBucket[];
+  };
+  highValueSamples: FeedbackAnalyticsSample[];
+};
+
 // ===== V2 类型定义 =====
 
 export type RefinementTargetType =
@@ -471,29 +532,19 @@ export async function uploadFeedback(feedback: {
 }): Promise<void> {
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
-  await fetch(apiUrl, {
+  const response = await fetch(apiUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
     body: JSON.stringify(feedback),
-  }).catch(() => {});
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+  }
 }
 
-export async function fetchFeedbackStats(): Promise<{
-  total: number;
-  likes: number;
-  dislikes: number;
-  ratio: string;
-  breakdown?: {
-    eventTypes: Record<string, number>;
-    sources: Record<string, number>;
-    targetTypes: Record<string, number>;
-    platforms: Record<string, number>;
-    generationModes: Record<string, number>;
-    riskLevels: Record<string, number>;
-    riskTags: Record<string, number>;
-    failureReasons: Record<string, number>;
-  };
-}> {
+export async function fetchFeedbackStats(): Promise<FeedbackStats> {
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
   try {
@@ -501,6 +552,29 @@ export async function fetchFeedbackStats(): Promise<{
     const json = await res.json();
     return json.data ?? { total: 0, likes: 0, dislikes: 0, ratio: '0' };
   } catch { return { total: 0, likes: 0, dislikes: 0, ratio: '0' }; }
+}
+
+export async function fetchFeedbackAnalytics(options: {
+  days?: 7 | 30 | 90;
+  source?: 'v1' | 'v2';
+  eventType?: 'legacy_prompt' | 'director_kit' | 'shot_card' | 'platform_advice';
+  limit?: number;
+} = {}): Promise<FeedbackAnalytics | null> {
+  const apiUrl = new URL(getApiUrl().replace(/\/api\/optimize$/, '/api/feedback/analytics'));
+  if (options.days) apiUrl.searchParams.set('days', String(options.days));
+  if (options.source) apiUrl.searchParams.set('source', options.source);
+  if (options.eventType) apiUrl.searchParams.set('eventType', options.eventType);
+  if (options.limit) apiUrl.searchParams.set('limit', String(options.limit));
+
+  const userId = getUserId();
+  try {
+    const res = await fetch(apiUrl.toString(), { headers: { 'X-User-Id': userId } });
+    if (!res.ok) return null;
+    const json = await res.json() as { data?: FeedbackAnalytics };
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function syncUserData(payload: Record<string, unknown>): Promise<boolean> {

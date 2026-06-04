@@ -103,6 +103,51 @@ const directorKitResponse = {
 
 async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
   let calls = 0;
+  await page.route('**/api/feedback/analytics**', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          windowDays: 30,
+          total: 8,
+          likes: 5,
+          dislikes: 3,
+          dislikeRate: 37.5,
+          v2Share: 100,
+          minSampleSize: 5,
+          qualityFlags: [],
+          dimensions: {
+            eventTypes: [{ key: 'shot_card', total: 4, likes: 2, dislikes: 2, dislikeRate: 50 }],
+            targetTypes: [{ key: 'wasteland', total: 8, likes: 5, dislikes: 3, dislikeRate: 37.5 }],
+            platforms: [{ key: 'Seedance', total: 3, likes: 1, dislikes: 2, dislikeRate: 66.7 }],
+            generationModes: [{ key: 'text-to-video', total: 5, likes: 3, dislikes: 2, dislikeRate: 40 }],
+            riskLevels: [{ key: 'medium', total: 4, likes: 2, dislikes: 2, dislikeRate: 50 }],
+            riskTags: [{ key: '主体一致性', total: 3, likes: 1, dislikes: 2, dislikeRate: 66.7 }],
+            failureReasons: [{ key: '画面不稳定', total: 3, likes: 0, dislikes: 3, dislikeRate: 100 }],
+          },
+          highValueSamples: [
+            {
+              eventType: 'shot_card',
+              targetType: 'wasteland',
+              platform: 'Seedance',
+              generationMode: 'text-to-video',
+              riskLevel: 'medium',
+              riskTags: ['主体一致性'],
+              failureReasons: ['画面不稳定'],
+              input: creative,
+              prompt: '风沙中的废土小镇，旧清洁机器人缓慢出现。',
+              shotIndex: 1,
+              comment: '分镜生成存在问题',
+              createdAt: 1780500000000,
+            },
+          ],
+        },
+      }),
+    });
+  });
+
   await page.route('**/api/feedback', async (route: Route) => {
     await route.fulfill({
       status: 200,
@@ -122,7 +167,7 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 800));
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -170,6 +215,11 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('推荐设置')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
+
+    await page.getByRole('button', { name: '反馈洞察' }).click();
+    await expect(page.getByText('高频失败原因')).toBeVisible();
+    await expect(page.getByText('画面不稳定').first()).toBeVisible();
+    await expect(page.getByText('最近差评样本')).toBeVisible();
 
     await page.getByRole('button', { name: '有用' }).first().click();
     await expect(page.getByText('已记录有用')).toBeVisible();
