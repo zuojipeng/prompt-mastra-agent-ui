@@ -55,3 +55,21 @@ Result:
 Decision:
 - Do not stack another product slice while the just-shipped backend cannot be smoke-tested from this environment.
 - Next automation should retry DNS/TLS smoke first, then proceed to analytics QA or the next roadmap slice after online verification is stable.
+
+## Follow-Up · 2026-06-04 09:35 CST
+
+Automation retried the first online smoke gate again:
+
+```bash
+curl --http1.1 --connect-timeout 20 --max-time 60 --retry 2 --retry-delay 2 \
+  https://prompt-optimizer.hahazuo460.workers.dev/api/health
+```
+
+Result:
+- `GET /api/health`: BLOCKED before application response
+- Error repeated across all attempts: `Could not resolve host: prompt-optimizer.hahazuo460.workers.dev`
+
+Decision:
+- This is now a repeated external DNS/network blocker from the local environment.
+- Keep the shipped code unchanged and avoid starting a new product slice until the deployed analytics API can be smoke-tested.
+- Reduce automation frequency so the loop remains active without repeatedly reporting the same network failure.
