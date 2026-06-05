@@ -186,6 +186,7 @@ export function ChatBox() {
   const [v2Loading, setV2Loading] = useState(false);
   const [v2Error, setV2Error] = useState('');
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
+  const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
@@ -596,6 +597,7 @@ export function ChatBox() {
     const selectedVersion = directorKit.selectedVersion;
     const shotLines = (directorKit.shotCards ?? []).map((card) => {
       const status = SHOT_EXECUTION_OPTIONS.find((option) => option.status === (shotExecutionStatus[card.shotId] ?? 'pending'));
+      const resultNote = shotResultNotes[card.shotId]?.trim();
       return [
         `## 镜头 ${card.shotId}｜${card.duration}｜${status?.label ?? '未生成'}`,
         `目的：${card.purpose}`,
@@ -603,6 +605,7 @@ export function ChatBox() {
         `动作：${card.action}`,
         `生成模式：${getFeedbackLabel(card.generationMode)}`,
         `风险：${getFeedbackLabel(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
+        resultNote ? `素材/备注：${resultNote}` : '',
         card.fixSuggestion ? `补救：${card.fixSuggestion}` : '',
       ].filter(Boolean).join('\n');
     });
@@ -707,6 +710,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedPlatform(null);
@@ -748,6 +752,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedPlatform(null);
@@ -762,6 +767,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedPlatform(null);
@@ -1412,6 +1418,26 @@ export function ChatBox() {
                       )}
                     </div>
                     {renderShotExecutionControls(card.shotId)}
+                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">
+                      <label
+                        htmlFor={`shot-result-note-${card.shotId}`}
+                        className="text-[11px] font-semibold text-gray-700 dark:text-gray-300"
+                      >
+                        素材链接 / 结果备注
+                      </label>
+                      <textarea
+                        id={`shot-result-note-${card.shotId}`}
+                        value={shotResultNotes[card.shotId] ?? ''}
+                        onChange={(event) =>
+                          setShotResultNotes((prev) => ({
+                            ...prev,
+                            [card.shotId]: event.target.value,
+                          }))
+                        }
+                        placeholder="粘贴平台生成链接、文件名或记录翻车原因..."
+                        className="mt-2 min-h-16 w-full resize-y rounded-md border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-950"
+                      />
+                    </div>
                     {renderFeedbackButtons({
                       feedbackKey: `shot-${card.shotId}`,
                       onRate: (rating, failureReasons) =>
