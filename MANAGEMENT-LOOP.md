@@ -150,12 +150,12 @@ Hermes 总执行在每个任务周期输出以下信号，供 L0 和其他层判
 | QA-CHECKLIST.md      | 代码质量门禁清单（已存在）             |
 | AGENTS.md            | 子 Agent 职责、输入输出和打回规则       |
 | DELIVERY-WORKFLOW.md | 多 Agent 从规划到上线的交付流程         |
-| docs/agents/UE-AGENT.md | UEAgent 体验架构职责和验收标准      |
-| docs/agents/ARCHITECTURE-AGENT.md | 架构 Agent 职责和复杂度门禁 |
-| docs/principles/PRODUCT-TASTE.md | 跨项目产品品味原则            |
-| docs/principles/UE-TASTE.md | 跨项目体验设计品味原则              |
-| docs/principles/SOFTWARE-DESIGN.md | 跨项目软件设计原则        |
-| docs/principles/AGENT-REVIEW-RUBRIC.md | Agent 统一审查量表     |
+| /Users/edy/.agents/team-os/agents/ue-agent.md | UEAgent 体验架构职责和验收标准 |
+| /Users/edy/.agents/team-os/agents/architecture-agent.md | 架构 Agent 职责和复杂度门禁 |
+| /Users/edy/.agents/team-os/principles/product-taste.md | 跨项目产品品味原则 |
+| /Users/edy/.agents/team-os/principles/ue-taste.md | 跨项目体验设计品味原则 |
+| /Users/edy/.agents/team-os/principles/software-design.md | 跨项目软件设计原则 |
+| /Users/edy/.agents/team-os/principles/agent-review-rubric.md | Agent 统一审查量表 |
 | PRODUCT-ROADMAP.md   | 镜词产品阶段路线和优先级                |
 | V2-STABILIZATION-PLAN.md | V2 导演执行包稳定发布计划           |
 | CORE-STRATEGY.md     | 核心竞争力战略（已存在）               |

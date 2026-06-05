@@ -68,8 +68,8 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 用户故事
 - 现有页面和组件
 - 设计约束
-- `docs/principles/PRODUCT-TASTE.md`
-- `docs/principles/UE-TASTE.md`
+- `/Users/edy/.agents/team-os/principles/product-taste.md`
+- `/Users/edy/.agents/team-os/principles/ue-taste.md`
 
 输出：
 - 产品形态判断
@@ -92,7 +92,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 核心动作路径超过 PRD 范围
 - 页面气质和产品形态不匹配
 
-详细职责见 `docs/agents/UE-AGENT.md`。
+详细职责见 `/Users/edy/.agents/team-os/agents/ue-agent.md`。
 
 ### 2.3 Architecture Agent
 
@@ -107,8 +107,8 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - UEAgent 规格
 - 现有代码结构
 - API / 数据契约
-- `docs/principles/SOFTWARE-DESIGN.md`
-- `docs/principles/AGENT-REVIEW-RUBRIC.md`
+- `/Users/edy/.agents/team-os/principles/software-design.md`
+- `/Users/edy/.agents/team-os/principles/agent-review-rubric.md`
 
 输出：
 - 当前设计阅读
@@ -130,7 +130,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 领域命名模糊
 - 代码结构会让后续迭代明显变慢
 
-详细职责见 `docs/agents/ARCHITECTURE-AGENT.md`。
+详细职责见 `/Users/edy/.agents/team-os/agents/architecture-agent.md`。
 
 ### 2.4 Engineering Agent
 
