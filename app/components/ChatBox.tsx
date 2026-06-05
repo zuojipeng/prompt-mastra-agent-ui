@@ -186,6 +186,7 @@ export function ChatBox() {
   const [v2Error, setV2Error] = useState('');
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
+  const [copiedChecklist, setCopiedChecklist] = useState(false);
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -500,6 +501,18 @@ export function ChatBox() {
             <span className="w-10 text-right font-medium tabular-nums">{executionProgress}%</span>
           </div>
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopyExecutionChecklist}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            复制执行清单
+          </button>
+          {copiedChecklist && (
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-300">执行清单已复制</span>
+          )}
+        </div>
         <div className="mt-3 grid grid-cols-4 gap-2 text-center">
           {SHOT_EXECUTION_OPTIONS.map((option) => (
             <div key={option.status} className={`rounded-lg border px-2 py-2 ${option.className}`}>
@@ -575,6 +588,70 @@ export function ChatBox() {
     setTimeout(() => setCopiedShotId((current) => (current === card.shotId ? null : current)), 2000);
   };
 
+  const buildExecutionChecklist = () => {
+    if (!directorKit) return '';
+    const story = directorKit.storySetting;
+    const selectedVersion = directorKit.selectedVersion;
+    const shotLines = (directorKit.shotCards ?? []).map((card) => {
+      const status = SHOT_EXECUTION_OPTIONS.find((option) => option.status === (shotExecutionStatus[card.shotId] ?? 'pending'));
+      return [
+        `## 镜头 ${card.shotId}｜${card.duration}｜${status?.label ?? '未生成'}`,
+        `目的：${card.purpose}`,
+        `画面：${card.description}`,
+        `动作：${card.action}`,
+        `生成模式：${getFeedbackLabel(card.generationMode)}`,
+        `风险：${getFeedbackLabel(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
+        card.fixSuggestion ? `补救：${card.fixSuggestion}` : '',
+      ].filter(Boolean).join('\n');
+    });
+    const platformLines = (directorKit.platformAdvice ?? []).map((advice) =>
+      [
+        `- ${advice.platform}${advice.recommended ? '（推荐）' : ''}：${advice.note}`,
+        advice.bestFor ? `  适合：${advice.bestFor}` : '',
+      ].filter(Boolean).join('\n'),
+    );
+
+    return [
+      '# 镜词导演执行清单',
+      '',
+      `原始创意：${input}`,
+      `目标时长：${targetDuration}`,
+      `目标类型：${getFeedbackLabel(targetType)}`,
+      selectedVersion ? `选择版本：${selectedVersion.label}｜${selectedVersion.versionType}` : '',
+      '',
+      '## 故事设定',
+      story ? `梗概：${story.logline}` : '',
+      story ? `主角：${story.protagonist}` : '',
+      story ? `世界观：${story.worldSetting}` : '',
+      story ? `视觉母题：${story.visualMotif}` : '',
+      '',
+      '## 出片进度',
+      `进度：${completedShotCount}/${trackedShotCount}（${executionProgress}%）`,
+      `未生成：${executionSummary.pending}｜已生成：${executionSummary.generated}｜翻车：${executionSummary.failed}｜可用：${executionSummary.usable}`,
+      '',
+      '## 分镜执行',
+      shotLines.join('\n\n'),
+      '',
+      '## 平台建议',
+      platformLines.join('\n'),
+      '',
+      '## 主 Prompt',
+      directorKit.masterPrompt,
+      directorKit.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
+      '',
+      '## 风险补救',
+      `Top 风险：${(directorKit.riskRemediation?.topRisks ?? []).join('、') || '无'}`,
+      `替代镜头：${(directorKit.riskRemediation?.alternativeShots ?? []).join('、') || '无'}`,
+      `备用策略：${(directorKit.riskRemediation?.backupStrategies ?? []).join('、') || '无'}`,
+    ].filter(Boolean).join('\n');
+  };
+
+  const handleCopyExecutionChecklist = async () => {
+    await copyTextToClipboard(buildExecutionChecklist());
+    setCopiedChecklist(true);
+    setTimeout(() => setCopiedChecklist(false), 2000);
+  };
+
   // ===== V2 处理函数 =====
 
   const handleDirectorKitSubmit = async (e: React.FormEvent) => {
@@ -594,6 +671,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setCopiedShotId(null);
+    setCopiedChecklist(false);
     try {
       const kit = await createDirectorKit({
         message: input,
@@ -633,6 +711,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setCopiedShotId(null);
+    setCopiedChecklist(false);
     setV2Error('');
     setInput('');
     setTargetDuration('30s');
@@ -645,6 +724,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setCopiedShotId(null);
+    setCopiedChecklist(false);
     setV2Error('');
   };
 
