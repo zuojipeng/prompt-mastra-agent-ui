@@ -19,6 +19,7 @@
     "test:e2e:v2": "node scripts/e2e-director-kit-test.mjs",
     "test:e2e:browser:check": "node scripts/e2e-browser-readiness.mjs",
     "test:e2e:browser": "playwright test",
+    "demo:record": "node scripts/record-demo.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
     "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",
     "release:v2:check": "node scripts/release-gate-v2.mjs"
