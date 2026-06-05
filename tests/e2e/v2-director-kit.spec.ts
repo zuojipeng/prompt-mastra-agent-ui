@@ -215,6 +215,14 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('推荐设置')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
+    await expect(page.getByText('出片执行进度')).toBeVisible();
+    await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
+
+    await page.getByRole('button', { name: '翻车' }).click();
+    await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
+    await expect(page.getByText('100%')).toBeVisible();
+    await page.getByRole('button', { name: '可用' }).click();
+    await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
 
     await page.getByRole('button', { name: '反馈洞察' }).click();
     await expect(page.getByText('高频失败原因')).toBeVisible();

@@ -6,7 +6,7 @@ Scope: Deploy feedback analytics API for the Feedback Insight Console
 
 ## Result
 
-Status: PARTIAL PASS
+Status: PASS
 
 The latest backend Worker bundle was deployed through the Cloudflare Workers script API after `wrangler deploy` continued to fail with `fetch failed`.
 
@@ -21,6 +21,7 @@ Deployment:
 ## Verified
 
 - `GET /api/health`: PASS
+- `GET /api/feedback/analytics?source=v2&days=30&limit=3`: PASS
 - Remote Worker accepts the latest bundled module deploy.
 
 ## Remaining Risk
@@ -35,9 +36,7 @@ Earlier in the same run, `GET /api/history` succeeded for `X-User-Id: smoke-feed
 
 ## Next Action
 
-- Retry online smoke checks in the next automation heartbeat.
-- If `/api/feedback/analytics` returns an application error after network stabilizes, inspect Worker tail logs and D1 schema state.
-- If Cloudflare API instability continues, upgrade Wrangler from `4.46.0` or use a network with stable access to `api.cloudflare.com`.
+- Continue product iteration after Feedback Insight online smoke passed from the user's terminal environment.
 
 ## Follow-Up · 2026-06-04 09:00 CST
 
@@ -73,3 +72,15 @@ Decision:
 - This is now a repeated external DNS/network blocker from the local environment.
 - Keep the shipped code unchanged and avoid starting a new product slice until the deployed analytics API can be smoke-tested.
 - Reduce automation frequency so the loop remains active without repeatedly reporting the same network failure.
+
+## Follow-Up · 2026-06-05 User Terminal Verification
+
+The user ran the smoke commands from their macOS terminal and verified:
+
+- `curl -I https://prompt-optimizer.hahazuo460.workers.dev/api/health`: returns `HTTP/2 404` for HEAD, which is acceptable because the Worker route is implemented for GET.
+- `curl https://prompt-optimizer.hahazuo460.workers.dev/api/health`: PASS, returns `{"status":"ok", ...}`.
+- `curl "https://prompt-optimizer.hahazuo460.workers.dev/api/feedback/analytics?source=v2&days=30&limit=3" -H "X-User-Id: smoke-feedback-insight"`: PASS, returns `success: true` with empty analytics data and a low-sample quality flag.
+
+Conclusion:
+- Worker deploy and D1 analytics route are healthy.
+- Prior failures were local Codex execution environment DNS/TLS instability, not an application release failure.

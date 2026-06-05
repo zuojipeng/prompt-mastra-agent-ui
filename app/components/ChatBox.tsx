@@ -38,6 +38,7 @@ const FEEDBACK_KEY = 'prompt-feedback';
 type FeedbackKey = string;
 type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
+type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 
 const FAILURE_REASONS = [
   '主体漂移',
@@ -46,6 +47,33 @@ const FAILURE_REASONS = [
   'Prompt 太泛',
   '画面不稳定',
 ] as const;
+
+const SHOT_EXECUTION_OPTIONS: Array<{
+  status: ShotExecutionStatus;
+  label: string;
+  className: string;
+}> = [
+  {
+    status: 'pending',
+    label: '未生成',
+    className: 'border-gray-200 bg-white text-gray-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300',
+  },
+  {
+    status: 'generated',
+    label: '已生成',
+    className: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-300',
+  },
+  {
+    status: 'failed',
+    label: '翻车',
+    className: 'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300',
+  },
+  {
+    status: 'usable',
+    label: '可用',
+    className: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300',
+  },
+];
 
 const FEEDBACK_LABELS: Record<string, string> = {
   director_kit: '执行包整体',
@@ -138,6 +166,20 @@ export function ChatBox() {
   const [selectedVersionIndex, setSelectedVersionIndex] = useState<number | null>(null);
   const [v2Loading, setV2Loading] = useState(false);
   const [v2Error, setV2Error] = useState('');
+  const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
+
+  const shotCards = directorKit?.shotCards ?? [];
+  const executionSummary = shotCards.reduce(
+    (summary, card) => {
+      const status = shotExecutionStatus[card.shotId] ?? 'pending';
+      summary[status] += 1;
+      return summary;
+    },
+    { pending: 0, generated: 0, failed: 0, usable: 0 } satisfies Record<ShotExecutionStatus, number>,
+  );
+  const trackedShotCount = shotCards.length;
+  const completedShotCount = executionSummary.generated + executionSummary.failed + executionSummary.usable;
+  const executionProgress = trackedShotCount > 0 ? Math.round((completedShotCount / trackedShotCount) * 100) : 0;
 
   const refreshFeedbackAnalytics = async () => {
     setAnalyticsState('loading');
@@ -417,6 +459,72 @@ export function ChatBox() {
     );
   };
 
+  const renderShotExecutionSummary = () => {
+    if (!trackedShotCount) return null;
+
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">出片执行进度</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {completedShotCount}/{trackedShotCount} 个镜头已有执行结果
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className="h-2 w-28 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all"
+                style={{ width: `${executionProgress}%` }}
+              />
+            </div>
+            <span className="w-10 text-right font-medium tabular-nums">{executionProgress}%</span>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+          {SHOT_EXECUTION_OPTIONS.map((option) => (
+            <div key={option.status} className={`rounded-lg border px-2 py-2 ${option.className}`}>
+              <p className="text-[10px]">{option.label}</p>
+              <p className="mt-0.5 text-sm font-semibold tabular-nums">{executionSummary[option.status]}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderShotExecutionControls = (shotId: number) => {
+    const currentStatus = shotExecutionStatus[shotId] ?? 'pending';
+
+    return (
+      <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">执行状态</p>
+          <div className="flex flex-wrap gap-1.5">
+            {SHOT_EXECUTION_OPTIONS.map((option) => {
+              const selected = currentStatus === option.status;
+              return (
+                <button
+                  key={`${shotId}-${option.status}`}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setShotExecutionStatus((prev) => ({ ...prev, [shotId]: option.status }))}
+                  className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    selected
+                      ? option.className
+                      : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ===== V2 处理函数 =====
 
   const handleDirectorKitSubmit = async (e: React.FormEvent) => {
@@ -434,6 +542,7 @@ export function ChatBox() {
     setV2Error('');
     setDirectorKit(null);
     setSelectedVersionIndex(null);
+    setShotExecutionStatus({});
     try {
       const kit = await createDirectorKit({
         message: input,
@@ -471,6 +580,7 @@ export function ChatBox() {
     setV2State('input');
     setDirectorKit(null);
     setSelectedVersionIndex(null);
+    setShotExecutionStatus({});
     setV2Error('');
     setInput('');
     setTargetDuration('30s');
@@ -481,6 +591,7 @@ export function ChatBox() {
     setV2State('input');
     setDirectorKit(null);
     setSelectedVersionIndex(null);
+    setShotExecutionStatus({});
     setV2Error('');
   };
 
@@ -1006,6 +1117,7 @@ export function ChatBox() {
                 failureReasons,
               }),
           })}
+          {renderShotExecutionSummary()}
 
           {(!(directorKit.shotCards ?? []).length || !directorKit.masterPrompt) && (
             <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-4">
@@ -1114,6 +1226,7 @@ export function ChatBox() {
                         💡 {card.fixSuggestion}
                       </p>
                     )}
+                    {renderShotExecutionControls(card.shotId)}
                     {renderFeedbackButtons({
                       feedbackKey: `shot-${card.shotId}`,
                       onRate: (rating, failureReasons) =>
