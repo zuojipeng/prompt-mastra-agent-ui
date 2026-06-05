@@ -39,6 +39,7 @@ type FeedbackKey = string;
 type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
 type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
+type ShotCard = DirectorKit['shotCards'][number];
 
 const FAILURE_REASONS = [
   '主体漂移',
@@ -98,6 +99,23 @@ const FEEDBACK_LABELS: Record<string, string> = {
 
 function getFeedbackLabel(value: string) {
   return FEEDBACK_LABELS[value] ?? value;
+}
+
+async function copyTextToClipboard(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return;
+  } catch {}
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
 }
 
 const PROMPT_TEMPLATES = [
@@ -167,6 +185,7 @@ export function ChatBox() {
   const [v2Loading, setV2Loading] = useState(false);
   const [v2Error, setV2Error] = useState('');
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
+  const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -525,6 +544,37 @@ export function ChatBox() {
     );
   };
 
+  const buildShotPrompt = (card: ShotCard) => {
+    const modeLabel = getFeedbackLabel(card.generationMode);
+    const checklist = (card.stabilityChecklist ?? []).map((item) => `- ${item}`).join('\n');
+    const riskTags = (card.riskTags ?? []).join('、') || '无';
+
+    return [
+      `镜头 ${card.shotId}｜${card.duration}｜${modeLabel}`,
+      '',
+      `主 Prompt：${directorKit?.masterPrompt ?? ''}`,
+      '',
+      `画面：${card.description}`,
+      `动作：${card.action}`,
+      `景别：${card.framing}`,
+      `运镜：${card.motion}`,
+      `情绪：${card.mood}`,
+      `镜头目的：${card.purpose}`,
+      `一致性要求：${getFeedbackLabel(card.consistencyNeed)}`,
+      `风险等级：${getFeedbackLabel(card.riskLevel)}`,
+      `风险标签：${riskTags}`,
+      card.fixSuggestion ? `补救建议：${card.fixSuggestion}` : '',
+      checklist ? `\n生成前稳定性检查：\n${checklist}` : '',
+      directorKit?.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
+    ].filter(Boolean).join('\n');
+  };
+
+  const handleCopyShotPrompt = async (card: ShotCard) => {
+    await copyTextToClipboard(buildShotPrompt(card));
+    setCopiedShotId(card.shotId);
+    setTimeout(() => setCopiedShotId((current) => (current === card.shotId ? null : current)), 2000);
+  };
+
   // ===== V2 处理函数 =====
 
   const handleDirectorKitSubmit = async (e: React.FormEvent) => {
@@ -543,6 +593,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setCopiedShotId(null);
     try {
       const kit = await createDirectorKit({
         message: input,
@@ -581,6 +632,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setCopiedShotId(null);
     setV2Error('');
     setInput('');
     setTargetDuration('30s');
@@ -592,6 +644,7 @@ export function ChatBox() {
     setDirectorKit(null);
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
+    setCopiedShotId(null);
     setV2Error('');
   };
 
@@ -1226,6 +1279,18 @@ export function ChatBox() {
                         💡 {card.fixSuggestion}
                       </p>
                     )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyShotPrompt(card)}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                      >
+                        复制镜头 Prompt
+                      </button>
+                      {copiedShotId === card.shotId && (
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-300">已复制</span>
+                      )}
+                    </div>
                     {renderShotExecutionControls(card.shotId)}
                     {renderFeedbackButtons({
                       feedbackKey: `shot-${card.shotId}`,
@@ -1394,7 +1459,7 @@ export function ChatBox() {
         onRefresh={refreshHistory}
         onContinue={continueFromHistory}
         onCopy={(text) => {
-          navigator.clipboard.writeText(text);
+          copyTextToClipboard(text).catch(() => {});
         }}
       />
 
