@@ -54,12 +54,13 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - MVP 边界不清
 - 验收标准不能转成测试用例
 
-### 2.2 UI Agent
+### 2.2 UEAgent
 
 职责：
-- 设计信息架构、页面流程、组件状态和交互规则
-- 定义桌面端、移动端、加载态、空状态、错误态、成功态
-- 约束页面文案和视觉层级
+- 判断产品形态、用户主路径、信息架构和交互优先级
+- 定义页面流程、组件状态、响应式规则和可访问性要求
+- 控制视觉层级、密度、留白、页面气质和交互反馈
+- 防止功能堆叠、装饰性 UI 和不符合产品形态的设计
 - 与研发确认复杂交互可实现性
 
 输入：
@@ -67,8 +68,11 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 用户故事
 - 现有页面和组件
 - 设计约束
+- `docs/principles/PRODUCT-TASTE.md`
+- `docs/principles/UE-TASTE.md`
 
 输出：
+- 产品形态判断
 - 用户流程
 - 页面清单
 - 组件/状态矩阵
@@ -79,14 +83,56 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 禁止：
 - 设计无法落地的复杂交互
 - 绕过 Product Agent 改需求
-- 只给视觉方向不给状态细节
+- 只给视觉方向不给状态细节和主路径判断
+- 为了显得丰富而增加无工作流价值的控件或装饰
 
 打回条件：
 - 缺少错误态或加载态
 - 移动端规则不明确
 - 核心动作路径超过 PRD 范围
+- 页面气质和产品形态不匹配
 
-### 2.3 Engineering Agent
+详细职责见 `docs/agents/UE-AGENT.md`。
+
+### 2.3 Architecture Agent
+
+职责：
+- 判断最小可行架构、模块边界、领域命名和依赖方向
+- 识别复杂度、重复逻辑、弱契约、过度设计和后续维护风险
+- 定义 API / 数据契约、测试切入点、迁移和回滚影响
+- 在大功能进入研发前给出架构门禁结论
+
+输入：
+- PRD 验收标准
+- UEAgent 规格
+- 现有代码结构
+- API / 数据契约
+- `docs/principles/SOFTWARE-DESIGN.md`
+- `docs/principles/AGENT-REVIEW-RUBRIC.md`
+
+输出：
+- 当前设计阅读
+- 最小充分设计
+- 模块和领域边界
+- 被拒绝的复杂方案
+- 测试策略影响
+- 风险和打回建议
+
+禁止：
+- 为小功能引入框架式架构
+- 忽视现有代码风格
+- 用抽象掩盖不清晰的领域规则
+- 把无关重构混入功能切片
+
+打回条件：
+- 外部数据边界不清或未校验
+- 抽象没有真实压力支撑
+- 领域命名模糊
+- 代码结构会让后续迭代明显变慢
+
+详细职责见 `docs/agents/ARCHITECTURE-AGENT.md`。
+
+### 2.4 Engineering Agent
 
 职责：
 - 在前后端实现已通过设计门的需求
@@ -96,7 +142,8 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 
 输入：
 - PRD 验收标准
-- UI 规格
+- UEAgent 规格
+- Architecture Agent 设计结论
 - API / 数据契约
 - 现有代码上下文
 
@@ -120,7 +167,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 关键错误路径无处理
 - 缺少对应测试
 
-### 2.4 Code Review Agent
+### 2.5 Code Review Agent
 
 职责：
 - 独立审查实现质量、行为回归、安全和测试缺口
@@ -130,7 +177,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 输入：
 - Diff
 - PRD
-- UI 规格
+- UEAgent 规格
 - 测试结果
 
 输出：
@@ -150,7 +197,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 任一 P0/P1 问题未修复
 - 无法证明核心流程未回归
 
-### 2.5 Test Agent
+### 2.6 Test Agent
 
 职责：
 - 把 PRD 和 UI 状态转成测试矩阵
@@ -159,7 +206,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 
 输入：
 - PRD 验收标准
-- UI 状态矩阵
+- UE 状态矩阵
 - 代码变更
 - 环境信息
 
@@ -190,7 +237,7 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 - 构建或类型检查失败
 - 关键错误态不可恢复
 
-### 2.6 DevOps Agent
+### 2.7 DevOps Agent
 
 职责：
 - 管理环境、构建、部署、回滚、监控和发布说明
@@ -223,7 +270,8 @@ Hermes Orchestrator 是唯一调度者，负责把老板目标拆解成角色任
 目标输入
   -> Hermes 拆解
   -> Product Agent
-  -> UI Agent
+  -> UEAgent
+  -> Architecture Agent
   -> Engineering Agent
   -> Code Review Agent
   -> Test Agent
@@ -265,4 +313,3 @@ npm test
 npx wrangler deploy --dry-run
 curl /api/health
 ```
-

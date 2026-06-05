@@ -12,7 +12,9 @@ Hermes Orchestrator
   |
   +-- Product Agent: PRD / 验收标准 / 指标
   |
-  +-- UI Agent: 流程 / 页面 / 状态矩阵
+  +-- UEAgent: 产品形态 / 流程 / 页面 / 状态矩阵 / 体验品味
+  |
+  +-- Architecture Agent: 最小充分架构 / 模块边界 / 复杂度控制
   |
   +-- Engineering Agent: 前后端实现 / API / 数据
   |
@@ -50,25 +52,51 @@ Hermes Orchestrator
 - 回 Product Agent 重写 PRD
 - 涉及方向变化时升级 L0
 
-### Gate 2: UI
+### Gate 2: UE
 
 必须产出：
+- 产品形态判断
+- 主路径和次路径
 - 页面流程
 - 组件清单
 - 状态矩阵
 - 响应式规则
 - 可访问性要求
+- 页面气质和信息层级说明
 
 通过标准：
 - 核心路径不超过 PRD 范围
 - 每个关键交互有 loading / error / success
 - 移动端和桌面端都能完成主流程
+- 视觉层级服务于用户决策，不靠装饰撑场面
 
 失败回路：
-- UI 规格缺失，回 UI Agent
+- UE 规格缺失，回 UEAgent
 - 需求矛盾，回 Product Agent
 
-### Gate 3: Engineering
+### Gate 3: Architecture
+
+必须产出：
+- 当前设计阅读
+- 最小充分设计
+- 模块和领域边界
+- 数据契约和依赖方向
+- 拒绝的过度设计方案
+- 测试策略影响
+
+通过标准：
+- 方案不大于问题本身
+- 领域命名清晰
+- 外部数据边界明确
+- 抽象有真实复杂度或复用压力支撑
+- 能说明如何测试和回滚
+
+失败回路：
+- 架构过重，回 Architecture Agent 收缩
+- 数据契约不清，回 Product + Engineering
+- 体验状态影响架构，回 UEAgent
+
+### Gate 4: Engineering
 
 必须产出：
 - 代码改动
@@ -86,7 +114,7 @@ Hermes Orchestrator
 - 实现问题，回 Engineering Agent
 - 契约问题，回 Product + Engineering
 
-### Gate 4: Code Review
+### Gate 5: Code Review
 
 必须产出：
 - 审查报告
@@ -102,7 +130,7 @@ Hermes Orchestrator
 - 回 Engineering Agent 修复
 - 修复后重新进入 Gate 4
 
-### Gate 5: Test
+### Gate 6: Test
 
 必须产出：
 - 测试矩阵
@@ -121,7 +149,7 @@ Hermes Orchestrator
 - 设计不清回 UI Agent
 - 验收标准不清回 Product Agent
 
-### Gate 6: Release
+### Gate 7: Release
 
 必须产出：
 - 部署计划
@@ -140,7 +168,7 @@ Hermes Orchestrator
 - 配置问题回 DevOps Agent
 - 代码问题回 Engineering Agent
 
-### Gate 7: Review
+### Gate 8: Review
 
 必须产出：
 - 目标完成情况
@@ -169,7 +197,8 @@ Hermes 每轮必须维护：
 | 失败类型 | 回派对象 |
 | --- | --- |
 | 需求不可测 | Product Agent |
-| 流程或状态缺失 | UI Agent |
+| 流程、状态或体验气质缺失 | UEAgent |
+| 架构过重、边界不清、抽象不成立 | Architecture Agent |
 | 类型/接口/实现错误 | Engineering Agent |
 | 安全/回归风险 | Code Review Agent |
 | 自动化/E2E 失败 | Test Agent |
@@ -179,7 +208,8 @@ Hermes 每轮必须维护：
 ## 4. 开发规范
 
 - 需求未过 Gate 1，不写代码
-- UI 未过 Gate 2，不做大范围页面实现
+- UE 未过 Gate 2，不做大范围页面实现
+- Architecture 未过 Gate 3，不做跨模块或持久化实现
 - Code Review 未通过，不进入发布测试
 - E2E 或等价手动验收未通过，不上线
 - 生产部署前必须有回滚方案
@@ -215,4 +245,3 @@ Hermes 阶段汇报格式：
 下一步：
 需要 L0 决策：
 ```
-
