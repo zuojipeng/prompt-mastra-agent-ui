@@ -40,6 +40,7 @@ type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
 type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 type ShotCard = DirectorKit['shotCards'][number];
+type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
 const FAILURE_REASONS = [
   '主体漂移',
@@ -187,6 +188,7 @@ export function ChatBox() {
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
+  const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -652,6 +654,41 @@ export function ChatBox() {
     setTimeout(() => setCopiedChecklist(false), 2000);
   };
 
+  const buildPlatformFeedPack = (advice: PlatformAdvice) => {
+    if (!directorKit) return '';
+    const list = (label: string, items: string[] | undefined) =>
+      items?.length ? [`${label}：`, ...items.map((item) => `- ${item}`)].join('\n') : '';
+
+    return [
+      `# ${advice.platform} 平台投喂包`,
+      '',
+      advice.recommended ? '推荐级别：推荐' : '推荐级别：可选',
+      `适合：${advice.bestFor || advice.note}`,
+      `说明：${advice.note}`,
+      '',
+      '## 主 Prompt',
+      directorKit.masterPrompt,
+      directorKit.negativePrompt ? `\n## Negative Prompt\n${directorKit.negativePrompt}` : '',
+      '',
+      list('Prompt 写法', advice.promptTips),
+      '',
+      list('推荐设置', advice.settings),
+      '',
+      list('避免', advice.avoid),
+      '',
+      '## 执行提醒',
+      '- 先用单镜头短时长测试。',
+      '- 高风险镜头优先使用参考图或图生视频。',
+      '- 生成后回到镜词标记镜头状态并提交反馈。',
+    ].filter(Boolean).join('\n');
+  };
+
+  const handleCopyPlatformFeedPack = async (advice: PlatformAdvice) => {
+    await copyTextToClipboard(buildPlatformFeedPack(advice));
+    setCopiedPlatform(advice.platform);
+    setTimeout(() => setCopiedPlatform((current) => (current === advice.platform ? null : current)), 2000);
+  };
+
   // ===== V2 处理函数 =====
 
   const handleDirectorKitSubmit = async (e: React.FormEvent) => {
@@ -672,6 +709,7 @@ export function ChatBox() {
     setShotExecutionStatus({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedPlatform(null);
     try {
       const kit = await createDirectorKit({
         message: input,
@@ -712,6 +750,7 @@ export function ChatBox() {
     setShotExecutionStatus({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedPlatform(null);
     setV2Error('');
     setInput('');
     setTargetDuration('30s');
@@ -725,6 +764,7 @@ export function ChatBox() {
     setShotExecutionStatus({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedPlatform(null);
     setV2Error('');
   };
 
@@ -1368,7 +1408,7 @@ export function ChatBox() {
                         复制镜头 Prompt
                       </button>
                       {copiedShotId === card.shotId && (
-                        <span className="text-[11px] text-emerald-600 dark:text-emerald-300">已复制</span>
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-300">镜头 Prompt 已复制</span>
                       )}
                     </div>
                     {renderShotExecutionControls(card.shotId)}
@@ -1430,11 +1470,11 @@ export function ChatBox() {
                           <span className="font-medium">适合：</span>{advice.bestFor}
                         </p>
                       )}
-                      {[
-                        ['Prompt 写法', advice.promptTips],
-                        ['推荐设置', advice.settings],
-                        ['避免', advice.avoid],
-                      ].map(([label, items]) =>
+	                      {[
+	                        ['Prompt 写法', advice.promptTips],
+	                        ['推荐设置', advice.settings],
+	                        ['避免', advice.avoid],
+	                      ].map(([label, items]) =>
                         Array.isArray(items) && items.length > 0 ? (
                           <div key={label as string}>
                             <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">{label as string}</p>
@@ -1446,10 +1486,22 @@ export function ChatBox() {
                                 </li>
                               ))}
                             </ul>
-                          </div>
-                        ) : null,
-                      )}
-                      {renderFeedbackButtons({
+	                          </div>
+	                        ) : null,
+	                      )}
+	                      <div className="flex flex-wrap items-center gap-2">
+	                        <button
+	                          type="button"
+	                          onClick={() => handleCopyPlatformFeedPack(advice)}
+	                          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+	                        >
+	                          复制平台投喂包
+	                        </button>
+	                        {copiedPlatform === advice.platform && (
+	                          <span className="text-[11px] text-emerald-600 dark:text-emerald-300">平台投喂包已复制</span>
+	                        )}
+	                      </div>
+	                      {renderFeedbackButtons({
                         feedbackKey: `platform-${advice.platform}`,
                         onRate: (rating, failureReasons) =>
                           submitV2Feedback({

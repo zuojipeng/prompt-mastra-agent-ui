@@ -213,6 +213,8 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByRole('heading', { name: /平台建议/ })).toBeVisible();
     await expect(page.getByText('Prompt 写法')).toBeVisible();
     await expect(page.getByText('推荐设置')).toBeVisible();
+    await page.getByRole('button', { name: '复制平台投喂包' }).click();
+    await expect(page.getByText('平台投喂包已复制')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
     await expect(page.getByText('出片执行进度')).toBeVisible();
@@ -220,7 +222,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: '复制执行清单' }).click();
     await expect(page.getByText('执行清单已复制')).toBeVisible();
     await page.getByRole('button', { name: '复制镜头 Prompt' }).click();
-    await expect(page.getByText('已复制')).toBeVisible();
+    await expect(page.getByText('镜头 Prompt 已复制')).toBeVisible();
 
     await page.getByRole('button', { name: '翻车' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
