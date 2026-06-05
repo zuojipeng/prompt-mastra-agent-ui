@@ -189,6 +189,7 @@ export function ChatBox() {
   const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
+  const [copiedSnapshot, setCopiedSnapshot] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
 
   const shotCards = directorKit?.shotCards ?? [];
@@ -515,6 +516,16 @@ export function ChatBox() {
           {copiedChecklist && (
             <span className="text-[11px] text-emerald-600 dark:text-emerald-300">执行清单已复制</span>
           )}
+          <button
+            type="button"
+            onClick={handleCopyProjectSnapshot}
+            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            复制项目快照
+          </button>
+          {copiedSnapshot && (
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-300">项目快照已复制</span>
+          )}
         </div>
         <div className="mt-3 grid grid-cols-4 gap-2 text-center">
           {SHOT_EXECUTION_OPTIONS.map((option) => (
@@ -657,6 +668,84 @@ export function ChatBox() {
     setTimeout(() => setCopiedChecklist(false), 2000);
   };
 
+  const buildProjectSnapshot = () => {
+    if (!directorKit) return '';
+    const selectedVersion = directorKit.selectedVersion;
+    const story = directorKit.storySetting;
+    const generatedAt = new Date().toISOString();
+    const shotLines = (directorKit.shotCards ?? []).map((card) => {
+      const status = SHOT_EXECUTION_OPTIONS.find((option) => option.status === (shotExecutionStatus[card.shotId] ?? 'pending'));
+      const resultNote = shotResultNotes[card.shotId]?.trim();
+
+      return [
+        `### 镜头 ${card.shotId}｜${status?.label ?? '未生成'}`,
+        `- 时长：${card.duration}`,
+        `- 目的：${card.purpose}`,
+        `- 画面：${card.description}`,
+        `- 动作：${card.action}`,
+        `- 平台模式：${getFeedbackLabel(card.generationMode)}`,
+        `- 风险：${getFeedbackLabel(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
+        resultNote ? `- 素材/备注：${resultNote}` : '- 素材/备注：待补充',
+      ].join('\n');
+    });
+    const platformLines = (directorKit.platformAdvice ?? []).map((advice) =>
+      [
+        `### ${advice.platform}${advice.recommended ? '（推荐）' : ''}`,
+        `- 适合：${advice.bestFor || advice.note}`,
+        `- 说明：${advice.note}`,
+        advice.settings?.length ? `- 设置：${advice.settings.join('；')}` : '',
+        advice.avoid?.length ? `- 避免：${advice.avoid.join('；')}` : '',
+      ].filter(Boolean).join('\n'),
+    );
+
+    return [
+      '# 镜词项目快照',
+      '',
+      `生成时间：${generatedAt}`,
+      `项目创意：${input}`,
+      `目标时长：${targetDuration}`,
+      `目标类型：${getFeedbackLabel(targetType)}`,
+      selectedVersion ? `采用版本：${selectedVersion.label}｜${selectedVersion.summary}` : '',
+      '',
+      '## 项目状态',
+      `出片进度：${completedShotCount}/${trackedShotCount}（${executionProgress}%）`,
+      `状态分布：未生成 ${executionSummary.pending}｜已生成 ${executionSummary.generated}｜翻车 ${executionSummary.failed}｜可用 ${executionSummary.usable}`,
+      '',
+      '## 故事圣经',
+      story ? `- 梗概：${story.logline}` : '',
+      story ? `- 导演意图：${story.directorIntent}` : '',
+      story ? `- 主角：${story.protagonist}` : '',
+      story ? `- 世界观：${story.worldSetting}` : '',
+      story ? `- 视觉母题：${story.visualMotif}` : '',
+      '',
+      '## 分镜素材目录',
+      shotLines.join('\n\n'),
+      '',
+      '## 平台投喂策略',
+      platformLines.join('\n\n'),
+      '',
+      '## 主 Prompt',
+      directorKit.masterPrompt,
+      directorKit.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
+      '',
+      '## 风险补救',
+      `- Top 风险：${(directorKit.riskRemediation?.topRisks ?? []).join('、') || '无'}`,
+      `- 替代镜头：${(directorKit.riskRemediation?.alternativeShots ?? []).join('、') || '无'}`,
+      `- 备用策略：${(directorKit.riskRemediation?.backupStrategies ?? []).join('、') || '无'}`,
+      '',
+      '## 下一步',
+      '- 对未生成镜头继续逐镜头投喂。',
+      '- 对翻车镜头补充失败原因并回到镜词反馈。',
+      '- 对可用镜头沉淀素材链接，进入剪辑和复盘。',
+    ].filter(Boolean).join('\n');
+  };
+
+  const handleCopyProjectSnapshot = async () => {
+    await copyTextToClipboard(buildProjectSnapshot());
+    setCopiedSnapshot(true);
+    setTimeout(() => setCopiedSnapshot(false), 2000);
+  };
+
   const buildPlatformFeedPack = (advice: PlatformAdvice) => {
     if (!directorKit) return '';
     const list = (label: string, items: string[] | undefined) =>
@@ -713,6 +802,7 @@ export function ChatBox() {
     setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedSnapshot(false);
     setCopiedPlatform(null);
     try {
       const kit = await createDirectorKit({
@@ -755,6 +845,7 @@ export function ChatBox() {
     setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedSnapshot(false);
     setCopiedPlatform(null);
     setV2Error('');
     setInput('');
@@ -770,6 +861,7 @@ export function ChatBox() {
     setShotResultNotes({});
     setCopiedShotId(null);
     setCopiedChecklist(false);
+    setCopiedSnapshot(false);
     setCopiedPlatform(null);
     setV2Error('');
   };

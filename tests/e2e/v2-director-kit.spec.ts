@@ -223,6 +223,8 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
     await page.getByRole('button', { name: '复制执行清单' }).click();
     await expect(page.getByText('执行清单已复制')).toBeVisible();
+    await page.getByRole('button', { name: '复制项目快照' }).click();
+    await expect(page.getByText('项目快照已复制')).toBeVisible();
     await page.getByRole('button', { name: '复制镜头 Prompt' }).click();
     await expect(page.getByText('镜头 Prompt 已复制')).toBeVisible();
 
