@@ -50,6 +50,7 @@ const FEEDBACK_KEY = 'prompt-feedback';
 type FeedbackKey = string;
 type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
+type MobileWorkbenchTab = 'work' | 'execute' | 'feedback';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
@@ -173,6 +174,7 @@ export function ChatBox() {
   const [v2Error, setV2Error] = useState('');
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
   const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
+  const [mobileTab, setMobileTab] = useState<MobileWorkbenchTab>('work');
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
@@ -541,6 +543,11 @@ export function ChatBox() {
     { id: 'feedback', label: 'Feedback', done: !!feedbackAnalytics?.total, active: analyticsOpen },
   ];
   const currentStageLabel = stageItems.find((stage) => stage.active)?.label ?? 'Idea';
+  const mobileTabs: Array<{ id: MobileWorkbenchTab; label: string; value: string }> = [
+    { id: 'work', label: 'Work', value: currentStageLabel },
+    { id: 'execute', label: 'Execute', value: trackedShotCount ? `${completedShotCount}/${trackedShotCount}` : '0/0' },
+    { id: 'feedback', label: 'Feedback', value: feedbackAnalytics?.total ? `${feedbackAnalytics.total}` : '--' },
+  ];
   const diagnosisScore = directorKit?.diagnosis.feasibilityScore;
   const diagnosisRiskLabel =
     directorKit?.diagnosis.riskLevel === 'low'
@@ -552,7 +559,7 @@ export function ChatBox() {
           : '待体检';
 
   return (
-    <div className="w-full max-w-[1680px] mx-auto animate-in fade-in duration-300">
+    <div className="w-full max-w-[1680px] mx-auto pb-20 animate-in fade-in duration-300 lg:pb-0">
       <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
@@ -580,8 +587,26 @@ export function ChatBox() {
         </div>
       </div>
 
+      <div className="mb-4 grid grid-cols-3 gap-1 rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
+        {mobileTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setMobileTab(tab.id)}
+            className={`rounded-md px-2 py-2 text-left transition-colors ${
+              mobileTab === tab.id
+                ? 'bg-gray-950 text-white dark:bg-gray-100 dark:text-gray-950'
+                : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'
+            }`}
+          >
+            <span className="block text-xs font-semibold">{tab.label}</span>
+            <span className="mt-0.5 block truncate text-[10px] opacity-70">{tab.value}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_320px] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:self-start">
+        <aside className={`${mobileTab === 'work' ? 'block' : 'hidden'} space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:block lg:self-start`}>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Project</p>
             <p className="mt-2 line-clamp-3 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -636,7 +661,7 @@ export function ChatBox() {
           </div>
         </aside>
 
-        <section className="min-w-0 space-y-6">
+        <section className={`${mobileTab === 'feedback' ? 'hidden' : 'block'} min-w-0 space-y-6 lg:block`}>
       {/* Onboarding guide — first visit only, progressive steps */}
       {onboardingStep !== null && (
         <div className={`rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-900 p-5 space-y-4 ${
@@ -1252,8 +1277,8 @@ export function ChatBox() {
 
         </section>
 
-        <aside className="space-y-4 lg:col-span-2 xl:col-span-1 xl:sticky xl:top-20 xl:self-start">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <aside className={`${mobileTab === 'execute' || mobileTab === 'feedback' ? 'block' : 'hidden'} space-y-4 lg:col-span-2 lg:block xl:col-span-1 xl:sticky xl:top-20 xl:self-start`}>
+          <div className={`${mobileTab === 'feedback' ? 'hidden' : 'block'} rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:block`}>
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Operations</p>
@@ -1296,19 +1321,21 @@ export function ChatBox() {
             })()}
           </div>
 
-          <DirectorKitExecutionPanel
-            completedShotCount={completedShotCount}
-            trackedShotCount={trackedShotCount}
-            executionProgress={executionProgress}
-            executionSummary={executionSummary}
-            shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
-            copiedChecklist={copiedChecklist}
-            copiedSnapshot={copiedSnapshot}
-            onCopyExecutionChecklist={handleCopyExecutionChecklist}
-            onCopyProjectSnapshot={handleCopyProjectSnapshot}
-          />
+          <div className={mobileTab === 'feedback' ? 'hidden lg:block' : 'block'}>
+            <DirectorKitExecutionPanel
+              completedShotCount={completedShotCount}
+              trackedShotCount={trackedShotCount}
+              executionProgress={executionProgress}
+              executionSummary={executionSummary}
+              shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
+              copiedChecklist={copiedChecklist}
+              copiedSnapshot={copiedSnapshot}
+              onCopyExecutionChecklist={handleCopyExecutionChecklist}
+              onCopyProjectSnapshot={handleCopyProjectSnapshot}
+            />
+          </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <div className={`${mobileTab === 'execute' ? 'hidden' : 'block'} rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:block`}>
             <button
               type="button"
               onClick={() => setAnalyticsOpen((open) => !open)}
@@ -1323,6 +1350,47 @@ export function ChatBox() {
             </div>
           </div>
         </aside>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 lg:hidden">
+        {mobileTab === 'work' && (
+          <button
+            type="button"
+            onClick={() => {
+              if (v2State === 'result') {
+                setMobileTab('execute');
+              } else {
+                submitDirectorKit().catch(() => {});
+              }
+            }}
+            disabled={v2Loading || (v2State !== 'result' && !!validateInput(input))}
+            className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+          >
+            {v2State === 'result' ? '进入执行视图' : v2Loading ? '生成中...' : '提交创意'}
+          </button>
+        )}
+        {mobileTab === 'execute' && (
+          <button
+            type="button"
+            onClick={handleCopyExecutionChecklist}
+            disabled={!trackedShotCount}
+            className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+          >
+            复制清单
+          </button>
+        )}
+        {mobileTab === 'feedback' && (
+          <button
+            type="button"
+            onClick={() => {
+              setAnalyticsOpen(true);
+              refreshFeedbackAnalytics().catch(() => setAnalyticsState('error'));
+            }}
+            className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white dark:bg-gray-100 dark:text-gray-950"
+          >
+            刷新洞察
+          </button>
+        )}
       </div>
     </div>
   );

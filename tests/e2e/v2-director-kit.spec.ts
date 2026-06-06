@@ -177,7 +177,8 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
 }
 
 test.describe('V2 DirectorKit browser flow', () => {
-  test('happy path reaches DirectorKit result', async ({ page }) => {
+  test('happy path reaches DirectorKit result', async ({ page }, testInfo) => {
+    const isMobile = testInfo.project.name === 'mobile-chrome';
     await mockDirectorKit(page);
     await page.goto('/');
 
@@ -217,6 +218,9 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('平台投喂包已复制')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
+    if (isMobile) {
+      await page.getByRole('button', { name: /Execute/ }).click();
+    }
     await expect(page.getByText('出片执行进度')).toBeVisible();
     await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
     await expect(page.getByLabel('素材链接 / 结果备注')).toBeVisible();
@@ -234,11 +238,17 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: '可用' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
 
+    if (isMobile) {
+      await page.getByRole('button', { name: /Feedback/ }).click();
+    }
     await page.getByRole('button', { name: '反馈洞察' }).click();
     await expect(page.getByText('高频失败原因')).toBeVisible();
-    await expect(page.getByText('画面不稳定').first()).toBeVisible();
+    await expect(page.getByText('画面不稳定').last()).toBeVisible();
     await expect(page.getByText('最近差评样本')).toBeVisible();
 
+    if (isMobile) {
+      await page.getByRole('button', { name: /Work/ }).click();
+    }
     await page.getByRole('button', { name: '有用' }).first().click();
     await expect(page.getByText('已记录有用')).toBeVisible();
     await page.getByRole('button', { name: '画面不稳定' }).first().click();
