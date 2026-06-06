@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>镜词 V3 工作台设计稿</title>
+  <style>
+    :root {
+      --bg: #f4f3ef;
+      --surface: #fbfaf7;
+      --surface-2: #eeece6;
+      --line: #d9d5ca;
+      --ink: #20201d;
+      --muted: #68665f;
+      --soft: #8f8a7d;
+      --teal: #176b63;
+      --teal-soft: #d9ebe6;
+      --amber: #9a6300;
+      --amber-soft: #f2dfb8;
+      --red: #a33a2f;
+      --red-soft: #f1d4cf;
+      --blue: #275f8f;
+      --blue-soft: #d7e6f3;
+      --green: #2c7651;
+      --green-soft: #d8eadf;
+      --shadow: 0 1px 2px rgba(32, 32, 29, 0.06), 0 10px 30px rgba(32, 32, 29, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 56px 1fr;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 250, 247, 0.92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 7px;
+      background: var(--ink);
+      color: #f8f5ea;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 460px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--teal);
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 248px minmax(0, 1fr) 328px;
+      gap: 14px;
+      padding: 14px;
+      min-height: 0;
+    }
+
+    .rail, .work, .inspector {
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .rail {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .project-card {
+      padding: 14px;
+    }
+
+    .section-label {
+      margin: 0 0 8px;
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .project-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 760;
+      line-height: 1.35;
+    }
+
+    .brief {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      background: #fffdf8;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .stage-list {
+      padding: 10px;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 18px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stage.current {
+      color: var(--ink);
+      background: var(--teal-soft);
+      font-weight: 720;
+    }
+
+    .stage.done .stage-dot {
+      background: var(--green);
+    }
+
+    .stage.current .stage-dot {
+      background: var(--teal);
+      box-shadow: 0 0 0 3px rgba(23, 107, 99, 0.16);
+    }
+
+    .stage-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #c8c2b4;
+    }
+
+    .progress-card {
+      padding: 12px;
+    }
+
+    .progress-line {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 33%;
+      height: 100%;
+      background: var(--teal);
+    }
+
+    .progress-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 7px 4px;
+      text-align: center;
+      background: #fffdf8;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat span {
+      color: var(--soft);
+      font-size: 10px;
+    }
+
+    .work {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .work-header {
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 16px;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .score {
+      display: grid;
+      place-items: center;
+      min-width: 72px;
+      height: 58px;
+      border-radius: 8px;
+      background: var(--teal-soft);
+      color: var(--teal);
+    }
+
+    .score strong {
+      font-size: 22px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score span {
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .story {
+      padding: 16px 18px;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+    }
+
+    .field span {
+      display: block;
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 720;
+      margin-bottom: 4px;
+    }
+
+    .field p {
+      margin: 0;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .shot-section {
+      padding: 16px 18px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .shot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .shot-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+      padding: 12px;
+    }
+
+    .shot-card.selected {
+      border-color: rgba(23, 107, 99, 0.55);
+      box-shadow: inset 0 0 0 1px rgba(23, 107, 99, 0.28);
+    }
+
+    .shot-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .shot-card h3 {
+      margin: 0 0 6px;
+      font-size: 13px;
+    }
+
+    .shot-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .risk-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .risk {
+      border-radius: 999px;
+      padding: 3px 7px;
+      font-size: 10px;
+      font-weight: 720;
+    }
+
+    .risk.low {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .risk.med {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .risk.high {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .prompt-preview {
+      padding: 16px 18px;
+    }
+
+    .prompt-box {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #2b2b27;
+      color: #f5f0e6;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .inspector {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .next-action {
+      padding: 14px;
+      border-color: rgba(23, 107, 99, 0.45);
+    }
+
+    .primary-btn {
+      width: 100%;
+      border: 0;
+      border-radius: 7px;
+      background: var(--teal);
+      color: #fffdf8;
+      padding: 10px 12px;
+      font-weight: 760;
+      cursor: default;
+    }
+
+    .secondary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .secondary-btn {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: default;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .status-tile {
+      padding: 9px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      font-size: 12px;
+    }
+
+    .status-tile strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .execution-card, .insight-card, .export-card {
+      padding: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fffdf8;
+      color: var(--ink);
+      padding: 9px;
+      font-size: 12px;
+      line-height: 1.5;
+      outline: none;
+    }
+
+    .insight-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding: 9px 0;
+      font-size: 12px;
+    }
+
+    .insight-row:first-of-type {
+      border-top: 0;
+    }
+
+    .insight-row span {
+      color: var(--muted);
+    }
+
+    .insight-row strong {
+      text-align: right;
+    }
+
+    .mobile-tabs {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .shell {
+        grid-template-columns: 210px minmax(0, 1fr);
+      }
+
+      .inspector {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        grid-template-rows: auto 1fr;
+      }
+
+      .topbar {
+        align-items: start;
+        padding: 12px;
+      }
+
+      .brand {
+        align-items: start;
+      }
+
+      .brand-subtitle {
+        max-width: 230px;
+        white-space: normal;
+      }
+
+      .top-actions {
+        display: none;
+      }
+
+      .shell {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      .rail {
+        display: none;
+      }
+
+      .mobile-tabs {
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .mobile-tabs button {
+        flex: 1;
+        border: 0;
+        border-radius: 6px;
+        padding: 8px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 720;
+      }
+
+      .mobile-tabs button:first-child {
+        background: var(--teal-soft);
+        color: var(--teal);
+      }
+
+      .work-header {
+        flex-direction: column;
+      }
+
+      .score {
+        width: 100%;
+      }
+
+      .story-grid, .shot-grid, .inspector {
+        grid-template-columns: 1fr;
+      }
+
+      .sticky-mobile-action {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">镜</div>
+        <div>
+          <div class="brand-title">镜词 Workbench V3</div>
+          <div class="brand-subtitle">项目：废土小镇里，旧清洁机器人守护红裙人偶</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="status-pill"><span class="dot"></span>可拍性 82</div>
+        <div class="status-pill">执行进度 1/3</div>
+        <div class="status-pill">反馈样本 8</div>
+      </div>
+    </header>
+
+    <section class="shell">
+      <aside class="rail">
+        <section class="panel project-card">
+          <p class="section-label">Project</p>
+          <h2 class="project-title">机器人与红裙人偶</h2>
+          <p class="brief">旧清洁机器人穿过风沙小镇，最后停在红裙人偶前，用低调动作表达孤独和守护。</p>
+          <div class="meta-row">
+            <span class="chip">60s</span>
+            <span class="chip">赛博朋克</span>
+            <span class="chip">Seedance 优先</span>
+          </div>
+        </section>
+
+        <nav class="panel stage-list" aria-label="创作阶段">
+          <p class="section-label">Stages</p>
+          <div class="stage done"><span class="stage-dot"></span><span>Idea</span><span>完成</span></div>
+          <div class="stage done"><span class="stage-dot"></span><span>Diagnosis</span><span>82</span></div>
+          <div class="stage done"><span class="stage-dot"></span><span>Versions</span><span>电影版</span></div>
+          <div class="stage current"><span class="stage-dot"></span><span>DirectorKit</span><span>当前</span></div>
+          <div class="stage"><span class="stage-dot"></span><span>Execution</span><span>1/3</span></div>
+          <div class="stage"><span class="stage-dot"></span><span>Feedback</span><span>待补</span></div>
+          <div class="stage"><span class="stage-dot"></span><span>Archive</span><span>快照</span></div>
+        </nav>
+
+        <section class="panel progress-card">
+          <p class="section-label">Shot Progress</p>
+          <div class="progress-line"><div class="progress-fill"></div></div>
+          <div class="progress-stats">
+            <div class="stat"><strong>2</strong><span>未生成</span></div>
+            <div class="stat"><strong>1</strong><span>已生成</span></div>
+            <div class="stat"><strong>0</strong><span>翻车</span></div>
+            <div class="stat"><strong>0</strong><span>可用</span></div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="work">
+        <div class="mobile-tabs" aria-label="移动端视图">
+          <button>Work</button>
+          <button>Execute</button>
+          <button>Feedback</button>
+        </div>
+
+        <section class="panel work-header">
+          <div>
+            <p class="eyebrow">DirectorKit · 当前工作面</p>
+            <h1>先稳定角色和视觉母题，再逐镜头投喂平台。</h1>
+            <p class="brief">当前版本选择“电影版”，建议先生成主角参考图，再执行低风险建立镜头。</p>
+          </div>
+          <div class="score">
+            <strong>82</strong>
+            <span>FEASIBLE</span>
+          </div>
+        </section>
+
+        <section class="panel story">
+          <div class="section-head">
+            <h2>故事设定</h2>
+            <span class="chip">视觉母题：红裙人偶</span>
+          </div>
+          <div class="story-grid">
+            <div class="field">
+              <span>梗概</span>
+              <p>一个旧清洁机器人在废土小镇守护红裙人偶。</p>
+            </div>
+            <div class="field">
+              <span>导演意图</span>
+              <p>用低调动作表达孤独和守护，避免复杂口型与多人调度。</p>
+            </div>
+            <div class="field">
+              <span>主角</span>
+              <p>旧清洁机器人，轮廓固定，动作缓慢。</p>
+            </div>
+            <div class="field">
+              <span>世界观</span>
+              <p>风沙弥漫的废土小镇，旧广告牌和霓虹残影。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel shot-section">
+          <div class="section-head">
+            <h2>分镜卡片</h2>
+            <span class="chip">按低风险顺序执行</span>
+          </div>
+          <div class="shot-grid">
+            <article class="shot-card selected">
+              <div class="shot-meta"><span>Shot 1 · 5s</span><span>文生视频</span></div>
+              <h3>建立世界</h3>
+              <p>风沙中的废土小镇，旧清洁机器人推着破旧清扫车缓慢出现，远处红裙人偶隐约可见。</p>
+              <div class="risk-row">
+                <span class="risk low">低风险</span>
+                <span class="risk med">主体一致性</span>
+              </div>
+            </article>
+            <article class="shot-card">
+              <div class="shot-meta"><span>Shot 2 · 7s</span><span>参考图</span></div>
+              <h3>建立关系</h3>
+              <p>机器人停在红裙人偶前，抬起机械臂擦去人偶脸上的灰尘。</p>
+              <div class="risk-row">
+                <span class="risk med">中风险</span>
+                <span class="risk med">动作稳定</span>
+              </div>
+            </article>
+            <article class="shot-card">
+              <div class="shot-meta"><span>Shot 3 · 8s</span><span>图生视频</span></div>
+              <h3>情绪收束</h3>
+              <p>沙尘变大，机器人挡在人偶前，旧广告牌微弱闪烁。</p>
+              <div class="risk-row">
+                <span class="risk high">高风险</span>
+                <span class="risk med">粒子漂移</span>
+              </div>
+            </article>
+            <article class="shot-card">
+              <div class="shot-meta"><span>Backup</span><span>替代镜头</span></div>
+              <h3>剪影方案</h3>
+              <p>如果角色漂移严重，改用背影或剪影镜头保留叙事含义。</p>
+              <div class="risk-row">
+                <span class="risk low">补救</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel prompt-preview">
+          <div class="section-head">
+            <h2>主 Prompt</h2>
+            <span class="chip">平台投喂前先复制单镜头</span>
+          </div>
+          <div class="prompt-box">
+            废土小镇里，一个旧清洁机器人守护红裙人偶，风沙、旧广告牌、慢速推镜。固定机器人轮廓，红裙人偶保持同一位置，避免快速横移。
+          </div>
+        </section>
+      </section>
+
+      <aside class="inspector">
+        <section class="panel next-action sticky-mobile-action">
+          <p class="section-label">Next Action</p>
+          <button class="primary-btn">复制 Shot 1 Prompt</button>
+          <div class="secondary-actions">
+            <button class="secondary-btn">复制平台包</button>
+            <button class="secondary-btn">复制快照</button>
+          </div>
+        </section>
+
+        <section class="panel execution-card">
+          <p class="section-label">Execution</p>
+          <div class="status-grid">
+            <div class="status-tile">当前镜头<strong>1</strong></div>
+            <div class="status-tile">状态<strong>已生成</strong></div>
+          </div>
+          <p class="brief">素材链接 / 结果备注</p>
+          <textarea>Seedance 生成链接：demo-shot-1，机器人轮廓稳定，红裙位置可用。</textarea>
+        </section>
+
+        <section class="panel insight-card">
+          <p class="section-label">Feedback Insight</p>
+          <div class="insight-row"><span>样本量</span><strong>8</strong></div>
+          <div class="insight-row"><span>差评率</span><strong>37.5%</strong></div>
+          <div class="insight-row"><span>高频失败</span><strong>画面不稳定</strong></div>
+          <div class="insight-row"><span>平台风险</span><strong>Seedance</strong></div>
+        </section>
+
+        <section class="panel export-card">
+          <p class="section-label">Archive</p>
+          <p class="brief">项目快照会带上故事设定、分镜状态、素材备注、平台策略和风险补救。</p>
+          <button class="secondary-btn" style="width: 100%; margin-top: 10px;">生成项目快照</button>
+        </section>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
