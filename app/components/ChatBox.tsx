@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import {
   createDirectorKit,
   DirectorKit,
-  FeedbackAnalytics,
   fetchFeedbackAnalytics,
   fetchFeedbackStats,
   fetchPromptHistory,
@@ -14,6 +13,7 @@ import {
   syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
+import type { FeedbackAnalytics } from '@/lib/api-client';
 import {
   DIRECTOR_KIT_TARGET_DURATIONS,
   DIRECTOR_KIT_TARGET_TYPES,
@@ -30,6 +30,7 @@ import {
 } from '@/lib/director-kit-export';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
 import { DirectorKitShotList } from './DirectorKitShotList';
+import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
@@ -85,31 +86,6 @@ const SHOT_EXECUTION_OPTIONS: Array<{
     className: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300',
   },
 ];
-
-const FEEDBACK_LABELS: Record<string, string> = {
-  director_kit: '执行包整体',
-  shot_card: '分镜卡片',
-  platform_advice: '平台建议',
-  legacy_prompt: '旧版 Prompt',
-  v1: 'V1',
-  v2: 'V2',
-  text_to_video: '文生视频',
-  'text-to-video': '文生视频',
-  'image-to-video': '图生视频',
-  'reference-image': '参考图',
-  low: '低风险',
-  medium: '中风险',
-  high: '高风险',
-  wasteland: '末世废土',
-  fantasy: '东方奇幻',
-  cyberpunk: '赛博都市',
-  commercial: '商业广告',
-  realistic: '现实剧情',
-};
-
-function getFeedbackLabel(value: string) {
-  return FEEDBACK_LABELS[value] ?? value;
-}
 
 async function copyTextToClipboard(text: string) {
   try {
@@ -384,110 +360,6 @@ export function ChatBox() {
         {status === 'liked' && <span className="text-[11px] text-emerald-600 dark:text-emerald-300">已记录有用</span>}
         {status === 'disliked' && <span className="text-[11px] text-amber-600 dark:text-amber-300">已记录问题</span>}
         {status === 'error' && <span className="text-[11px] text-red-500">未同步，不影响继续使用</span>}
-      </div>
-    );
-  };
-
-  const renderAnalyticsDimension = (
-    title: string,
-    items: FeedbackAnalytics['dimensions']['failureReasons'],
-  ) => (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900">
-      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{title}</p>
-      {items.length > 0 ? (
-        <div className="mt-2 grid gap-2">
-          {items.slice(0, 3).map((item) => (
-            <div key={`${title}-${item.key}`} className="grid gap-1">
-              <div className="flex items-center justify-between gap-3 text-[11px]">
-                <span className="min-w-0 truncate text-gray-600 dark:text-gray-400">{getFeedbackLabel(item.key)}</span>
-                <span className="shrink-0 font-medium tabular-nums text-amber-600 dark:text-amber-300">
-                  差评 {item.dislikeRate}%
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                <div
-                  className="h-full rounded-full bg-amber-500"
-                  style={{ width: `${Math.min(item.dislikeRate, 100)}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-gray-400">
-                {item.dislikes} 踩 / {item.total} 条
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="mt-2 text-[11px] text-gray-400">暂无足够样本</p>
-      )}
-    </div>
-  );
-
-  const renderFeedbackAnalyticsPanel = () => {
-    if (!analyticsOpen) return null;
-
-    return (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
-        {analyticsState === 'loading' && !feedbackAnalytics ? (
-          <p className="text-xs text-gray-500 dark:text-gray-400">正在加载反馈洞察...</p>
-        ) : analyticsState === 'error' && !feedbackAnalytics ? (
-          <p className="text-xs text-red-500">反馈洞察暂时不可用，主创作流程不受影响。</p>
-        ) : feedbackAnalytics ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {[
-                ['样本', feedbackAnalytics.total],
-                ['差评率', `${feedbackAnalytics.dislikeRate}%`],
-                ['V2 占比', `${feedbackAnalytics.v2Share}%`],
-                ['窗口', `${feedbackAnalytics.windowDays} 天`],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-lg bg-white p-3 dark:bg-gray-900">
-                  <p className="text-[10px] text-gray-400">{label}</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{value}</p>
-                </div>
-              ))}
-            </div>
-
-            {feedbackAnalytics.qualityFlags.length > 0 && (
-              <div className="grid gap-1 rounded-lg bg-amber-50 p-3 dark:bg-amber-950/20">
-                {feedbackAnalytics.qualityFlags.map((flag) => (
-                  <p key={flag} className="text-[11px] text-amber-700 dark:text-amber-300">{flag}</p>
-                ))}
-              </div>
-            )}
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {renderAnalyticsDimension('高频失败原因', feedbackAnalytics.dimensions.failureReasons)}
-              {renderAnalyticsDimension('平台风险', feedbackAnalytics.dimensions.platforms)}
-              {renderAnalyticsDimension('风险标签', feedbackAnalytics.dimensions.riskTags)}
-            </div>
-
-            {feedbackAnalytics.highValueSamples.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">最近差评样本</p>
-                <div className="mt-2 grid gap-2">
-                  {feedbackAnalytics.highValueSamples.slice(0, 3).map((sample, index) => (
-                    <div key={`${sample.createdAt}-${index}`} className="rounded-lg bg-white p-3 dark:bg-gray-900">
-                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-400">
-                        <span>{getFeedbackLabel(sample.eventType)}</span>
-                        {sample.platform && <span>{sample.platform}</span>}
-                        {sample.generationMode && <span>{getFeedbackLabel(sample.generationMode)}</span>}
-                        {sample.riskLevel && <span>{getFeedbackLabel(sample.riskLevel)}</span>}
-                      </div>
-                      <p className="mt-2 line-clamp-2 text-xs text-gray-700 dark:text-gray-300">{sample.input}</p>
-                      {(sample.failureReasons.length > 0 || sample.comment) && (
-                        <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-300">
-                          {[...sample.failureReasons, sample.comment].filter(Boolean).join(' / ')}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-gray-500 dark:text-gray-400">暂无反馈洞察。</p>
-        )}
       </div>
     );
   };
@@ -801,7 +673,7 @@ export function ChatBox() {
             );
           })()}
         </div>
-        {renderFeedbackAnalyticsPanel()}
+        <FeedbackInsightPanel open={analyticsOpen} state={analyticsState} analytics={feedbackAnalytics} />
       </div>
 
       <form onSubmit={handleDirectorKitSubmit} className="space-y-3">
