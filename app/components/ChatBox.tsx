@@ -29,6 +29,7 @@ import {
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
+import { DirectorKitPlatformAdvicePanel } from './DirectorKitPlatformAdvicePanel';
 import { DirectorKitShotList } from './DirectorKitShotList';
 import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -1154,78 +1155,26 @@ export function ChatBox() {
             </div>
           )}
 
-          {/* 平台建议 */}
-          {(directorKit.platformAdvice ?? []).length > 0 && (
-            <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🖥 平台建议</h3>
-              <div className="grid gap-2">
-                {(directorKit.platformAdvice ?? []).map((advice, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 mt-0.5 ${
-                      advice.recommended
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                    }`}>
-                      {advice.recommended ? '推荐' : '可选'}
-                    </span>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{advice.platform}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{advice.note}</p>
-                      {advice.bestFor && (
-                        <p className="text-xs text-gray-600 dark:text-gray-300">
-                          <span className="font-medium">适合：</span>{advice.bestFor}
-                        </p>
-                      )}
-	                      {[
-	                        ['Prompt 写法', advice.promptTips],
-	                        ['推荐设置', advice.settings],
-	                        ['避免', advice.avoid],
-	                      ].map(([label, items]) =>
-                        Array.isArray(items) && items.length > 0 ? (
-                          <div key={label as string}>
-                            <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400">{label as string}</p>
-                            <ul className="mt-0.5 grid gap-0.5">
-                              {items.map((item, pi) => (
-                                <li key={pi} className="flex items-start gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
-                                  <span className="mt-0.5 text-gray-400">•</span>
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-	                          </div>
-	                        ) : null,
-	                      )}
-	                      <div className="flex flex-wrap items-center gap-2">
-	                        <button
-	                          type="button"
-	                          onClick={() => handleCopyPlatformFeedPack(advice)}
-	                          className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-	                        >
-	                          复制平台投喂包
-	                        </button>
-	                        {copiedPlatform === advice.platform && (
-	                          <span className="text-[11px] text-emerald-600 dark:text-emerald-300">平台投喂包已复制</span>
-	                        )}
-	                      </div>
-	                      {renderFeedbackButtons({
-                        feedbackKey: `platform-${advice.platform}`,
-                        onRate: (rating, failureReasons) =>
-                          submitV2Feedback({
-                            key: `platform-${advice.platform}`,
-                            rating,
-                            eventType: 'platform_advice',
-                            prompt: advice.note,
-                            comment: rating === 'like' ? '平台建议有用' : '平台建议不适配',
-                            platform: advice.platform,
-                            failureReasons,
-                          }),
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <DirectorKitPlatformAdvicePanel
+            platformAdvice={directorKit.platformAdvice ?? []}
+            copiedPlatform={copiedPlatform}
+            onCopyPlatformFeedPack={handleCopyPlatformFeedPack}
+            renderFeedback={(advice) =>
+              renderFeedbackButtons({
+                feedbackKey: `platform-${advice.platform}`,
+                onRate: (rating, failureReasons) =>
+                  submitV2Feedback({
+                    key: `platform-${advice.platform}`,
+                    rating,
+                    eventType: 'platform_advice',
+                    prompt: advice.note,
+                    comment: rating === 'like' ? '平台建议有用' : '平台建议不适配',
+                    platform: advice.platform,
+                    failureReasons,
+                  }),
+              })
+            }
+          />
 
           {/* 后期建议 */}
           {directorKit.postProductionAdvice && (
