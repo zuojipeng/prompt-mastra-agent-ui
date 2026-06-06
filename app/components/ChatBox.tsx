@@ -29,7 +29,7 @@ import {
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
-import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
+import { DirectorKitShotList } from './DirectorKitShotList';
 import { HistoryPanel } from './HistoryPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
@@ -494,6 +494,10 @@ export function ChatBox() {
 
   const handleShotExecutionStatusChange = (shotId: number, status: ShotExecutionStatus) => {
     setShotExecutionStatus((prev) => ({ ...prev, [shotId]: status }));
+  };
+
+  const handleShotResultNoteChange = (shotId: number, value: string) => {
+    setShotResultNotes((prev) => ({ ...prev, [shotId]: value }));
   };
 
   const getDirectorKitExportContext = (generatedAt?: string): DirectorKitExportContext => ({
@@ -1194,146 +1198,34 @@ export function ChatBox() {
           )}
 
           {/* 分镜卡片 */}
-          {(directorKit.shotCards ?? []).length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">🎥 分镜卡片（{(directorKit.shotCards ?? []).length} 个镜头）</h3>
-              <div className="grid gap-3">
-                {(directorKit.shotCards ?? []).map((card) => (
-                  <div
-                    key={card.shotId}
-                    className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">镜头 {card.shotId}</span>
-                      <span className="text-xs text-gray-400">时长 {card.duration}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
-                      <p><span className="font-medium">景别：</span>{card.framing}</p>
-                      <p><span className="font-medium">目的：</span>{card.purpose}</p>
-                      <p><span className="font-medium">情绪：</span>{card.mood}</p>
-                      <p><span className="font-medium">运镜：</span>{card.motion}</p>
-                    </div>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{card.description}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{card.action}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium ${
-                        card.generationMode === 'text-to-video'
-                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                          : card.generationMode === 'image-to-video'
-                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                      }`}>
-                        {card.generationMode === 'text-to-video' ? '文生视频' : card.generationMode === 'image-to-video' ? '图生视频' : '参考图'}
-                      </span>
-                      <span className={`text-[11px] px-2 py-0.5 rounded font-medium ${
-                        card.riskLevel === 'low'
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                          : card.riskLevel === 'medium'
-                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
-                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                      }`}>
-                        风险: {card.riskLevel === 'low' ? '低' : card.riskLevel === 'medium' ? '中' : '高'}
-                      </span>
-                      <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                        一致性: {card.consistencyNeed === 'low' ? '低' : card.consistencyNeed === 'medium' ? '中' : '高'}
-                      </span>
-                    </div>
-                    {(card.riskTags ?? []).length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {(card.riskTags ?? []).map((tag, ti) => (
-                          <span key={ti} className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 dark:bg-red-950/30 dark:text-red-400">{tag}</span>
-                        ))}
-                      </div>
-                    )}
-                    {(card.riskTagDetails ?? []).length > 0 && (
-                      <div className="grid gap-2 rounded-lg bg-red-50/70 dark:bg-red-950/20 p-3">
-                        <p className="text-[11px] font-semibold text-red-700 dark:text-red-300">风险标签说明</p>
-                        {(card.riskTagDetails ?? []).map((risk, ri) => (
-                          <div key={`${risk.tag}-${ri}`} className="text-[11px] text-gray-600 dark:text-gray-400">
-                            <span className="font-medium text-gray-800 dark:text-gray-200">{risk.tag}：</span>
-                            {risk.impact}
-                            <span className="ml-1 text-emerald-700 dark:text-emerald-300">规避：{risk.mitigation}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {(card.stabilityChecklist ?? []).length > 0 && (
-                      <div className="rounded-lg bg-gray-50 dark:bg-gray-800/70 p-3">
-                        <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">生成前稳定性检查</p>
-                        <ul className="mt-1 grid gap-1">
-                          {(card.stabilityChecklist ?? []).map((item, ci) => (
-                            <li key={ci} className="flex items-start gap-1.5 text-[11px] text-gray-600 dark:text-gray-400">
-                              <span className="mt-0.5 text-emerald-500">✓</span>
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {card.fixSuggestion && (
-                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 p-2 rounded-lg">
-                        💡 {card.fixSuggestion}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyShotPrompt(card)}
-                        className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                      >
-                        复制镜头 Prompt
-                      </button>
-                      {copiedShotId === card.shotId && (
-                        <span className="text-[11px] text-emerald-600 dark:text-emerald-300">镜头 Prompt 已复制</span>
-                      )}
-                    </div>
-                    <DirectorKitShotExecutionControls
-                      shotId={card.shotId}
-                      currentStatus={shotExecutionStatus[card.shotId] ?? 'pending'}
-                      options={SHOT_EXECUTION_OPTIONS}
-                      onStatusChange={handleShotExecutionStatusChange}
-                    />
-                    <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">
-                      <label
-                        htmlFor={`shot-result-note-${card.shotId}`}
-                        className="text-[11px] font-semibold text-gray-700 dark:text-gray-300"
-                      >
-                        素材链接 / 结果备注
-                      </label>
-                      <textarea
-                        id={`shot-result-note-${card.shotId}`}
-                        value={shotResultNotes[card.shotId] ?? ''}
-                        onChange={(event) =>
-                          setShotResultNotes((prev) => ({
-                            ...prev,
-                            [card.shotId]: event.target.value,
-                          }))
-                        }
-                        placeholder="粘贴平台生成链接、文件名或记录翻车原因..."
-                        className="mt-2 min-h-16 w-full resize-y rounded-md border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700 outline-none transition-colors placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-950"
-                      />
-                    </div>
-                    {renderFeedbackButtons({
-                      feedbackKey: `shot-${card.shotId}`,
-                      onRate: (rating, failureReasons) =>
-                        submitV2Feedback({
-                          key: `shot-${card.shotId}`,
-                          rating,
-                          eventType: 'shot_card',
-                          prompt: `${card.description}\n${card.action}`,
-                          comment: rating === 'like' ? '分镜建议有用' : '分镜生成存在问题',
-                          shotIndex: card.shotId,
-                          generationMode: card.generationMode,
-                          riskLevel: card.riskLevel,
-                          riskTags: card.riskTags,
-                          failureReasons,
-                        }),
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <DirectorKitShotList
+            shotCards={directorKit.shotCards ?? []}
+            copiedShotId={copiedShotId}
+            shotExecutionStatus={shotExecutionStatus}
+            shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
+            shotResultNotes={shotResultNotes}
+            onCopyShotPrompt={handleCopyShotPrompt}
+            onStatusChange={handleShotExecutionStatusChange}
+            onShotResultNoteChange={handleShotResultNoteChange}
+            renderFeedback={(card) =>
+              renderFeedbackButtons({
+                feedbackKey: `shot-${card.shotId}`,
+                onRate: (rating, failureReasons) =>
+                  submitV2Feedback({
+                    key: `shot-${card.shotId}`,
+                    rating,
+                    eventType: 'shot_card',
+                    prompt: `${card.description}\n${card.action}`,
+                    comment: rating === 'like' ? '分镜建议有用' : '分镜生成存在问题',
+                    shotIndex: card.shotId,
+                    generationMode: card.generationMode,
+                    riskLevel: card.riskLevel,
+                    riskTags: card.riskTags,
+                    failureReasons,
+                  }),
+              })
+            }
+          />
 
           {/* 主 Prompt */}
           {directorKit.masterPrompt && (
