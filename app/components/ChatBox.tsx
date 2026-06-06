@@ -30,6 +30,7 @@ import {
 } from '@/lib/director-kit-export';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
 import { DirectorKitPlatformAdvicePanel } from './DirectorKitPlatformAdvicePanel';
+import { DirectorKitShotInspector } from './DirectorKitShotInspector';
 import { DirectorKitShotList } from './DirectorKitShotList';
 import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -175,6 +176,7 @@ export function ChatBox() {
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
   const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
   const [mobileTab, setMobileTab] = useState<MobileWorkbenchTab>('work');
+  const [selectedShotId, setSelectedShotId] = useState<number | null>(null);
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
@@ -192,6 +194,7 @@ export function ChatBox() {
   const trackedShotCount = shotCards.length;
   const completedShotCount = executionSummary.generated + executionSummary.failed + executionSummary.usable;
   const executionProgress = trackedShotCount > 0 ? Math.round((completedShotCount / trackedShotCount) * 100) : 0;
+  const selectedShot = shotCards.find((card) => card.shotId === selectedShotId) ?? shotCards[0] ?? null;
 
   const refreshFeedbackAnalytics = async () => {
     setAnalyticsState('loading');
@@ -447,6 +450,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
@@ -458,6 +462,7 @@ export function ChatBox() {
         targetType,
       });
       setDirectorKit(kit);
+      setSelectedShotId(kit.shotCards?.[0]?.shotId ?? null);
       setV2State('diagnosis');
     } catch (err) {
       setV2Error(err instanceof Error ? err.message : '创意体检失败，请重试');
@@ -490,6 +495,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
@@ -506,6 +512,7 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
@@ -661,7 +668,7 @@ export function ChatBox() {
           </div>
         </aside>
 
-        <section className={`${mobileTab === 'feedback' ? 'hidden' : 'block'} min-w-0 space-y-6 lg:block`}>
+        <section className={`${mobileTab === 'work' ? 'block' : 'hidden'} min-w-0 space-y-6 lg:block`}>
       {/* Onboarding guide — first visit only, progressive steps */}
       {onboardingStep !== null && (
         <div className={`rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-900 p-5 space-y-4 ${
@@ -1143,9 +1150,14 @@ export function ChatBox() {
             shotExecutionStatus={shotExecutionStatus}
             shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
             shotResultNotes={shotResultNotes}
+            selectedShotId={selectedShot?.shotId ?? null}
             onCopyShotPrompt={handleCopyShotPrompt}
             onStatusChange={handleShotExecutionStatusChange}
             onShotResultNoteChange={handleShotResultNoteChange}
+            onSelectShot={(card) => {
+              setSelectedShotId(card.shotId);
+              setMobileTab('execute');
+            }}
             renderFeedback={(card) =>
               renderFeedbackButtons({
                 feedbackKey: `shot-${card.shotId}`,
@@ -1332,6 +1344,37 @@ export function ChatBox() {
               copiedSnapshot={copiedSnapshot}
               onCopyExecutionChecklist={handleCopyExecutionChecklist}
               onCopyProjectSnapshot={handleCopyProjectSnapshot}
+            />
+          </div>
+
+          <div className={mobileTab === 'execute' ? 'block lg:hidden' : 'hidden'}>
+            <DirectorKitShotInspector
+              shot={selectedShot}
+              copiedShotId={copiedShotId}
+              currentStatus={selectedShot ? shotExecutionStatus[selectedShot.shotId] ?? 'pending' : 'pending'}
+              shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
+              resultNote={selectedShot ? shotResultNotes[selectedShot.shotId] ?? '' : ''}
+              onCopyShotPrompt={handleCopyShotPrompt}
+              onStatusChange={handleShotExecutionStatusChange}
+              onShotResultNoteChange={handleShotResultNoteChange}
+              renderFeedback={(card) =>
+                renderFeedbackButtons({
+                  feedbackKey: `shot-${card.shotId}`,
+                  onRate: (rating, failureReasons) =>
+                    submitV2Feedback({
+                      key: `shot-${card.shotId}`,
+                      rating,
+                      eventType: 'shot_card',
+                      prompt: `${card.description}\n${card.action}`,
+                      comment: rating === 'like' ? '分镜建议有用' : '分镜生成存在问题',
+                      shotIndex: card.shotId,
+                      generationMode: card.generationMode,
+                      riskLevel: card.riskLevel,
+                      riskTags: card.riskTags,
+                      failureReasons,
+                    }),
+                })
+              }
             />
           </div>
 

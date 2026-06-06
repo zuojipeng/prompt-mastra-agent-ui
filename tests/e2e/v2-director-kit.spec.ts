@@ -223,14 +223,24 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await expect(page.getByText('出片执行进度')).toBeVisible();
     await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
-    await expect(page.getByLabel('素材链接 / 结果备注')).toBeVisible();
-    await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
+    if (isMobile) {
+      await expect(page.getByLabel('当前镜头素材 / 备注')).toBeVisible();
+      await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
+    } else {
+      await expect(page.getByLabel('素材链接 / 结果备注')).toBeVisible();
+      await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
+    }
     await page.getByRole('button', { name: '复制执行清单' }).click();
     await expect(page.getByText('执行清单已复制')).toBeVisible();
     await page.getByRole('button', { name: '复制项目快照' }).click();
     await expect(page.getByText('项目快照已复制')).toBeVisible();
-    await page.getByRole('button', { name: '复制镜头 Prompt' }).click();
-    await expect(page.getByText('镜头 Prompt 已复制')).toBeVisible();
+    if (isMobile) {
+      await page.getByRole('button', { name: '复制当前镜头 Prompt' }).click();
+      await expect(page.getByText('当前镜头 Prompt 已复制')).toBeVisible();
+    } else {
+      await page.getByRole('button', { name: '复制镜头 Prompt' }).click();
+      await expect(page.getByText('镜头 Prompt 已复制', { exact: true })).toBeVisible();
+    }
 
     await page.getByRole('button', { name: '翻车' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
