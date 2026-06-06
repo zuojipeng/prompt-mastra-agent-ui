@@ -20,6 +20,14 @@ import {
   type DirectorKitTargetDuration,
   type DirectorKitTargetType,
 } from '@/lib/director-kit-contract';
+import {
+  buildExecutionChecklist as buildDirectorKitExecutionChecklist,
+  buildPlatformFeedPack as buildDirectorKitPlatformFeedPack,
+  buildProjectSnapshot as buildDirectorKitProjectSnapshot,
+  buildShotPrompt as buildDirectorKitShotPrompt,
+  type DirectorKitExportContext,
+  type ShotExecutionStatus,
+} from '@/lib/director-kit-export';
 import { HistoryPanel } from './HistoryPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
@@ -38,7 +46,6 @@ const FEEDBACK_KEY = 'prompt-feedback';
 type FeedbackKey = string;
 type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
-type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
@@ -571,29 +578,18 @@ export function ChatBox() {
     );
   };
 
-  const buildShotPrompt = (card: ShotCard) => {
-    const modeLabel = getFeedbackLabel(card.generationMode);
-    const checklist = (card.stabilityChecklist ?? []).map((item) => `- ${item}`).join('\n');
-    const riskTags = (card.riskTags ?? []).join('、') || '无';
+  const getDirectorKitExportContext = (generatedAt?: string): DirectorKitExportContext => ({
+    creativeInput: input,
+    targetDuration,
+    targetType,
+    shotExecutionStatus,
+    shotResultNotes,
+    generatedAt,
+  });
 
-    return [
-      `镜头 ${card.shotId}｜${card.duration}｜${modeLabel}`,
-      '',
-      `主 Prompt：${directorKit?.masterPrompt ?? ''}`,
-      '',
-      `画面：${card.description}`,
-      `动作：${card.action}`,
-      `景别：${card.framing}`,
-      `运镜：${card.motion}`,
-      `情绪：${card.mood}`,
-      `镜头目的：${card.purpose}`,
-      `一致性要求：${getFeedbackLabel(card.consistencyNeed)}`,
-      `风险等级：${getFeedbackLabel(card.riskLevel)}`,
-      `风险标签：${riskTags}`,
-      card.fixSuggestion ? `补救建议：${card.fixSuggestion}` : '',
-      checklist ? `\n生成前稳定性检查：\n${checklist}` : '',
-      directorKit?.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
-    ].filter(Boolean).join('\n');
+  const buildShotPrompt = (card: ShotCard) => {
+    if (!directorKit) return '';
+    return buildDirectorKitShotPrompt(directorKit, card);
   };
 
   const handleCopyShotPrompt = async (card: ShotCard) => {
@@ -604,62 +600,7 @@ export function ChatBox() {
 
   const buildExecutionChecklist = () => {
     if (!directorKit) return '';
-    const story = directorKit.storySetting;
-    const selectedVersion = directorKit.selectedVersion;
-    const shotLines = (directorKit.shotCards ?? []).map((card) => {
-      const status = SHOT_EXECUTION_OPTIONS.find((option) => option.status === (shotExecutionStatus[card.shotId] ?? 'pending'));
-      const resultNote = shotResultNotes[card.shotId]?.trim();
-      return [
-        `## 镜头 ${card.shotId}｜${card.duration}｜${status?.label ?? '未生成'}`,
-        `目的：${card.purpose}`,
-        `画面：${card.description}`,
-        `动作：${card.action}`,
-        `生成模式：${getFeedbackLabel(card.generationMode)}`,
-        `风险：${getFeedbackLabel(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
-        resultNote ? `素材/备注：${resultNote}` : '',
-        card.fixSuggestion ? `补救：${card.fixSuggestion}` : '',
-      ].filter(Boolean).join('\n');
-    });
-    const platformLines = (directorKit.platformAdvice ?? []).map((advice) =>
-      [
-        `- ${advice.platform}${advice.recommended ? '（推荐）' : ''}：${advice.note}`,
-        advice.bestFor ? `  适合：${advice.bestFor}` : '',
-      ].filter(Boolean).join('\n'),
-    );
-
-    return [
-      '# 镜词导演执行清单',
-      '',
-      `原始创意：${input}`,
-      `目标时长：${targetDuration}`,
-      `目标类型：${getFeedbackLabel(targetType)}`,
-      selectedVersion ? `选择版本：${selectedVersion.label}｜${selectedVersion.versionType}` : '',
-      '',
-      '## 故事设定',
-      story ? `梗概：${story.logline}` : '',
-      story ? `主角：${story.protagonist}` : '',
-      story ? `世界观：${story.worldSetting}` : '',
-      story ? `视觉母题：${story.visualMotif}` : '',
-      '',
-      '## 出片进度',
-      `进度：${completedShotCount}/${trackedShotCount}（${executionProgress}%）`,
-      `未生成：${executionSummary.pending}｜已生成：${executionSummary.generated}｜翻车：${executionSummary.failed}｜可用：${executionSummary.usable}`,
-      '',
-      '## 分镜执行',
-      shotLines.join('\n\n'),
-      '',
-      '## 平台建议',
-      platformLines.join('\n'),
-      '',
-      '## 主 Prompt',
-      directorKit.masterPrompt,
-      directorKit.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
-      '',
-      '## 风险补救',
-      `Top 风险：${(directorKit.riskRemediation?.topRisks ?? []).join('、') || '无'}`,
-      `替代镜头：${(directorKit.riskRemediation?.alternativeShots ?? []).join('、') || '无'}`,
-      `备用策略：${(directorKit.riskRemediation?.backupStrategies ?? []).join('、') || '无'}`,
-    ].filter(Boolean).join('\n');
+    return buildDirectorKitExecutionChecklist(directorKit, getDirectorKitExportContext());
   };
 
   const handleCopyExecutionChecklist = async () => {
@@ -670,74 +611,7 @@ export function ChatBox() {
 
   const buildProjectSnapshot = () => {
     if (!directorKit) return '';
-    const selectedVersion = directorKit.selectedVersion;
-    const story = directorKit.storySetting;
-    const generatedAt = new Date().toISOString();
-    const shotLines = (directorKit.shotCards ?? []).map((card) => {
-      const status = SHOT_EXECUTION_OPTIONS.find((option) => option.status === (shotExecutionStatus[card.shotId] ?? 'pending'));
-      const resultNote = shotResultNotes[card.shotId]?.trim();
-
-      return [
-        `### 镜头 ${card.shotId}｜${status?.label ?? '未生成'}`,
-        `- 时长：${card.duration}`,
-        `- 目的：${card.purpose}`,
-        `- 画面：${card.description}`,
-        `- 动作：${card.action}`,
-        `- 平台模式：${getFeedbackLabel(card.generationMode)}`,
-        `- 风险：${getFeedbackLabel(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
-        resultNote ? `- 素材/备注：${resultNote}` : '- 素材/备注：待补充',
-      ].join('\n');
-    });
-    const platformLines = (directorKit.platformAdvice ?? []).map((advice) =>
-      [
-        `### ${advice.platform}${advice.recommended ? '（推荐）' : ''}`,
-        `- 适合：${advice.bestFor || advice.note}`,
-        `- 说明：${advice.note}`,
-        advice.settings?.length ? `- 设置：${advice.settings.join('；')}` : '',
-        advice.avoid?.length ? `- 避免：${advice.avoid.join('；')}` : '',
-      ].filter(Boolean).join('\n'),
-    );
-
-    return [
-      '# 镜词项目快照',
-      '',
-      `生成时间：${generatedAt}`,
-      `项目创意：${input}`,
-      `目标时长：${targetDuration}`,
-      `目标类型：${getFeedbackLabel(targetType)}`,
-      selectedVersion ? `采用版本：${selectedVersion.label}｜${selectedVersion.summary}` : '',
-      '',
-      '## 项目状态',
-      `出片进度：${completedShotCount}/${trackedShotCount}（${executionProgress}%）`,
-      `状态分布：未生成 ${executionSummary.pending}｜已生成 ${executionSummary.generated}｜翻车 ${executionSummary.failed}｜可用 ${executionSummary.usable}`,
-      '',
-      '## 故事圣经',
-      story ? `- 梗概：${story.logline}` : '',
-      story ? `- 导演意图：${story.directorIntent}` : '',
-      story ? `- 主角：${story.protagonist}` : '',
-      story ? `- 世界观：${story.worldSetting}` : '',
-      story ? `- 视觉母题：${story.visualMotif}` : '',
-      '',
-      '## 分镜素材目录',
-      shotLines.join('\n\n'),
-      '',
-      '## 平台投喂策略',
-      platformLines.join('\n\n'),
-      '',
-      '## 主 Prompt',
-      directorKit.masterPrompt,
-      directorKit.negativePrompt ? `\nNegative Prompt：${directorKit.negativePrompt}` : '',
-      '',
-      '## 风险补救',
-      `- Top 风险：${(directorKit.riskRemediation?.topRisks ?? []).join('、') || '无'}`,
-      `- 替代镜头：${(directorKit.riskRemediation?.alternativeShots ?? []).join('、') || '无'}`,
-      `- 备用策略：${(directorKit.riskRemediation?.backupStrategies ?? []).join('、') || '无'}`,
-      '',
-      '## 下一步',
-      '- 对未生成镜头继续逐镜头投喂。',
-      '- 对翻车镜头补充失败原因并回到镜词反馈。',
-      '- 对可用镜头沉淀素材链接，进入剪辑和复盘。',
-    ].filter(Boolean).join('\n');
+    return buildDirectorKitProjectSnapshot(directorKit, getDirectorKitExportContext(new Date().toISOString()));
   };
 
   const handleCopyProjectSnapshot = async () => {
@@ -748,31 +622,7 @@ export function ChatBox() {
 
   const buildPlatformFeedPack = (advice: PlatformAdvice) => {
     if (!directorKit) return '';
-    const list = (label: string, items: string[] | undefined) =>
-      items?.length ? [`${label}：`, ...items.map((item) => `- ${item}`)].join('\n') : '';
-
-    return [
-      `# ${advice.platform} 平台投喂包`,
-      '',
-      advice.recommended ? '推荐级别：推荐' : '推荐级别：可选',
-      `适合：${advice.bestFor || advice.note}`,
-      `说明：${advice.note}`,
-      '',
-      '## 主 Prompt',
-      directorKit.masterPrompt,
-      directorKit.negativePrompt ? `\n## Negative Prompt\n${directorKit.negativePrompt}` : '',
-      '',
-      list('Prompt 写法', advice.promptTips),
-      '',
-      list('推荐设置', advice.settings),
-      '',
-      list('避免', advice.avoid),
-      '',
-      '## 执行提醒',
-      '- 先用单镜头短时长测试。',
-      '- 高风险镜头优先使用参考图或图生视频。',
-      '- 生成后回到镜词标记镜头状态并提交反馈。',
-    ].filter(Boolean).join('\n');
+    return buildDirectorKitPlatformFeedPack(directorKit, advice);
   };
 
   const handleCopyPlatformFeedPack = async (advice: PlatformAdvice) => {
