@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
       {/* Minimal Header */}
       <header className="border-b border-gray-200/60 dark:border-gray-800/60 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="max-w-[1680px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg font-bold text-gray-900 dark:text-gray-100 tracking-tight">
@@ -23,7 +23,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <main className="max-w-[1680px] mx-auto px-4 py-5">
         <ChatBox />
       </main>
     </div>

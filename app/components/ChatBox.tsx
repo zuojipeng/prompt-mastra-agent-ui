@@ -510,8 +510,132 @@ export function ChatBox() {
     setV2Error('');
   };
 
+  const handleSyncFeedback = async () => {
+    setSyncState('syncing');
+    try {
+      const raw = localStorage.getItem(FEEDBACK_KEY);
+      if (raw) {
+        const ok = await syncUserData({ feedback: raw });
+        setSyncState(ok ? 'done' : 'error');
+      } else {
+        setSyncState('done');
+      }
+      const stats = await fetchFeedbackStats();
+      setCloudStats(stats);
+      await refreshFeedbackAnalytics();
+    } catch {
+      setSyncState('error');
+    }
+    setTimeout(() => setSyncState('idle'), 3000);
+  };
+
+  const targetTypeLabel = DIRECTOR_KIT_TARGET_TYPES.find((type) => type.id === targetType)?.label ?? targetType;
+  const projectTitle = input.trim() ? input.trim().slice(0, 18) : '未命名短片';
+  const stageItems = [
+    { id: 'idea', label: 'Idea', done: !!input.trim(), active: v2State === 'input' },
+    { id: 'diagnosis', label: 'Diagnosis', done: !!directorKit, active: v2State === 'diagnosis' },
+    { id: 'versions', label: 'Versions', done: !!directorKit?.selectedVersion, active: v2State === 'reconstruct' },
+    { id: 'director', label: 'DirectorKit', done: v2State === 'result', active: v2State === 'result' },
+    { id: 'execution', label: 'Execution', done: completedShotCount > 0, active: v2State === 'result' && completedShotCount < trackedShotCount },
+    { id: 'feedback', label: 'Feedback', done: !!feedbackAnalytics?.total, active: analyticsOpen },
+  ];
+  const currentStageLabel = stageItems.find((stage) => stage.active)?.label ?? 'Idea';
+  const diagnosisScore = directorKit?.diagnosis.feasibilityScore;
+  const diagnosisRiskLabel =
+    directorKit?.diagnosis.riskLevel === 'low'
+      ? '低风险'
+      : directorKit?.diagnosis.riskLevel === 'medium'
+        ? '中风险'
+        : directorKit?.diagnosis.riskLevel === 'high'
+          ? '高风险'
+          : '待体检';
+
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
+    <div className="w-full max-w-[1680px] mx-auto animate-in fade-in duration-300">
+      <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400">Jingci Workbench</p>
+            <h1 className="mt-1 truncate text-base font-semibold text-gray-950 dark:text-gray-50">{projectTitle}</h1>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs sm:flex sm:items-center">
+            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <p className="text-[10px] text-gray-400">Stage</p>
+              <p className="mt-0.5 font-semibold text-gray-800 dark:text-gray-100">{currentStageLabel}</p>
+            </div>
+            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <p className="text-[10px] text-gray-400">Health</p>
+              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
+                {diagnosisScore ?? '--'}
+              </p>
+            </div>
+            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
+              <p className="text-[10px] text-gray-400">Progress</p>
+              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
+                {trackedShotCount ? `${completedShotCount}/${trackedShotCount}` : '0/0'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_320px] lg:grid-cols-[220px_minmax(0,1fr)]">
+        <aside className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:self-start">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Project</p>
+            <p className="mt-2 line-clamp-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+              {input.trim() || '输入创意后生成项目上下文'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="rounded bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                {targetDuration}
+              </span>
+              <span className="rounded bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                {targetTypeLabel}
+              </span>
+              <span className="rounded bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                {diagnosisRiskLabel}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Stages</p>
+            <div className="mt-3 grid gap-2">
+              {stageItems.map((stage) => (
+                <div key={stage.id} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full ${
+                      stage.done
+                        ? 'bg-emerald-500'
+                        : stage.active
+                          ? 'bg-cyan-600 ring-4 ring-cyan-100 dark:ring-cyan-950'
+                          : 'bg-gray-200 dark:bg-gray-700'
+                    }`}
+                  />
+                  <span
+                    className={
+                      stage.active
+                        ? 'font-semibold text-gray-900 dark:text-gray-100'
+                        : 'text-gray-500 dark:text-gray-400'
+                    }
+                  >
+                    {stage.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
+            <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">Snapshot</p>
+            <p className="mt-1 text-[11px] leading-5 text-gray-500 dark:text-gray-400">
+              {directorKit?.selectedVersion?.label ?? '选择重构版本后形成导演执行包。'}
+            </p>
+          </div>
+        </aside>
+
+        <section className="min-w-0 space-y-6">
       {/* Onboarding guide — first visit only, progressive steps */}
       {onboardingStep !== null && (
         <div className={`rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-gray-900 p-5 space-y-4 ${
@@ -604,77 +728,6 @@ export function ChatBox() {
           </p>
         </div>
       )}
-
-      {/* Sync button & cloud stats */}
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={async () => {
-                setSyncState('syncing');
-                try {
-                  const raw = localStorage.getItem(FEEDBACK_KEY);
-                  if (raw) {
-                    const ok = await syncUserData({ feedback: raw });
-                    setSyncState(ok ? 'done' : 'error');
-                  } else {
-                    setSyncState('done');
-                  }
-                  const stats = await fetchFeedbackStats();
-                  setCloudStats(stats);
-                  await refreshFeedbackAnalytics();
-                } catch {
-                  setSyncState('error');
-                }
-                setTimeout(() => setSyncState('idle'), 3000);
-              }}
-              disabled={syncState === 'syncing'}
-              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors
-                bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
-                text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700
-                disabled:opacity-50"
-            >
-              <span className="text-sm">☁️</span>
-              <span>同步</span>
-              {syncState === 'syncing' && <span className="text-blue-500 ml-0.5">...</span>}
-              {syncState === 'done' && <span className="text-emerald-500 ml-0.5">✓</span>}
-              {syncState === 'error' && <span className="text-red-500 ml-0.5">✗</span>}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAnalyticsOpen((open) => !open)}
-              className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-              aria-expanded={analyticsOpen}
-            >
-              反馈洞察
-            </button>
-          </div>
-
-          {/* Approval rate progress bar */}
-          {cloudStats && (() => {
-            const ratedTotal = cloudStats.total;
-            const pct = ratedTotal > 0 ? Math.round((cloudStats.likes / ratedTotal) * 100) : 0;
-            return (
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span className="whitespace-nowrap">☁️ 好评率</span>
-                <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: pct > 60 ? '#10b981' : pct > 30 ? '#f59e0b' : '#ef4444',
-                    }}
-                  />
-                </div>
-                <span className="font-medium tabular-nums w-10 text-right">{pct}%</span>
-                <span className="text-[10px] text-gray-400">({cloudStats.likes}/{ratedTotal})</span>
-              </div>
-            );
-          })()}
-        </div>
-        <FeedbackInsightPanel open={analyticsOpen} state={analyticsState} analytics={feedbackAnalytics} />
-      </div>
 
       <form onSubmit={handleDirectorKitSubmit} className="space-y-3">
         <div>
@@ -1032,18 +1085,6 @@ export function ChatBox() {
                 failureReasons,
               }),
           })}
-          <DirectorKitExecutionPanel
-            completedShotCount={completedShotCount}
-            trackedShotCount={trackedShotCount}
-            executionProgress={executionProgress}
-            executionSummary={executionSummary}
-            shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
-            copiedChecklist={copiedChecklist}
-            copiedSnapshot={copiedSnapshot}
-            onCopyExecutionChecklist={handleCopyExecutionChecklist}
-            onCopyProjectSnapshot={handleCopyProjectSnapshot}
-          />
-
           {(!(directorKit.shotCards ?? []).length || !directorKit.masterPrompt) && (
             <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-4">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
@@ -1260,6 +1301,80 @@ export function ChatBox() {
         }}
       />
 
+        </section>
+
+        <aside className="space-y-4 lg:col-span-2 xl:col-span-1 xl:sticky xl:top-20 xl:self-start">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Operations</p>
+                <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">下一步</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSyncFeedback}
+                disabled={syncState === 'syncing'}
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                同步
+                {syncState === 'syncing' && <span className="ml-1 text-blue-500">...</span>}
+                {syncState === 'done' && <span className="ml-1 text-emerald-500">✓</span>}
+                {syncState === 'error' && <span className="ml-1 text-red-500">✗</span>}
+              </button>
+            </div>
+
+            {cloudStats && (() => {
+              const ratedTotal = cloudStats.total;
+              const pct = ratedTotal > 0 ? Math.round((cloudStats.likes / ratedTotal) * 100) : 0;
+              return (
+                <div className="mt-4 rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500 dark:text-gray-400">反馈好评率</span>
+                    <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{pct}%</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: pct > 60 ? '#10b981' : pct > 30 ? '#f59e0b' : '#ef4444',
+                      }}
+                    />
+                  </div>
+                  <p className="mt-2 text-[10px] text-gray-400">{cloudStats.likes}/{ratedTotal} 条有效反馈</p>
+                </div>
+              );
+            })()}
+          </div>
+
+          <DirectorKitExecutionPanel
+            completedShotCount={completedShotCount}
+            trackedShotCount={trackedShotCount}
+            executionProgress={executionProgress}
+            executionSummary={executionSummary}
+            shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
+            copiedChecklist={copiedChecklist}
+            copiedSnapshot={copiedSnapshot}
+            onCopyExecutionChecklist={handleCopyExecutionChecklist}
+            onCopyProjectSnapshot={handleCopyProjectSnapshot}
+          />
+
+          <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+            <button
+              type="button"
+              onClick={() => setAnalyticsOpen((open) => !open)}
+              className="flex w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              aria-expanded={analyticsOpen}
+            >
+              <span>反馈洞察</span>
+              <span>{analyticsOpen ? '收起' : '展开'}</span>
+            </button>
+            <div className="mt-3">
+              <FeedbackInsightPanel open={analyticsOpen} state={analyticsState} analytics={feedbackAnalytics} />
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
