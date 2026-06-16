@@ -302,9 +302,17 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('项目已保存')).toBeVisible();
     await expect(page.getByText('最近项目')).toBeVisible();
 
+    await page.getByRole('button', { name: /Projects/ }).click();
+    await expect(page.getByRole('heading', { name: '项目仪表盘' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Ready' })).toBeVisible();
+    await page.getByPlaceholder('搜索项目标题或类型').fill('废土');
+    await expect(page.getByRole('button', { name: /废土小镇里/ }).first()).toBeVisible();
+    await page.getByRole('button', { name: 'Ready' }).click();
+    await expect(page.getByRole('button', { name: /废土小镇里/ }).first()).toBeVisible();
+
     await page.getByRole('button', { name: '清空' }).click();
     await expect(page.getByText('项目已清空')).toBeVisible();
-    await page.getByRole('button', { name: /废土小镇里/ }).click();
+    await page.getByRole('button', { name: /废土小镇里/ }).first().click();
     await expect(page.getByText('已恢复最近项目')).toBeVisible();
     await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
 

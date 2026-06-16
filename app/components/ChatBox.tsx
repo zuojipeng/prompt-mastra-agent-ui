@@ -45,6 +45,7 @@ import { DirectorKitShotInspector } from './DirectorKitShotInspector';
 import { DirectorKitShotList } from './DirectorKitShotList';
 import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
+import { ProjectDashboardPanel } from './ProjectDashboardPanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
 
@@ -192,6 +193,7 @@ export function ChatBox() {
   const [workspace, setWorkspace] = useState<LocalProjectWorkspace | null>(null);
   const [workspaceSummaries, setWorkspaceSummaries] = useState<LocalProjectWorkspaceSummary[]>([]);
   const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('idle');
+  const [projectDashboardOpen, setProjectDashboardOpen] = useState(false);
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
@@ -711,7 +713,17 @@ export function ChatBox() {
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400">Jingci Workbench</p>
             <h1 className="mt-1 truncate text-base font-semibold text-gray-950 dark:text-gray-50">{projectTitle}</h1>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-xs sm:flex sm:items-center">
+          <div className="grid grid-cols-4 gap-2 text-xs sm:flex sm:items-center">
+            <button
+              type="button"
+              onClick={() => setProjectDashboardOpen((open) => !open)}
+              className="rounded-md border border-gray-200 bg-white px-3 py-2 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800"
+            >
+              <p className="text-[10px] text-gray-400">Projects</p>
+              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
+                {workspaceSummaries.length}
+              </p>
+            </button>
             <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
               <p className="text-[10px] text-gray-400">Stage</p>
               <p className="mt-0.5 font-semibold text-gray-800 dark:text-gray-100">{currentStageLabel}</p>
@@ -749,6 +761,15 @@ export function ChatBox() {
           </button>
         ))}
       </div>
+
+      <ProjectDashboardPanel
+        open={projectDashboardOpen}
+        projects={workspaceSummaries}
+        activeProjectId={workspace?.id ?? null}
+        onOpenProject={handleOpenWorkspace}
+        onDeleteProject={handleDeleteWorkspace}
+        onClose={() => setProjectDashboardOpen(false)}
+      />
 
       <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_320px] lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className={`${mobileTab === 'work' ? 'block' : 'hidden'} space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:block lg:self-start`}>
