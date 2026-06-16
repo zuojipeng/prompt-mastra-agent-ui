@@ -31,9 +31,13 @@ import {
 import {
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  deleteLocalProjectWorkspace,
+  loadLocalProjectWorkspaceById,
   loadLocalProjectWorkspace,
+  loadLocalProjectWorkspaceSummaries,
   saveLocalProjectWorkspace,
   type LocalProjectWorkspace,
+  type LocalProjectWorkspaceSummary,
 } from '@/lib/project-workspace';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
 import { DirectorKitPlatformAdvicePanel } from './DirectorKitPlatformAdvicePanel';
@@ -186,6 +190,7 @@ export function ChatBox() {
   const [mobileTab, setMobileTab] = useState<MobileWorkbenchTab>('work');
   const [selectedShotId, setSelectedShotId] = useState<number | null>(null);
   const [workspace, setWorkspace] = useState<LocalProjectWorkspace | null>(null);
+  const [workspaceSummaries, setWorkspaceSummaries] = useState<LocalProjectWorkspaceSummary[]>([]);
   const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('idle');
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
@@ -244,6 +249,7 @@ export function ChatBox() {
       setWorkspace(savedWorkspace);
       setWorkspaceStatus('restored');
     }
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
   }, []);
 
   // Onboarding: advance to step 2 when results appear
@@ -431,6 +437,7 @@ export function ChatBox() {
       );
       saveLocalProjectWorkspace(nextWorkspace);
       setWorkspace(nextWorkspace);
+      setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
       setWorkspaceStatus('saved');
     } catch {
       setWorkspaceStatus('error');
@@ -445,6 +452,21 @@ export function ChatBox() {
     }
     applyProjectWorkspace(savedWorkspace);
     setWorkspace(savedWorkspace);
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    setWorkspaceStatus('restored');
+  };
+
+  const handleOpenWorkspace = (workspaceId: string) => {
+    const savedWorkspace = loadLocalProjectWorkspaceById(workspaceId);
+    if (!savedWorkspace) {
+      setWorkspaceStatus('missing');
+      setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+      return;
+    }
+    saveLocalProjectWorkspace(savedWorkspace);
+    applyProjectWorkspace(savedWorkspace);
+    setWorkspace(savedWorkspace);
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
     setWorkspaceStatus('restored');
   };
 
@@ -583,6 +605,16 @@ export function ChatBox() {
     handleResetV2();
   };
 
+  const handleDeleteWorkspace = (workspaceId: string) => {
+    deleteLocalProjectWorkspace(workspaceId);
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    if (workspace?.id === workspaceId) {
+      setWorkspace(null);
+      setWorkspaceStatus('cleared');
+      handleResetV2();
+    }
+  };
+
   const handleReturnToEdit = () => {
     setV2State('input');
     setDirectorKit(null);
@@ -640,6 +672,13 @@ export function ChatBox() {
               : workspaceUpdatedAt
                 ? `最近保存 ${workspaceUpdatedAt}`
                 : '本地项目尚未保存';
+  const formatWorkspaceTime = (updatedAt: string) =>
+    new Intl.DateTimeFormat('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(updatedAt));
   const stageItems = [
     { id: 'idea', label: 'Idea', done: !!input.trim(), active: v2State === 'input' },
     { id: 'diagnosis', label: 'Diagnosis', done: !!directorKit, active: v2State === 'diagnosis' },
@@ -800,6 +839,53 @@ export function ChatBox() {
               >
                 清空
               </button>
+            </div>
+            <div className="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">最近项目</p>
+                <span className="text-[10px] text-gray-400">{workspaceSummaries.length}/12</span>
+              </div>
+              {workspaceSummaries.length > 0 ? (
+                <div className="mt-2 grid gap-1.5">
+                  {workspaceSummaries.slice(0, 3).map((summary) => (
+                    <div
+                      key={summary.id}
+                      className={`group rounded-md border p-2 transition-colors ${
+                        workspace?.id === summary.id
+                          ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'
+                          : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleOpenWorkspace(summary.id)}
+                        className="w-full text-left"
+                      >
+                        <span className="block truncate text-[11px] font-medium text-gray-800 dark:text-gray-100">
+                          {summary.title}
+                        </span>
+                        <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-gray-400">
+                          <span>{formatWorkspaceTime(summary.updatedAt)}</span>
+                          <span className="tabular-nums">
+                            {summary.shotCount ? `${summary.completedShotCount}/${summary.shotCount}` : summary.stage}
+                          </span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteWorkspace(summary.id)}
+                        className="mt-1 text-[10px] font-medium text-gray-400 transition-colors hover:text-red-500"
+                      >
+                        移除
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-[11px] leading-5 text-gray-400">
+                  保存项目后会出现在这里，方便继续多个作品。
+                </p>
+              )}
             </div>
           </div>
         </aside>

@@ -10,7 +10,9 @@ import {
 import type { ShotExecutionStatus } from './director-kit-export';
 
 export const LOCAL_PROJECT_WORKSPACE_KEY = 'jingci-current-project';
+export const LOCAL_PROJECT_WORKSPACE_LIBRARY_KEY = 'jingci-project-library';
 export const LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION = 1;
+export const LOCAL_PROJECT_WORKSPACE_LIBRARY_LIMIT = 12;
 
 export type ProjectWorkspaceStage = 'input' | 'diagnosis' | 'reconstruct' | 'result';
 
@@ -29,6 +31,17 @@ export type LocalProjectWorkspace = {
   selectedShotId: number | null;
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotResultNotes: Record<number, string>;
+};
+
+export type LocalProjectWorkspaceSummary = {
+  id: string;
+  title: string;
+  updatedAt: string;
+  targetDuration: DirectorKitTargetDuration;
+  targetType: DirectorKitTargetType;
+  stage: ProjectWorkspaceStage;
+  shotCount: number;
+  completedShotCount: number;
 };
 
 export type LocalProjectWorkspaceInput = Pick<
@@ -97,6 +110,55 @@ function isDirectorKit(value: unknown): value is DirectorKit {
   return Array.isArray(value.shotCards) && typeof value.masterPrompt === 'string';
 }
 
+function sortByUpdatedAtDesc(projects: LocalProjectWorkspace[]) {
+  return [...projects].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+}
+
+function readWorkspaceLibrary(storage: WorkspaceStorage) {
+  const raw = storage.getItem(LOCAL_PROJECT_WORKSPACE_LIBRARY_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed) || parsed.schemaVersion !== LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION) {
+      return [];
+    }
+    const projects = Array.isArray(parsed.projects) ? parsed.projects : [];
+    return sortByUpdatedAtDesc(projects.filter(isLocalProjectWorkspace));
+  } catch {
+    return [];
+  }
+}
+
+function writeWorkspaceLibrary(projects: LocalProjectWorkspace[], storage: WorkspaceStorage) {
+  storage.setItem(
+    LOCAL_PROJECT_WORKSPACE_LIBRARY_KEY,
+    JSON.stringify({
+      schemaVersion: LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION,
+      projects: sortByUpdatedAtDesc(projects).slice(0, LOCAL_PROJECT_WORKSPACE_LIBRARY_LIMIT),
+    }),
+  );
+}
+
+function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspaceSummary {
+  const shotCards = project.directorKit?.shotCards ?? [];
+  const completedShotCount = shotCards.reduce((count, card) => {
+    const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
+    return status === 'pending' ? count : count + 1;
+  }, 0);
+
+  return {
+    id: project.id,
+    title: project.title,
+    updatedAt: project.updatedAt,
+    targetDuration: project.targetDuration,
+    targetType: project.targetType,
+    stage: project.v2State,
+    shotCount: shotCards.length,
+    completedShotCount,
+  };
+}
+
 export function deriveProjectTitle(input: string) {
   const compact = input.trim().replace(/\s+/g, ' ');
   return compact ? compact.slice(0, 28) : '未命名项目';
@@ -143,6 +205,11 @@ export function saveLocalProjectWorkspace(
 ) {
   if (!storage) return false;
   storage.setItem(LOCAL_PROJECT_WORKSPACE_KEY, JSON.stringify(workspace));
+  const nextLibrary = [
+    workspace,
+    ...readWorkspaceLibrary(storage).filter((project) => project.id !== workspace.id),
+  ];
+  writeWorkspaceLibrary(nextLibrary, storage);
   return true;
 }
 
@@ -162,5 +229,38 @@ export function loadLocalProjectWorkspace(storage: WorkspaceStorage | null = get
 export function clearLocalProjectWorkspace(storage: WorkspaceStorage | null = getBrowserStorage()) {
   if (!storage) return false;
   storage.removeItem(LOCAL_PROJECT_WORKSPACE_KEY);
+  return true;
+}
+
+export function loadLocalProjectWorkspaceLibrary(storage: WorkspaceStorage | null = getBrowserStorage()) {
+  if (!storage) return [];
+  return readWorkspaceLibrary(storage);
+}
+
+export function loadLocalProjectWorkspaceSummaries(storage: WorkspaceStorage | null = getBrowserStorage()) {
+  return loadLocalProjectWorkspaceLibrary(storage).map(summarizeWorkspace);
+}
+
+export function loadLocalProjectWorkspaceById(
+  id: string,
+  storage: WorkspaceStorage | null = getBrowserStorage(),
+) {
+  if (!storage) return null;
+  return readWorkspaceLibrary(storage).find((project) => project.id === id) ?? null;
+}
+
+export function deleteLocalProjectWorkspace(
+  id: string,
+  storage: WorkspaceStorage | null = getBrowserStorage(),
+) {
+  if (!storage) return false;
+  const nextLibrary = readWorkspaceLibrary(storage).filter((project) => project.id !== id);
+  writeWorkspaceLibrary(nextLibrary, storage);
+
+  const current = loadLocalProjectWorkspace(storage);
+  if (current?.id === id) {
+    storage.removeItem(LOCAL_PROJECT_WORKSPACE_KEY);
+  }
+
   return true;
 }

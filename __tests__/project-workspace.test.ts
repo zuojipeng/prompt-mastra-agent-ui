@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  deleteLocalProjectWorkspace,
   deriveProjectTitle,
+  loadLocalProjectWorkspaceById,
+  loadLocalProjectWorkspaceLibrary,
+  loadLocalProjectWorkspaceSummaries,
   loadLocalProjectWorkspace,
   saveLocalProjectWorkspace,
   type LocalProjectWorkspace,
@@ -161,6 +165,84 @@ describe('project workspace persistence', () => {
     });
     expect(clearLocalProjectWorkspace(storage)).toBe(true);
     expect(loadLocalProjectWorkspace(storage)).toBeNull();
+  });
+
+  it('maintains a sorted local project library when workspaces are saved', () => {
+    const storage = createStorage();
+    const first = createLocalProjectWorkspace(
+      {
+        creativeInput: '第一个废土项目',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 0,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'usable' },
+        shotResultNotes: { 1: 'first' },
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const second = createLocalProjectWorkspace(
+      {
+        creativeInput: '第二个赛博项目',
+        targetDuration: '60s',
+        targetType: 'cyberpunk',
+        v2State: 'diagnosis',
+        directorKit: kit,
+        selectedVersionIndex: null,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: { 1: 'second' },
+      },
+      null,
+      '2026-06-16T01:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(first, storage);
+    saveLocalProjectWorkspace(second, storage);
+
+    const library = loadLocalProjectWorkspaceLibrary(storage);
+    expect(library.map((project) => project.id)).toEqual([second.id, first.id]);
+    expect(loadLocalProjectWorkspaceById(first.id, storage)?.shotResultNotes[1]).toBe('first');
+  });
+
+  it('summarizes and deletes local project library entries', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '90s',
+        targetType: 'scifi',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'usable' },
+        shotResultNotes: { 1: '可用素材' },
+      },
+      null,
+      '2026-06-16T02:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(workspace, storage);
+
+    expect(loadLocalProjectWorkspaceSummaries(storage)).toEqual([
+      expect.objectContaining({
+        id: workspace.id,
+        title: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '90s',
+        targetType: 'scifi',
+        stage: 'result',
+        shotCount: 1,
+        completedShotCount: 1,
+      }),
+    ]);
+
+    expect(deleteLocalProjectWorkspace(workspace.id, storage)).toBe(true);
+    expect(loadLocalProjectWorkspace(storage)).toBeNull();
+    expect(loadLocalProjectWorkspaceLibrary(storage)).toEqual([]);
   });
 
   it('ignores invalid or corrupted workspace payloads', () => {

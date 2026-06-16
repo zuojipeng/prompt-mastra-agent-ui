@@ -300,6 +300,13 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await page.getByRole('button', { name: '保存' }).click();
     await expect(page.getByText('项目已保存')).toBeVisible();
+    await expect(page.getByText('最近项目')).toBeVisible();
+
+    await page.getByRole('button', { name: '清空' }).click();
+    await expect(page.getByText('项目已清空')).toBeVisible();
+    await page.getByRole('button', { name: /废土小镇里/ }).click();
+    await expect(page.getByText('已恢复最近项目')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
 
     await page.reload();
 
