@@ -176,6 +176,21 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
   });
 }
 
+async function createDirectorKitResult(page: Page) {
+  await page.goto('/');
+
+  await page.getByPlaceholder('例如：雨夜街头，一个女孩回头...').fill(creative);
+  await page.getByRole('button', { name: '60s' }).click();
+  await page.getByRole('button', { name: '赛博朋克' }).click();
+  await page.getByRole('button', { name: /先做创意体检/ }).click();
+
+  await expect(page.getByRole('heading', { name: /创意体检报告/ })).toBeVisible();
+  await page.getByRole('button', { name: /查看重构版本/ }).click();
+  await page.getByRole('radio').nth(2).click();
+  await page.getByRole('button', { name: /用此版本生成执行包/ }).click();
+  await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
+}
+
 test.describe('V2 DirectorKit browser flow', () => {
   test('happy path reaches DirectorKit result', async ({ page }, testInfo) => {
     const isMobile = testInfo.project.name === 'mobile-chrome';
@@ -265,6 +280,46 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('已记录问题')).toHaveCount(1);
     await page.getByRole('button', { name: '平台不适配' }).last().click();
     await expect(page.getByText('已记录问题')).toHaveCount(2);
+  });
+
+  test('local project workspace restores result after reload', async ({ page }, testInfo) => {
+    const isMobile = testInfo.project.name === 'mobile-chrome';
+    await mockDirectorKit(page);
+    await createDirectorKitResult(page);
+
+    if (isMobile) {
+      await page.getByRole('button', { name: /Execute/ }).click();
+      await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
+    } else {
+      await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
+    }
+    await page.getByRole('button', { name: '可用' }).click();
+
+    if (isMobile) {
+      await page.getByRole('button', { name: /Work/ }).click();
+    }
+    await page.getByRole('button', { name: '保存' }).click();
+    await expect(page.getByText('项目已保存')).toBeVisible();
+
+    await page.reload();
+
+    await expect(page.getByText('已恢复最近项目')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
+
+    if (isMobile) {
+      await page.getByRole('button', { name: /Execute/ }).click();
+      await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
+      await expect(page.getByText('100%')).toBeVisible();
+      await expect(page.getByPlaceholder('记录平台链接、文件名或失败原因...')).toHaveValue(
+        'Seedance 生成链接：demo-shot-1',
+      );
+    } else {
+      await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
+      await expect(page.getByText('100%')).toBeVisible();
+      await expect(page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...')).toHaveValue(
+        'Seedance 生成链接：demo-shot-1',
+      );
+    }
   });
 
   test('validation and retry recovery preserve input', async ({ page }) => {

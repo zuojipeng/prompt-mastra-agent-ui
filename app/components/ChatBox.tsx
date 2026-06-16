@@ -28,6 +28,13 @@ import {
   type DirectorKitExportContext,
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
+import {
+  clearLocalProjectWorkspace,
+  createLocalProjectWorkspace,
+  loadLocalProjectWorkspace,
+  saveLocalProjectWorkspace,
+  type LocalProjectWorkspace,
+} from '@/lib/project-workspace';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
 import { DirectorKitPlatformAdvicePanel } from './DirectorKitPlatformAdvicePanel';
 import { DirectorKitShotInspector } from './DirectorKitShotInspector';
@@ -52,6 +59,7 @@ type FeedbackKey = string;
 type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
 type MobileWorkbenchTab = 'work' | 'execute' | 'feedback';
+type WorkspaceStatus = 'idle' | 'saved' | 'restored' | 'cleared' | 'missing' | 'error';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
@@ -177,6 +185,8 @@ export function ChatBox() {
   const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
   const [mobileTab, setMobileTab] = useState<MobileWorkbenchTab>('work');
   const [selectedShotId, setSelectedShotId] = useState<number | null>(null);
+  const [workspace, setWorkspace] = useState<LocalProjectWorkspace | null>(null);
+  const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('idle');
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
@@ -226,6 +236,13 @@ export function ChatBox() {
     // Onboarding: show guide on first visit
     if (!localStorage.getItem(ONBOARDING_KEY)) {
       setOnboardingStep(0);
+    }
+
+    const savedWorkspace = loadLocalProjectWorkspace();
+    if (savedWorkspace) {
+      applyProjectWorkspace(savedWorkspace);
+      setWorkspace(savedWorkspace);
+      setWorkspaceStatus('restored');
     }
   }, []);
 
@@ -378,6 +395,59 @@ export function ChatBox() {
     setShotResultNotes((prev) => ({ ...prev, [shotId]: value }));
   };
 
+  const applyProjectWorkspace = (nextWorkspace: LocalProjectWorkspace) => {
+    setInput(nextWorkspace.creativeInput);
+    setTargetDuration(nextWorkspace.targetDuration);
+    setTargetType(nextWorkspace.targetType);
+    setV2State(nextWorkspace.v2State);
+    setDirectorKit(nextWorkspace.directorKit);
+    setSelectedVersionIndex(nextWorkspace.selectedVersionIndex);
+    setSelectedShotId(nextWorkspace.selectedShotId ?? nextWorkspace.directorKit?.shotCards?.[0]?.shotId ?? null);
+    setShotExecutionStatus(nextWorkspace.shotExecutionStatus);
+    setShotResultNotes(nextWorkspace.shotResultNotes);
+    setCopiedShotId(null);
+    setCopiedChecklist(false);
+    setCopiedSnapshot(false);
+    setCopiedPlatform(null);
+    setV2Error('');
+    setMobileTab('work');
+  };
+
+  const handleSaveWorkspace = () => {
+    try {
+      const nextWorkspace = createLocalProjectWorkspace(
+        {
+          creativeInput: input,
+          targetDuration,
+          targetType,
+          v2State,
+          directorKit,
+          selectedVersionIndex,
+          selectedShotId,
+          shotExecutionStatus,
+          shotResultNotes,
+        },
+        workspace,
+      );
+      saveLocalProjectWorkspace(nextWorkspace);
+      setWorkspace(nextWorkspace);
+      setWorkspaceStatus('saved');
+    } catch {
+      setWorkspaceStatus('error');
+    }
+  };
+
+  const handleRestoreWorkspace = () => {
+    const savedWorkspace = loadLocalProjectWorkspace();
+    if (!savedWorkspace) {
+      setWorkspaceStatus('missing');
+      return;
+    }
+    applyProjectWorkspace(savedWorkspace);
+    setWorkspace(savedWorkspace);
+    setWorkspaceStatus('restored');
+  };
+
   const getDirectorKitExportContext = (generatedAt?: string): DirectorKitExportContext => ({
     creativeInput: input,
     targetDuration,
@@ -506,6 +576,13 @@ export function ChatBox() {
     setTargetType('wasteland');
   };
 
+  const handleClearWorkspace = () => {
+    clearLocalProjectWorkspace();
+    setWorkspace(null);
+    setWorkspaceStatus('cleared');
+    handleResetV2();
+  };
+
   const handleReturnToEdit = () => {
     setV2State('input');
     setDirectorKit(null);
@@ -541,6 +618,28 @@ export function ChatBox() {
 
   const targetTypeLabel = DIRECTOR_KIT_TARGET_TYPES.find((type) => type.id === targetType)?.label ?? targetType;
   const projectTitle = input.trim() ? input.trim().slice(0, 18) : '未命名短片';
+  const workspaceUpdatedAt = workspace?.updatedAt
+    ? new Intl.DateTimeFormat('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(workspace.updatedAt))
+    : null;
+  const workspaceStatusLabel =
+    workspaceStatus === 'saved'
+      ? '项目已保存'
+      : workspaceStatus === 'restored'
+        ? '已恢复最近项目'
+        : workspaceStatus === 'cleared'
+          ? '项目已清空'
+          : workspaceStatus === 'missing'
+            ? '没有可恢复的项目'
+            : workspaceStatus === 'error'
+              ? '项目保存失败'
+              : workspaceUpdatedAt
+                ? `最近保存 ${workspaceUpdatedAt}`
+                : '本地项目尚未保存';
   const stageItems = [
     { id: 'idea', label: 'Idea', done: !!input.trim(), active: v2State === 'input' },
     { id: 'diagnosis', label: 'Diagnosis', done: !!directorKit, active: v2State === 'diagnosis' },
@@ -661,10 +760,47 @@ export function ChatBox() {
           </div>
 
           <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
-            <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">Snapshot</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">Snapshot</p>
+              <span
+                className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                  workspaceStatus === 'error'
+                    ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+                    : workspaceStatus === 'saved' || workspaceStatus === 'restored'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-900 dark:text-gray-400'
+                }`}
+              >
+                {workspaceStatusLabel}
+              </span>
+            </div>
             <p className="mt-1 text-[11px] leading-5 text-gray-500 dark:text-gray-400">
               {directorKit?.selectedVersion?.label ?? '选择重构版本后形成导演执行包。'}
             </p>
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                onClick={handleSaveWorkspace}
+                disabled={!input.trim() && !directorKit}
+                className="rounded-md border border-gray-200 bg-white px-2 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                保存
+              </button>
+              <button
+                type="button"
+                onClick={handleRestoreWorkspace}
+                className="rounded-md border border-gray-200 bg-white px-2 py-1.5 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                恢复
+              </button>
+              <button
+                type="button"
+                onClick={handleClearWorkspace}
+                className="rounded-md border border-gray-200 bg-white px-2 py-1.5 text-[11px] font-medium text-gray-500 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
+              >
+                清空
+              </button>
+            </div>
           </div>
         </aside>
 
