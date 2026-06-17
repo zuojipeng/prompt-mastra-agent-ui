@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   createDirectorKit,
+  deleteProjectWorkspace,
   DirectorKit,
   fetchFeedbackAnalytics,
   fetchFeedbackStats,
+  fetchProjectSummaries,
+  fetchProjectWorkspace,
   fetchPromptHistory,
   fetchUserData,
   HistoryRecord,
   OptimizationResult,
+  syncProjectWorkspace,
   syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
@@ -32,6 +36,7 @@ import {
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   deleteLocalProjectWorkspace,
+  isLocalProjectWorkspace,
   loadLocalProjectWorkspaceById,
   loadLocalProjectWorkspace,
   loadLocalProjectWorkspaceSummaries,
@@ -65,6 +70,7 @@ type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
 type MobileWorkbenchTab = 'work' | 'execute' | 'feedback';
 type WorkspaceStatus = 'idle' | 'saved' | 'restored' | 'cleared' | 'missing' | 'error';
+type ProjectSyncState = 'idle' | 'syncing' | 'synced' | 'error';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
@@ -193,6 +199,7 @@ export function ChatBox() {
   const [workspace, setWorkspace] = useState<LocalProjectWorkspace | null>(null);
   const [workspaceSummaries, setWorkspaceSummaries] = useState<LocalProjectWorkspaceSummary[]>([]);
   const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('idle');
+  const [projectSyncState, setProjectSyncState] = useState<ProjectSyncState>('idle');
   const [projectDashboardOpen, setProjectDashboardOpen] = useState(false);
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
@@ -212,6 +219,47 @@ export function ChatBox() {
   const completedShotCount = executionSummary.generated + executionSummary.failed + executionSummary.usable;
   const executionProgress = trackedShotCount > 0 ? Math.round((completedShotCount / trackedShotCount) * 100) : 0;
   const selectedShot = shotCards.find((card) => card.shotId === selectedShotId) ?? shotCards[0] ?? null;
+
+  const mergeWorkspaceSummaries = useCallback((
+    local: LocalProjectWorkspaceSummary[],
+    remote: LocalProjectWorkspaceSummary[],
+  ) => {
+    const merged = new Map<string, LocalProjectWorkspaceSummary>();
+    [...remote, ...local].forEach((summary) => {
+      const current = merged.get(summary.id);
+      if (!current || Date.parse(summary.updatedAt) > Date.parse(current.updatedAt)) {
+        merged.set(summary.id, summary);
+      }
+    });
+    return Array.from(merged.values()).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  }, []);
+
+  const refreshProjectSummaries = useCallback(async () => {
+    const localSummaries = loadLocalProjectWorkspaceSummaries();
+    setWorkspaceSummaries(localSummaries);
+    const cloudSummaries = await fetchProjectSummaries();
+    if (cloudSummaries.length > 0) {
+      setWorkspaceSummaries(mergeWorkspaceSummaries(localSummaries, cloudSummaries));
+    }
+  }, [mergeWorkspaceSummaries]);
+
+  const applyProjectWorkspace = useCallback((nextWorkspace: LocalProjectWorkspace) => {
+    setInput(nextWorkspace.creativeInput);
+    setTargetDuration(nextWorkspace.targetDuration);
+    setTargetType(nextWorkspace.targetType);
+    setV2State(nextWorkspace.v2State);
+    setDirectorKit(nextWorkspace.directorKit);
+    setSelectedVersionIndex(nextWorkspace.selectedVersionIndex);
+    setSelectedShotId(nextWorkspace.selectedShotId ?? nextWorkspace.directorKit?.shotCards?.[0]?.shotId ?? null);
+    setShotExecutionStatus(nextWorkspace.shotExecutionStatus);
+    setShotResultNotes(nextWorkspace.shotResultNotes);
+    setCopiedShotId(null);
+    setCopiedChecklist(false);
+    setCopiedSnapshot(false);
+    setCopiedPlatform(null);
+    setV2Error('');
+    setMobileTab('work');
+  }, []);
 
   const refreshFeedbackAnalytics = async () => {
     setAnalyticsState('loading');
@@ -251,8 +299,8 @@ export function ChatBox() {
       setWorkspace(savedWorkspace);
       setWorkspaceStatus('restored');
     }
-    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
-  }, []);
+    refreshProjectSummaries().catch(() => {});
+  }, [applyProjectWorkspace, refreshProjectSummaries]);
 
   // Onboarding: advance to step 2 when results appear
   useEffect(() => {
@@ -403,24 +451,6 @@ export function ChatBox() {
     setShotResultNotes((prev) => ({ ...prev, [shotId]: value }));
   };
 
-  const applyProjectWorkspace = (nextWorkspace: LocalProjectWorkspace) => {
-    setInput(nextWorkspace.creativeInput);
-    setTargetDuration(nextWorkspace.targetDuration);
-    setTargetType(nextWorkspace.targetType);
-    setV2State(nextWorkspace.v2State);
-    setDirectorKit(nextWorkspace.directorKit);
-    setSelectedVersionIndex(nextWorkspace.selectedVersionIndex);
-    setSelectedShotId(nextWorkspace.selectedShotId ?? nextWorkspace.directorKit?.shotCards?.[0]?.shotId ?? null);
-    setShotExecutionStatus(nextWorkspace.shotExecutionStatus);
-    setShotResultNotes(nextWorkspace.shotResultNotes);
-    setCopiedShotId(null);
-    setCopiedChecklist(false);
-    setCopiedSnapshot(false);
-    setCopiedPlatform(null);
-    setV2Error('');
-    setMobileTab('work');
-  };
-
   const handleSaveWorkspace = () => {
     try {
       const nextWorkspace = createLocalProjectWorkspace(
@@ -441,8 +471,16 @@ export function ChatBox() {
       setWorkspace(nextWorkspace);
       setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
       setWorkspaceStatus('saved');
+      setProjectSyncState('syncing');
+      syncProjectWorkspace(nextWorkspace)
+        .then((ok) => {
+          setProjectSyncState(ok ? 'synced' : 'error');
+          if (ok) refreshProjectSummaries().catch(() => {});
+        })
+        .catch(() => setProjectSyncState('error'));
     } catch {
       setWorkspaceStatus('error');
+      setProjectSyncState('error');
     }
   };
 
@@ -458,17 +496,21 @@ export function ChatBox() {
     setWorkspaceStatus('restored');
   };
 
-  const handleOpenWorkspace = (workspaceId: string) => {
-    const savedWorkspace = loadLocalProjectWorkspaceById(workspaceId);
+  const handleOpenWorkspace = async (workspaceId: string) => {
+    const savedWorkspace = loadLocalProjectWorkspaceById(workspaceId) ?? await fetchProjectWorkspace(workspaceId);
     if (!savedWorkspace) {
       setWorkspaceStatus('missing');
-      setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+      refreshProjectSummaries().catch(() => {});
+      return;
+    }
+    if (!isLocalProjectWorkspace(savedWorkspace)) {
+      setWorkspaceStatus('error');
       return;
     }
     saveLocalProjectWorkspace(savedWorkspace);
     applyProjectWorkspace(savedWorkspace);
     setWorkspace(savedWorkspace);
-    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    refreshProjectSummaries().catch(() => {});
     setWorkspaceStatus('restored');
   };
 
@@ -609,7 +651,14 @@ export function ChatBox() {
 
   const handleDeleteWorkspace = (workspaceId: string) => {
     deleteLocalProjectWorkspace(workspaceId);
-    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    refreshProjectSummaries().catch(() => {});
+    setProjectSyncState('syncing');
+    deleteProjectWorkspace(workspaceId)
+      .then((ok) => {
+        setProjectSyncState(ok ? 'synced' : 'error');
+        if (ok) refreshProjectSummaries().catch(() => {});
+      })
+      .catch(() => setProjectSyncState('error'));
     if (workspace?.id === workspaceId) {
       setWorkspace(null);
       setWorkspaceStatus('cleared');
@@ -674,6 +723,14 @@ export function ChatBox() {
               : workspaceUpdatedAt
                 ? `最近保存 ${workspaceUpdatedAt}`
                 : '本地项目尚未保存';
+  const projectSyncLabel =
+    projectSyncState === 'syncing'
+      ? '云端同步中'
+      : projectSyncState === 'synced'
+        ? '云端已同步'
+        : projectSyncState === 'error'
+          ? '云端未同步'
+          : '本地优先';
   const formatWorkspaceTime = (updatedAt: string) =>
     new Intl.DateTimeFormat('zh-CN', {
       month: '2-digit',
@@ -836,6 +893,17 @@ export function ChatBox() {
             </div>
             <p className="mt-1 text-[11px] leading-5 text-gray-500 dark:text-gray-400">
               {directorKit?.selectedVersion?.label ?? '选择重构版本后形成导演执行包。'}
+            </p>
+            <p
+              className={`mt-1 text-[11px] ${
+                projectSyncState === 'error'
+                  ? 'text-amber-600 dark:text-amber-300'
+                  : projectSyncState === 'synced'
+                    ? 'text-emerald-600 dark:text-emerald-300'
+                    : 'text-gray-400'
+              }`}
+            >
+              {projectSyncLabel}
             </p>
             <div className="mt-3 grid grid-cols-3 gap-1.5">
               <button

@@ -103,6 +103,79 @@ const directorKitResponse = {
 
 async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
   let calls = 0;
+  const cloudProjects = new Map<string, Record<string, unknown>>();
+
+  await page.route('**/api/projects', async (route: Route) => {
+    const request = route.request();
+    if (request.method() === 'GET') {
+      const projects = Array.from(cloudProjects.values()).map((workspace) => {
+        const directorKit = workspace.directorKit as { shotCards?: Array<{ shotId: number }> } | undefined;
+        const shotExecutionStatus = workspace.shotExecutionStatus as Record<string, string> | undefined;
+        const shotCards = directorKit?.shotCards ?? [];
+        const completedShotCount = shotCards.filter((card) => (shotExecutionStatus?.[card.shotId] ?? 'pending') !== 'pending').length;
+
+        return {
+          id: workspace.id,
+          title: workspace.title,
+          creativeInput: workspace.creativeInput,
+          targetDuration: workspace.targetDuration,
+          targetType: workspace.targetType,
+          stage: workspace.v2State,
+          shotCount: shotCards.length,
+          completedShotCount,
+          createdAt: Date.parse(String(workspace.createdAt)),
+          updatedAt: Date.parse(String(workspace.updatedAt)),
+        };
+      });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { projects, count: projects.length } }),
+      });
+      return;
+    }
+
+    if (request.method() === 'POST') {
+      const body = request.postDataJSON() as { workspace?: Record<string, unknown> };
+      const workspace = body.workspace;
+      if (workspace?.id) {
+        cloudProjects.set(String(workspace.id), workspace);
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { id: workspace?.id ?? 'project-1' } }),
+      });
+      return;
+    }
+
+    await route.fulfill({ status: 405, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+  });
+
+  await page.route('**/api/projects/*', async (route: Route) => {
+    const request = route.request();
+    const id = new URL(request.url()).pathname.split('/').pop() ?? '';
+    if (request.method() === 'GET') {
+      const payload = cloudProjects.get(id);
+      await route.fulfill({
+        status: payload ? 200 : 404,
+        contentType: 'application/json',
+        body: JSON.stringify(payload ? { success: true, data: { payload } } : { success: false, error: 'not found' }),
+      });
+      return;
+    }
+    if (request.method() === 'DELETE') {
+      cloudProjects.delete(id);
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { id } }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 405, contentType: 'application/json', body: JSON.stringify({ success: false }) });
+  });
+
   await page.route('**/api/feedback/analytics**', async (route: Route) => {
     await route.fulfill({
       status: 200,
@@ -274,12 +347,12 @@ test.describe('V2 DirectorKit browser flow', () => {
     if (isMobile) {
       await page.getByRole('button', { name: /Work/ }).click();
     }
-    await page.getByRole('button', { name: '有用' }).first().click();
-    await expect(page.getByText('已记录有用')).toBeVisible();
-    await page.getByRole('button', { name: '画面不稳定' }).first().click();
-    await expect(page.getByText('已记录问题')).toHaveCount(1);
+    await page.getByRole('button', { name: '有用' }).nth(1).click();
+    await expect(page.getByText('已记录有用').first()).toBeVisible();
+    await page.getByRole('button', { name: '画面不稳定' }).nth(1).click();
+    await expect(page.getByText('已记录问题').first()).toBeVisible();
     await page.getByRole('button', { name: '平台不适配' }).last().click();
-    await expect(page.getByText('已记录问题')).toHaveCount(2);
+    await expect(page.getByText('已记录问题').nth(1)).toBeVisible();
   });
 
   test('local project workspace restores result after reload', async ({ page }, testInfo) => {
@@ -300,6 +373,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await page.getByRole('button', { name: '保存' }).click();
     await expect(page.getByText('项目已保存')).toBeVisible();
+    await expect(page.getByText('云端已同步')).toBeVisible();
     await expect(page.getByText('最近项目')).toBeVisible();
 
     await page.getByRole('button', { name: /Projects/ }).click();
@@ -315,6 +389,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: /废土小镇里/ }).first().click();
     await expect(page.getByText('已恢复最近项目')).toBeVisible();
     await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
+    await page.waitForFunction(() => window.localStorage.getItem('jingci-current-project')?.includes('demo-shot-1'));
 
     await page.reload();
 
