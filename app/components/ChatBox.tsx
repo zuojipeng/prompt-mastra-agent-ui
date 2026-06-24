@@ -3,21 +3,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   createDirectorKit,
-  deleteProjectWorkspace,
   DirectorKit,
   fetchFeedbackAnalytics,
   fetchFeedbackStats,
-  fetchProjectSummaries,
-  fetchProjectWorkspace,
   fetchPromptHistory,
   fetchUserData,
   HistoryRecord,
   OptimizationResult,
-  syncProjectWorkspace,
   syncUserData,
   uploadFeedback,
 } from '@/lib/api-client';
 import type { FeedbackAnalytics } from '@/lib/api-client';
+import {
+  deleteProjectWorkspace,
+  fetchProjectSummaries,
+  fetchProjectWorkspace,
+  syncProjectWorkspace,
+} from '@/lib/project-api-client';
 import {
   DIRECTOR_KIT_TARGET_DURATIONS,
   DIRECTOR_KIT_TARGET_TYPES,
