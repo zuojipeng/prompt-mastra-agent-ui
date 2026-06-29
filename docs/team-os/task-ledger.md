@@ -9,7 +9,7 @@ Last Updated: 2026-06-29
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | ready | UEAgent | Product Agent + Test Agent | UE | E2 UE spec, state matrix, implementation slice map | Engineering Agent to map current components to v4 regions |
+| JC-T001 | Projectized creation workbench v4 | in_progress | Architecture Agent | Engineering Agent + Code Review Agent | Architecture | E2 architecture note with current file references and smallest implementation slice | Engineering Agent to implement `lib/workbench-shell.ts` and tests |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -62,6 +62,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent
 Close condition: Architecture Agent maps current component boundaries and chooses the smallest implementation slice.
 
+### 2026-06-29 11:00 T004
+
+Type: EVIDENCE_ADDED
+From: Hermes Orchestrator
+To: Product Agent + Architecture Agent
+Task: JC-T001
+Gate: Product / Architecture
+Message: Added yearly, quarterly, monthly OKR cascade and architecture note for the Project Workbench shell.
+Evidence: E2 `docs/okrs/2026-jingci-agent-team-okr.md`, E2 `docs/architecture/2026-06-29-project-workbench-shell.md`
+Decision: CONTINUE
+Next owner: Engineering Agent
+Close condition: Implement `lib/workbench-shell.ts` pure derivation functions and tests before touching broad UI layout.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -69,9 +82,12 @@ Close condition: Architecture Agent maps current component boundaries and choose
 | EV-JC-001 | JC-T001 | E2 | Existing V3 workbench already defines stage-based IA and state matrix | `docs/design/jingci-workbench-v3/README.md`, `03-information-architecture.md`, `06-component-state-matrix.md` | Reused as baseline for v4 | Product Agent |
 | EV-JC-002 | JC-T001 | E2 | V4 plan defines projectized creation workbench and next implementation slice | `docs/design/project-workbench-v4/README.md` | Added | Product Agent + Test Agent |
 | EV-JC-003 | JC-T001 | E3 | Documentation diff has no whitespace errors | `git diff --check` | PASS | Hermes |
+| EV-JC-004 | JC-T001 | E2 | Jingci now has annual/Q3/July objectives and Agent-owned OKRs | `docs/okrs/2026-jingci-agent-team-okr.md` | Added | Hermes |
+| EV-JC-005 | JC-T001 | E2 | Workbench shell should start with pure state derivation before UI rewrite | `docs/architecture/2026-06-29-project-workbench-shell.md` | Added | Code Review Agent |
 
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
 | --- | --- | --- | --- | --- | --- | --- |
 | RV-JC-001 | JC-T001 | UEAgent | Product Agent + Test Agent | PASS for planning | No blocker; implementation must not expose Team OS language in end-user UI | Architecture Agent maps implementation slice before coding |
+| RV-JC-002 | JC-T001 | Architecture Agent | Engineering Agent + Code Review Agent | PASS for implementation planning | No blocker; avoid full state manager and storage migration | Engineering Agent implements pure shell derivation first |
