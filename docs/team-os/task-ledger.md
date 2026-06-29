@@ -9,7 +9,7 @@ Last Updated: 2026-06-29
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_progress | Architecture Agent | Engineering Agent + Code Review Agent | Architecture | E2 architecture note with current file references and smallest implementation slice | Engineering Agent to implement `lib/workbench-shell.ts` and tests |
+| JC-T001 | Projectized creation workbench v4 | in_review | Engineering Agent | Code Review Agent + Test Agent | Engineering | E3 unit test, typecheck, full test suite, lint | Next slice may integrate `ProjectWorkbenchShell` into `ChatBox` with browser evidence |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -75,6 +75,19 @@ Decision: CONTINUE
 Next owner: Engineering Agent
 Close condition: Implement `lib/workbench-shell.ts` pure derivation functions and tests before touching broad UI layout.
 
+### 2026-06-29 11:30 T005
+
+Type: EVIDENCE_ADDED
+From: Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Engineering / Test
+Message: Added pure Workbench shell derivation functions and targeted tests without changing UI or persistence behavior.
+Evidence: E3 `lib/workbench-shell.ts`, E3 `__tests__/workbench-shell.test.ts`, E3 `npm test`, E3 `npm run lint`, E3 `npx tsc --noEmit`
+Decision: CONTINUE
+Next owner: Code Review Agent
+Close condition: Review confirms the pure boundary is scoped and the next UI integration slice is safe.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -84,6 +97,9 @@ Close condition: Implement `lib/workbench-shell.ts` pure derivation functions an
 | EV-JC-003 | JC-T001 | E3 | Documentation diff has no whitespace errors | `git diff --check` | PASS | Hermes |
 | EV-JC-004 | JC-T001 | E2 | Jingci now has annual/Q3/July objectives and Agent-owned OKRs | `docs/okrs/2026-jingci-agent-team-okr.md` | Added | Hermes |
 | EV-JC-005 | JC-T001 | E2 | Workbench shell should start with pure state derivation before UI rewrite | `docs/architecture/2026-06-29-project-workbench-shell.md` | Added | Code Review Agent |
+| EV-JC-006 | JC-T001 | E3 | Workbench shell state derivation is implemented and tested | `lib/workbench-shell.ts`, `__tests__/workbench-shell.test.ts` | Added, 5 targeted tests pass | Test Agent |
+| EV-JC-007 | JC-T001 | E3 | Full frontend unit suite still passes | `npm test` | PASS, 8 files / 56 tests | Test Agent |
+| EV-JC-008 | JC-T001 | E3 | TypeScript and lint pass for the implementation slice | `npx tsc --noEmit`, `npm run lint` | PASS, lint has existing baseline-browser-mapping warning | Code Review Agent |
 
 ## Review Index
 
@@ -91,3 +107,4 @@ Close condition: Implement `lib/workbench-shell.ts` pure derivation functions an
 | --- | --- | --- | --- | --- | --- | --- |
 | RV-JC-001 | JC-T001 | UEAgent | Product Agent + Test Agent | PASS for planning | No blocker; implementation must not expose Team OS language in end-user UI | Architecture Agent maps implementation slice before coding |
 | RV-JC-002 | JC-T001 | Architecture Agent | Engineering Agent + Code Review Agent | PASS for implementation planning | No blocker; avoid full state manager and storage migration | Engineering Agent implements pure shell derivation first |
+| RV-JC-003 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for pure state slice | No UI behavior changed; browser evidence deferred to UI integration | Next owner integrates shell component in a separate slice |
