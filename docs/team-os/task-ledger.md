@@ -9,7 +9,7 @@ Last Updated: 2026-06-29
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Engineering Agent | Code Review Agent + Test Agent | Engineering | E3 unit test, typecheck, full test suite, lint | Next slice may integrate `ProjectWorkbenchShell` into `ChatBox` with browser evidence |
+| JC-T001 | Projectized creation workbench v4 | in_review | Engineering Agent | Code Review Agent + Test Agent | Engineering / Test | E3 tests, E3 build, E3 browser screenshots | Next slice can refine mobile action sheet and feedback next-iteration action |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -88,6 +88,19 @@ Decision: CONTINUE
 Next owner: Code Review Agent
 Close condition: Review confirms the pure boundary is scoped and the next UI integration slice is safe.
 
+### 2026-06-29 12:10 T006
+
+Type: EVIDENCE_ADDED
+From: Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Engineering / Test
+Message: Added `ProjectWorkbenchShell`, integrated it into the top workbench summary, and captured desktop/mobile browser evidence.
+Evidence: E3 `app/components/ProjectWorkbenchShell.tsx`, E3 `app/components/ChatBox.tsx`, E3 `npm test`, E3 `npm run build`, E3 `output/playwright/workbench-shell-desktop.png`, E3 `output/playwright/workbench-shell-mobile.png`
+Decision: CONTINUE
+Next owner: Product Agent + UEAgent
+Close condition: Choose the next visible improvement: mobile action sheet refinement or feedback-informed next-iteration action.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -100,6 +113,8 @@ Close condition: Review confirms the pure boundary is scoped and the next UI int
 | EV-JC-006 | JC-T001 | E3 | Workbench shell state derivation is implemented and tested | `lib/workbench-shell.ts`, `__tests__/workbench-shell.test.ts` | Added, 5 targeted tests pass | Test Agent |
 | EV-JC-007 | JC-T001 | E3 | Full frontend unit suite still passes | `npm test` | PASS, 8 files / 56 tests | Test Agent |
 | EV-JC-008 | JC-T001 | E3 | TypeScript and lint pass for the implementation slice | `npx tsc --noEmit`, `npm run lint` | PASS, lint has existing baseline-browser-mapping warning | Code Review Agent |
+| EV-JC-009 | JC-T001 | E3 | Workbench shell UI is integrated and renders in desktop/mobile browser screenshots | `output/playwright/workbench-shell-desktop.png`, `output/playwright/workbench-shell-mobile.png` | PASS, headed Chromium screenshots captured | Test Agent |
+| EV-JC-010 | JC-T001 | E3 | Next.js build accepts the shell integration | `npm run build` | PASS | Test Agent |
 
 ## Review Index
 
@@ -108,3 +123,4 @@ Close condition: Review confirms the pure boundary is scoped and the next UI int
 | RV-JC-001 | JC-T001 | UEAgent | Product Agent + Test Agent | PASS for planning | No blocker; implementation must not expose Team OS language in end-user UI | Architecture Agent maps implementation slice before coding |
 | RV-JC-002 | JC-T001 | Architecture Agent | Engineering Agent + Code Review Agent | PASS for implementation planning | No blocker; avoid full state manager and storage migration | Engineering Agent implements pure shell derivation first |
 | RV-JC-003 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for pure state slice | No UI behavior changed; browser evidence deferred to UI integration | Next owner integrates shell component in a separate slice |
+| RV-JC-004 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for UI shell integration | No generation, persistence, or API behavior changed; visual evidence captured | Product/UE choose next visible slice |

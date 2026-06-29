@@ -46,6 +46,12 @@ import {
   type LocalProjectWorkspace,
   type LocalProjectWorkspaceSummary,
 } from '@/lib/project-workspace';
+import {
+  deriveProjectShellSummary,
+  deriveProjectSyncDisplay,
+  deriveWorkbenchStages,
+  type ProjectSyncState,
+} from '@/lib/workbench-shell';
 import { DirectorKitExecutionPanel } from './DirectorKitExecutionPanel';
 import { DirectorKitPlatformAdvicePanel } from './DirectorKitPlatformAdvicePanel';
 import { DirectorKitShotInspector } from './DirectorKitShotInspector';
@@ -53,6 +59,7 @@ import { DirectorKitShotList } from './DirectorKitShotList';
 import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
 import { ProjectDashboardPanel } from './ProjectDashboardPanel';
+import { ProjectWorkbenchShell } from './ProjectWorkbenchShell';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
 
@@ -72,7 +79,6 @@ type FeedbackStatus = 'idle' | 'sending' | 'liked' | 'disliked' | 'error';
 type FeedbackRating = 'like' | 'dislike';
 type MobileWorkbenchTab = 'work' | 'execute' | 'feedback';
 type WorkspaceStatus = 'idle' | 'saved' | 'restored' | 'cleared' | 'missing' | 'error';
-type ProjectSyncState = 'idle' | 'syncing' | 'synced' | 'error';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
 
@@ -702,7 +708,6 @@ export function ChatBox() {
   };
 
   const targetTypeLabel = DIRECTOR_KIT_TARGET_TYPES.find((type) => type.id === targetType)?.label ?? targetType;
-  const projectTitle = input.trim() ? input.trim().slice(0, 18) : '未命名短片';
   const workspaceUpdatedAt = workspace?.updatedAt
     ? new Intl.DateTimeFormat('zh-CN', {
         month: '2-digit',
@@ -725,14 +730,6 @@ export function ChatBox() {
               : workspaceUpdatedAt
                 ? `最近保存 ${workspaceUpdatedAt}`
                 : '本地项目尚未保存';
-  const projectSyncLabel =
-    projectSyncState === 'syncing'
-      ? '云端同步中'
-      : projectSyncState === 'synced'
-        ? '云端已同步'
-        : projectSyncState === 'error'
-          ? '云端未同步'
-          : '本地优先';
   const formatWorkspaceTime = (updatedAt: string) =>
     new Intl.DateTimeFormat('zh-CN', {
       month: '2-digit',
@@ -740,21 +737,30 @@ export function ChatBox() {
       hour: '2-digit',
       minute: '2-digit',
     }).format(new Date(updatedAt));
-  const stageItems = [
-    { id: 'idea', label: 'Idea', done: !!input.trim(), active: v2State === 'input' },
-    { id: 'diagnosis', label: 'Diagnosis', done: !!directorKit, active: v2State === 'diagnosis' },
-    { id: 'versions', label: 'Versions', done: !!directorKit?.selectedVersion, active: v2State === 'reconstruct' },
-    { id: 'director', label: 'DirectorKit', done: v2State === 'result', active: v2State === 'result' },
-    { id: 'execution', label: 'Execution', done: completedShotCount > 0, active: v2State === 'result' && completedShotCount < trackedShotCount },
-    { id: 'feedback', label: 'Feedback', done: !!feedbackAnalytics?.total, active: analyticsOpen },
-  ];
-  const currentStageLabel = stageItems.find((stage) => stage.active)?.label ?? 'Idea';
+  const diagnosisScore = directorKit?.diagnosis.feasibilityScore;
+  const shellInput = {
+    creativeInput: input,
+    persistedStage: v2State,
+    targetDuration,
+    targetTypeLabel,
+    hasDirectorKit: !!directorKit,
+    hasSelectedVersion: !!directorKit?.selectedVersion,
+    trackedShotCount,
+    completedShotCount,
+    feedbackTotal: feedbackAnalytics?.total ?? 0,
+    analyticsOpen,
+    feasibilityScore: diagnosisScore,
+    isGenerating: v2Loading,
+    inputError: validateInput(input) ?? '',
+  };
+  const shellStages = deriveWorkbenchStages(shellInput);
+  const shellSummary = deriveProjectShellSummary(shellInput);
+  const projectSyncDisplay = deriveProjectSyncDisplay(projectSyncState);
   const mobileTabs: Array<{ id: MobileWorkbenchTab; label: string; value: string }> = [
-    { id: 'work', label: 'Work', value: currentStageLabel },
-    { id: 'execute', label: 'Execute', value: trackedShotCount ? `${completedShotCount}/${trackedShotCount}` : '0/0' },
+    { id: 'work', label: 'Work', value: shellSummary.stageLabel },
+    { id: 'execute', label: 'Execute', value: shellSummary.shotProgressLabel },
     { id: 'feedback', label: 'Feedback', value: feedbackAnalytics?.total ? `${feedbackAnalytics.total}` : '--' },
   ];
-  const diagnosisScore = directorKit?.diagnosis.feasibilityScore;
   const diagnosisRiskLabel =
     directorKit?.diagnosis.riskLevel === 'low'
       ? '低风险'
@@ -766,42 +772,13 @@ export function ChatBox() {
 
   return (
     <div className="w-full max-w-[1680px] mx-auto pb-20 animate-in fade-in duration-300 lg:pb-0">
-      <div className="mb-4 rounded-lg border border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-gray-400">Jingci Workbench</p>
-            <h1 className="mt-1 truncate text-base font-semibold text-gray-950 dark:text-gray-50">{projectTitle}</h1>
-          </div>
-          <div className="grid grid-cols-4 gap-2 text-xs sm:flex sm:items-center">
-            <button
-              type="button"
-              onClick={() => setProjectDashboardOpen((open) => !open)}
-              className="rounded-md border border-gray-200 bg-white px-3 py-2 text-left transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800"
-            >
-              <p className="text-[10px] text-gray-400">Projects</p>
-              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
-                {workspaceSummaries.length}
-              </p>
-            </button>
-            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
-              <p className="text-[10px] text-gray-400">Stage</p>
-              <p className="mt-0.5 font-semibold text-gray-800 dark:text-gray-100">{currentStageLabel}</p>
-            </div>
-            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
-              <p className="text-[10px] text-gray-400">Health</p>
-              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
-                {diagnosisScore ?? '--'}
-              </p>
-            </div>
-            <div className="rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-800">
-              <p className="text-[10px] text-gray-400">Progress</p>
-              <p className="mt-0.5 font-semibold tabular-nums text-gray-800 dark:text-gray-100">
-                {trackedShotCount ? `${completedShotCount}/${trackedShotCount}` : '0/0'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ProjectWorkbenchShell
+        summary={shellSummary}
+        syncDisplay={projectSyncDisplay}
+        projectCount={workspaceSummaries.length}
+        stages={shellStages}
+        onOpenProjects={() => setProjectDashboardOpen((open) => !open)}
+      />
 
       <div className="mb-4 grid grid-cols-3 gap-1 rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
         {mobileTabs.map((tab) => (
@@ -853,7 +830,7 @@ export function ChatBox() {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Stages</p>
             <div className="mt-3 grid gap-2">
-              {stageItems.map((stage) => (
+              {shellStages.map((stage) => (
                 <div key={stage.id} className="flex items-center gap-2 text-xs">
                   <span
                     className={`h-2.5 w-2.5 rounded-full ${
@@ -905,7 +882,7 @@ export function ChatBox() {
                     : 'text-gray-400'
               }`}
             >
-              {projectSyncLabel}
+              {projectSyncDisplay.label}
             </p>
             <div className="mt-3 grid grid-cols-3 gap-1.5">
               <button
@@ -1722,7 +1699,7 @@ export function ChatBox() {
             disabled={v2Loading || (v2State !== 'result' && !!validateInput(input))}
             className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
           >
-            {v2State === 'result' ? '进入执行视图' : v2Loading ? '生成中...' : '提交创意'}
+              {shellSummary.primaryActionLabel}
           </button>
         )}
         {mobileTab === 'execute' && (
