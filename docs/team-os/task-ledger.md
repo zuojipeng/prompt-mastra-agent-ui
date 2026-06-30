@@ -9,7 +9,7 @@ Last Updated: 2026-06-29
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Engineering Agent | Code Review Agent + Test Agent | Engineering / Test | E3 tests, E3 build, E3 browser screenshots | Next slice can refine mobile action sheet and feedback next-iteration action |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + UEAgent | Test Agent + Hermes | Product / UE / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should decide whether to implement feedback-to-prompt rewrite action or production Projects API release verification |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -101,6 +101,19 @@ Decision: CONTINUE
 Next owner: Product Agent + UEAgent
 Close condition: Choose the next visible improvement: mobile action sheet refinement or feedback-informed next-iteration action.
 
+### 2026-06-30 08:10 T007
+
+Type: EVIDENCE_ADDED
+From: Product Agent + UEAgent
+To: Engineering Agent + Test Agent
+Task: JC-T001
+Gate: Product / UE / Test
+Message: Added feedback-informed next-iteration recommendation to the feedback insight panel and removed the feedback mobile fixed action overlap.
+Evidence: E3 `lib/feedback-next-action.ts`, E3 `app/components/FeedbackInsightPanel.tsx`, E3 `app/components/ChatBox.tsx`, E3 `npm test`, E3 `npm run build`, E3 `output/playwright/feedback-next-action-desktop.png`, E3 `output/playwright/feedback-next-action-mobile.png`
+Decision: CONTINUE
+Next owner: Hermes Orchestrator
+Close condition: Choose the next highest-value slice: feedback-to-prompt rewrite action or production Projects API release verification.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -115,6 +128,8 @@ Close condition: Choose the next visible improvement: mobile action sheet refine
 | EV-JC-008 | JC-T001 | E3 | TypeScript and lint pass for the implementation slice | `npx tsc --noEmit`, `npm run lint` | PASS, lint has existing baseline-browser-mapping warning | Code Review Agent |
 | EV-JC-009 | JC-T001 | E3 | Workbench shell UI is integrated and renders in desktop/mobile browser screenshots | `output/playwright/workbench-shell-desktop.png`, `output/playwright/workbench-shell-mobile.png` | PASS, headed Chromium screenshots captured | Test Agent |
 | EV-JC-010 | JC-T001 | E3 | Next.js build accepts the shell integration | `npm run build` | PASS | Test Agent |
+| EV-JC-011 | JC-T001 | E3 | Feedback insight now produces a next-iteration recommendation from analytics dimensions | `lib/feedback-next-action.ts`, `__tests__/feedback-next-action.test.ts` | Added, targeted tests pass | Product Agent + Test Agent |
+| EV-JC-012 | JC-T001 | E3 | Feedback next-action UI renders without mobile fixed-action overlap | `output/playwright/feedback-next-action-desktop.png`, `output/playwright/feedback-next-action-mobile.png` | PASS, headed Chromium screenshots captured | UEAgent + Test Agent |
 
 ## Review Index
 
@@ -124,3 +139,4 @@ Close condition: Choose the next visible improvement: mobile action sheet refine
 | RV-JC-002 | JC-T001 | Architecture Agent | Engineering Agent + Code Review Agent | PASS for implementation planning | No blocker; avoid full state manager and storage migration | Engineering Agent implements pure shell derivation first |
 | RV-JC-003 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for pure state slice | No UI behavior changed; browser evidence deferred to UI integration | Next owner integrates shell component in a separate slice |
 | RV-JC-004 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for UI shell integration | No generation, persistence, or API behavior changed; visual evidence captured | Product/UE choose next visible slice |
+| RV-JC-005 | JC-T001 | Product Agent + UEAgent | Test Agent + Hermes | PASS for feedback next-action slice | No backend or generation behavior changed; recommendation is derived from analytics data | Hermes chooses next slice |

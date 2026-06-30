@@ -1,6 +1,7 @@
 'use client';
 
 import type { FeedbackAnalytics } from '@/lib/api-client';
+import { deriveFeedbackNextAction } from '@/lib/feedback-next-action';
 
 const FEEDBACK_LABELS: Record<string, string> = {
   director_kit: '执行包整体',
@@ -76,6 +77,7 @@ export function FeedbackInsightPanel({
   analytics: FeedbackAnalytics | null;
 }) {
   if (!open) return null;
+  const nextAction = deriveFeedbackNextAction(analytics);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
@@ -85,6 +87,27 @@ export function FeedbackInsightPanel({
         <p className="text-xs text-red-500">反馈洞察暂时不可用，主创作流程不受影响。</p>
       ) : analytics ? (
         <div className="space-y-4">
+          {nextAction && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900/60 dark:bg-emerald-950/20">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                    下一轮建议
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{nextAction.title}</p>
+                </div>
+                <span className="self-start rounded-md bg-white px-2 py-1 text-[11px] font-medium text-emerald-700 dark:bg-gray-900 dark:text-emerald-300">
+                  {nextAction.focus}
+                </span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-gray-700 dark:text-gray-300">{nextAction.recommendation}</p>
+              <p className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300">{nextAction.evidence}</p>
+              <p className="mt-2 rounded-md bg-white p-2 text-[11px] leading-5 text-gray-600 dark:bg-gray-900 dark:text-gray-300">
+                {nextAction.promptHint}
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               ['样本', analytics.total],
