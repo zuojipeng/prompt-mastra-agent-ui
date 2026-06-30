@@ -6,6 +6,7 @@ import {
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectTitle,
+  deriveProjectWorkspaceIterationDigest,
   loadLocalProjectWorkspaceById,
   loadLocalProjectWorkspaceLibrary,
   loadLocalProjectWorkspaceSummaries,
@@ -176,6 +177,26 @@ describe('project workspace persistence', () => {
       title: '主体一致性 改写',
       focus: '主体一致性',
       source: 'feedback_next_action',
+    });
+  });
+
+  it('derives an iteration digest for comparison display', () => {
+    const iteration = createProjectWorkspaceIteration(
+      {
+        source: 'feedback_next_action',
+        focus: '主体一致性',
+        sourcePrompt: '旧创意',
+        promptDraft: '旧创意\n\n下一轮改写要求：固定主体轮廓。',
+        evidence: '4/5 条反馈提到该问题',
+      },
+      '2026-06-16T01:00:00.000Z',
+    );
+
+    expect(deriveProjectWorkspaceIterationDigest(iteration)).toEqual({
+      sourceLabel: '反馈改写',
+      sourceLength: 3,
+      draftLength: 20,
+      deltaLength: 17,
     });
   });
 

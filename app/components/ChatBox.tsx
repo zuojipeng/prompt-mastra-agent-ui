@@ -40,6 +40,7 @@ import {
   createLocalProjectWorkspace,
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
+  deriveProjectWorkspaceIterationDigest,
   isLocalProjectWorkspace,
   loadLocalProjectWorkspaceById,
   loadLocalProjectWorkspace,
@@ -212,6 +213,7 @@ export function ChatBox() {
   const [workspaceStatus, setWorkspaceStatus] = useState<WorkspaceStatus>('idle');
   const [projectSyncState, setProjectSyncState] = useState<ProjectSyncState>('idle');
   const [projectDashboardOpen, setProjectDashboardOpen] = useState(false);
+  const [selectedIterationId, setSelectedIterationId] = useState<string | null>(null);
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
@@ -268,6 +270,7 @@ export function ChatBox() {
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
     setCopiedPlatform(null);
+    setSelectedIterationId(nextWorkspace.iterations?.[0]?.id ?? null);
     setV2Error('');
     setMobileTab('work');
   }, []);
@@ -394,6 +397,7 @@ export function ChatBox() {
     setV2Error('');
     saveLocalProjectWorkspace(nextWorkspace);
     setWorkspace(nextWorkspace);
+    setSelectedIterationId(iteration.id);
     setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
     setWorkspaceStatus('saved');
     setProjectSyncState('syncing');
@@ -403,6 +407,18 @@ export function ChatBox() {
         if (ok) refreshProjectSummaries().catch(() => {});
       })
       .catch(() => setProjectSyncState('error'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.setTimeout(() => document.getElementById('prompt')?.focus(), 250);
+  };
+
+  const handleRestoreIteration = (iterationId: string) => {
+    const iteration = workspace?.iterations?.find((item) => item.id === iterationId);
+    if (!iteration) return;
+    setInput(iteration.promptDraft);
+    setV2State('input');
+    setMobileTab('work');
+    setSelectedIterationId(iteration.id);
+    setV2Error('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.setTimeout(() => document.getElementById('prompt')?.focus(), 250);
   };
@@ -803,6 +819,13 @@ export function ChatBox() {
   const shellStages = deriveWorkbenchStages(shellInput);
   const shellSummary = deriveProjectShellSummary(shellInput);
   const projectSyncDisplay = deriveProjectSyncDisplay(projectSyncState);
+  const selectedIteration =
+    workspace?.iterations?.find((iteration) => iteration.id === selectedIterationId) ??
+    workspace?.iterations?.[0] ??
+    null;
+  const selectedIterationDigest = selectedIteration
+    ? deriveProjectWorkspaceIterationDigest(selectedIteration)
+    : null;
   const mobileTabs: Array<{ id: MobileWorkbenchTab; label: string; value: string }> = [
     { id: 'work', label: 'Work', value: shellSummary.stageLabel },
     { id: 'execute', label: 'Execute', value: shellSummary.shotProgressLabel },
@@ -941,16 +964,46 @@ export function ChatBox() {
                 </div>
                 <div className="mt-2 grid gap-1">
                   {workspace.iterations.slice(0, 2).map((iteration) => (
-                    <div key={iteration.id} className="min-w-0">
-                      <p className="truncate text-[11px] font-medium text-gray-800 dark:text-gray-100">
+                    <button
+                      key={iteration.id}
+                      type="button"
+                      onClick={() => setSelectedIterationId(iteration.id)}
+                      className={`min-w-0 rounded p-1 text-left transition-colors ${
+                        selectedIteration?.id === iteration.id
+                          ? 'bg-white dark:bg-gray-900'
+                          : 'hover:bg-white/70 dark:hover:bg-gray-900/70'
+                      }`}
+                    >
+                      <span className="block truncate text-[11px] font-medium text-gray-800 dark:text-gray-100">
                         {iteration.title}
-                      </p>
-                      <p className="truncate text-[10px] text-gray-500 dark:text-gray-400">
+                      </span>
+                      <span className="block truncate text-[10px] text-gray-500 dark:text-gray-400">
                         {iteration.evidence}
-                      </p>
-                    </div>
+                      </span>
+                    </button>
                   ))}
                 </div>
+                {selectedIteration && selectedIterationDigest && (
+                  <div className="mt-2 rounded bg-white p-2 dark:bg-gray-900">
+                    <div className="flex items-center justify-between gap-2 text-[10px] text-gray-500 dark:text-gray-400">
+                      <span>{selectedIterationDigest.sourceLabel}</span>
+                      <span className="tabular-nums">
+                        {selectedIterationDigest.deltaLength >= 0 ? '+' : ''}
+                        {selectedIterationDigest.deltaLength} 字
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-gray-600 dark:text-gray-300">
+                      {selectedIteration.promptDraft}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleRestoreIteration(selectedIteration.id)}
+                      className="mt-2 w-full rounded border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[11px] font-medium text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
+                    >
+                      恢复到输入区
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             <div className="mt-3 grid grid-cols-3 gap-1.5">

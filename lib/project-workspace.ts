@@ -29,6 +29,13 @@ export type ProjectWorkspaceIteration = {
   evidence: string;
 };
 
+export type ProjectWorkspaceIterationDigest = {
+  sourceLabel: string;
+  sourceLength: number;
+  draftLength: number;
+  deltaLength: number;
+};
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -212,6 +219,24 @@ export function createProjectWorkspaceIteration(
     sourcePrompt: input.sourcePrompt,
     promptDraft: input.promptDraft,
     evidence: input.evidence,
+  };
+}
+
+export function deriveProjectWorkspaceIterationDigest(
+  iteration: ProjectWorkspaceIteration,
+): ProjectWorkspaceIterationDigest {
+  const sourceLabels: Record<ProjectWorkspaceIterationSource, string> = {
+    feedback_next_action: '反馈改写',
+    manual: '手动迭代',
+  };
+  const sourceLength = iteration.sourcePrompt.trim().length;
+  const draftLength = iteration.promptDraft.trim().length;
+
+  return {
+    sourceLabel: sourceLabels[iteration.source],
+    sourceLength,
+    draftLength,
+    deltaLength: draftLength - sourceLength,
   };
 }
 

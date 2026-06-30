@@ -30,4 +30,11 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('directorKit.shotCards ?? []');
     expect(source).toContain('directorKit.platformAdvice ?? []');
   });
+
+  it('keeps project iteration detail recoverable from Snapshot', () => {
+    expect(source).toContain('selectedIterationId');
+    expect(source).toContain('deriveProjectWorkspaceIterationDigest');
+    expect(source).toContain('恢复到输入区');
+    expect(source).toContain('handleRestoreIteration');
+  });
 });
