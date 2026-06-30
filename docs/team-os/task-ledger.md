@@ -10,7 +10,7 @@ Last Updated: 2026-06-30
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + UEAgent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should decide whether to resume production Projects API release verification or add browser evidence for iteration detail |
-| JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
+| JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
 ## Backlog
@@ -139,6 +139,19 @@ Evidence: E3 `lib/project-workspace.ts`, E3 `app/components/ChatBox.tsx`, E3 `__
 Decision: SHIP
 Next owner: Hermes Orchestrator
 Close condition: Commit and push after validation.
+
+### 2026-06-30 08:55 T011
+
+Type: BLOCKED
+From: DevOps Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T002
+Gate: Release
+Message: Rechecked production Projects API release. `/api/health` passes but `/api/projects` still returns 404. Current environment cannot deploy because Wrangler is not logged in, `CLOUDFLARE_API_TOKEN` is missing, and GitHub CLI auth is invalid.
+Evidence: E4 `docs/agent-runs/2026-06-30-projects-api-production-verification.md` in backend repo, E4 `docs/test-reports/2026-06-30-projects-api-production-verification.md` in backend repo
+Decision: BLOCKED
+Next owner: Human Owner or authenticated deploy environment
+Close condition: A deploy-capable Cloudflare token/session or GitHub Actions dispatch path is available and `npm run release:worker -- --smoke-only` passes.
 
 ### 2026-06-30 08:30 T009
 
