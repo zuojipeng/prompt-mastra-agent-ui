@@ -121,6 +121,18 @@ const context: DirectorKitExportContext = {
   shotExecutionStatus: { 1: 'generated', 2: 'failed' },
   shotResultNotes: { 1: 'Seedance 链接：shot-1', 2: '动作抖动，需改静态特写' },
   generatedAt: '2026-06-06T00:00:00.000Z',
+  projectIterations: [
+    {
+      id: 'iteration-1',
+      title: '主体一致性 改写',
+      createdAt: '2026-06-06T00:30:00.000Z',
+      source: 'feedback_next_action',
+      focus: '主体一致性',
+      sourcePrompt: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+      promptDraft: '固定旧清洁机器人的外形轮廓，减少复杂动作。',
+      evidence: '4/5 条反馈提到该问题，差评率 80%',
+    },
+  ],
 };
 
 describe('director kit export builders', () => {
@@ -164,6 +176,9 @@ describe('director kit export builders', () => {
     expect(snapshot).toContain('生成时间：2026-06-06T00:00:00.000Z');
     expect(snapshot).toContain('状态分布：未生成 0｜已生成 1｜翻车 1｜可用 0');
     expect(snapshot).toContain('- 素材/备注：动作抖动，需改静态特写');
+    expect(snapshot).toContain('## 迭代记录');
+    expect(snapshot).toContain('### 迭代 1｜主体一致性 改写');
+    expect(snapshot).toContain('- 证据：4/5 条反馈提到该问题，差评率 80%');
     expect(snapshot).toContain('## 下一步');
   });
 

@@ -4,6 +4,7 @@ import type {
   DirectorKitTargetType,
   ShotCard,
 } from './director-kit-contract';
+import type { ProjectWorkspaceIteration } from './project-workspace';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 
@@ -14,6 +15,7 @@ export type DirectorKitExportContext = {
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotResultNotes: Record<number, string>;
   generatedAt?: string;
+  projectIterations?: ProjectWorkspaceIteration[];
 };
 
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
@@ -185,6 +187,15 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
       advice.avoid?.length ? `- 避免：${advice.avoid.join('；')}` : '',
     ].filter(Boolean).join('\n'),
   );
+  const iterationLines = (context.projectIterations ?? []).slice(0, 5).map((iteration, index) =>
+    [
+      `### 迭代 ${index + 1}｜${iteration.title}`,
+      `- 来源：${iteration.source === 'feedback_next_action' ? '反馈改写' : '手动迭代'}`,
+      `- 重点：${iteration.focus}`,
+      `- 证据：${iteration.evidence}`,
+      `- 草稿：${iteration.promptDraft}`,
+    ].join('\n'),
+  );
 
   return [
     '# 镜词项目快照',
@@ -212,6 +223,9 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
     '## 平台投喂策略',
     platformLines.join('\n\n'),
     '',
+    iterationLines.length > 0 ? '## 迭代记录' : '',
+    iterationLines.join('\n\n'),
+    iterationLines.length > 0 ? '' : '',
     '## 主 Prompt',
     kit.masterPrompt,
     kit.negativePrompt ? `\nNegative Prompt：${kit.negativePrompt}` : '',
