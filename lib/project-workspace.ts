@@ -16,6 +16,19 @@ export const LOCAL_PROJECT_WORKSPACE_LIBRARY_LIMIT = 12;
 
 export type ProjectWorkspaceStage = 'input' | 'diagnosis' | 'reconstruct' | 'result';
 
+export type ProjectWorkspaceIterationSource = 'feedback_next_action' | 'manual';
+
+export type ProjectWorkspaceIteration = {
+  id: string;
+  title: string;
+  createdAt: string;
+  source: ProjectWorkspaceIterationSource;
+  focus: string;
+  sourcePrompt: string;
+  promptDraft: string;
+  evidence: string;
+};
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -31,6 +44,7 @@ export type LocalProjectWorkspace = {
   selectedShotId: number | null;
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotResultNotes: Record<number, string>;
+  iterations?: ProjectWorkspaceIteration[];
 };
 
 export type LocalProjectWorkspaceSummary = {
@@ -61,6 +75,8 @@ type WorkspaceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 const WORKSPACE_STAGES: ProjectWorkspaceStage[] = ['input', 'diagnosis', 'reconstruct', 'result'];
 const SHOT_STATUS_VALUES: ShotExecutionStatus[] = ['pending', 'generated', 'failed', 'usable'];
+const ITERATION_SOURCE_VALUES: ProjectWorkspaceIterationSource[] = ['feedback_next_action', 'manual'];
+const PROJECT_ITERATION_LIMIT = 8;
 
 function getBrowserStorage() {
   if (typeof window === 'undefined') return null;
@@ -102,6 +118,25 @@ function isShotExecutionStatusRecord(value: unknown): value is Record<number, Sh
 function isShotResultNotesRecord(value: unknown): value is Record<number, string> {
   if (!isRecord(value)) return false;
   return Object.values(value).every((note) => typeof note === 'string');
+}
+
+function isProjectWorkspaceIteration(value: unknown): value is ProjectWorkspaceIteration {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.title === 'string' &&
+    typeof value.createdAt === 'string' &&
+    ITERATION_SOURCE_VALUES.includes(value.source as ProjectWorkspaceIterationSource) &&
+    typeof value.focus === 'string' &&
+    typeof value.sourcePrompt === 'string' &&
+    typeof value.promptDraft === 'string' &&
+    typeof value.evidence === 'string'
+  );
+}
+
+function normalizeIterations(value: unknown): ProjectWorkspaceIteration[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isProjectWorkspaceIteration).slice(0, PROJECT_ITERATION_LIMIT);
 }
 
 function isDirectorKit(value: unknown): value is DirectorKit {
@@ -164,6 +199,36 @@ export function deriveProjectTitle(input: string) {
   return compact ? compact.slice(0, 28) : '未命名项目';
 }
 
+export function createProjectWorkspaceIteration(
+  input: Omit<ProjectWorkspaceIteration, 'id' | 'createdAt' | 'title'> & { title?: string },
+  now = new Date().toISOString(),
+): ProjectWorkspaceIteration {
+  return {
+    id: createWorkspaceId(),
+    title: input.title?.trim() || `${input.focus} 改写`,
+    createdAt: now,
+    source: input.source,
+    focus: input.focus,
+    sourcePrompt: input.sourcePrompt,
+    promptDraft: input.promptDraft,
+    evidence: input.evidence,
+  };
+}
+
+export function appendProjectWorkspaceIteration(
+  workspace: LocalProjectWorkspace,
+  iteration: ProjectWorkspaceIteration,
+): LocalProjectWorkspace {
+  return {
+    ...workspace,
+    creativeInput: iteration.promptDraft,
+    title: deriveProjectTitle(iteration.promptDraft),
+    updatedAt: iteration.createdAt,
+    v2State: 'input',
+    iterations: [iteration, ...(workspace.iterations ?? [])].slice(0, PROJECT_ITERATION_LIMIT),
+  };
+}
+
 export function createLocalProjectWorkspace(
   input: LocalProjectWorkspaceInput,
   existing?: LocalProjectWorkspace | null,
@@ -174,6 +239,7 @@ export function createLocalProjectWorkspace(
     id: existing?.id ?? createWorkspaceId(),
     title: deriveProjectTitle(input.creativeInput),
     ...input,
+    iterations: normalizeIterations(existing?.iterations),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
@@ -195,7 +261,9 @@ export function isLocalProjectWorkspace(value: unknown): value is LocalProjectWo
     isNullableNumber(value.selectedVersionIndex) &&
     isNullableNumber(value.selectedShotId) &&
     isShotExecutionStatusRecord(value.shotExecutionStatus) &&
-    isShotResultNotesRecord(value.shotResultNotes)
+    isShotResultNotesRecord(value.shotResultNotes) &&
+    (value.iterations === undefined ||
+      (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration)))
   );
 }
 

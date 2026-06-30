@@ -9,7 +9,7 @@ Last Updated: 2026-06-30
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should decide whether to persist applied feedback revisions as named project iterations |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should decide whether to add iteration compare/detail or resume production Projects API release verification |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Human/Codex env must provide non-interactive Cloudflare deploy capability or user runs release command |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -127,6 +127,19 @@ Decision: SHIP
 Next owner: Hermes Orchestrator
 Close condition: Commit and push after validation.
 
+### 2026-06-30 08:30 T009
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Engineering Agent
+To: Architecture Agent + Test Agent
+Task: JC-T001
+Gate: Product / Architecture / Engineering / Test
+Message: Persisted feedback-applied prompt revisions as named project iterations and surfaced recent iterations in the Snapshot panel.
+Evidence: E3 `lib/project-workspace.ts`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/project-workspace.test.ts`, E3 `npx tsc --noEmit`
+Decision: SHIP
+Next owner: Hermes Orchestrator
+Close condition: Commit and push after validation.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -144,6 +157,7 @@ Close condition: Commit and push after validation.
 | EV-JC-011 | JC-T001 | E3 | Feedback insight now produces a next-iteration recommendation from analytics dimensions | `lib/feedback-next-action.ts`, `__tests__/feedback-next-action.test.ts` | Added, targeted tests pass | Product Agent + Test Agent |
 | EV-JC-012 | JC-T001 | E3 | Feedback next-action UI renders without mobile fixed-action overlap | `output/playwright/feedback-next-action-desktop.png`, `output/playwright/feedback-next-action-mobile.png` | PASS, headed Chromium screenshots captured | UEAgent + Test Agent |
 | EV-JC-013 | JC-T001 | E3 | Feedback recommendation can be applied into a next-round prompt draft | `lib/feedback-next-action.ts`, `app/components/FeedbackInsightPanel.tsx`, `app/components/ChatBox.tsx`, `npm test`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
+| EV-JC-014 | JC-T001 | E3 | Applied feedback revisions are persisted as project iterations | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Architecture Agent + Test Agent |
 
 ## Review Index
 
@@ -155,3 +169,4 @@ Close condition: Commit and push after validation.
 | RV-JC-004 | JC-T001 | Engineering Agent | Code Review Agent + Test Agent | PASS for UI shell integration | No generation, persistence, or API behavior changed; visual evidence captured | Product/UE choose next visible slice |
 | RV-JC-005 | JC-T001 | Product Agent + UEAgent | Test Agent + Hermes | PASS for feedback next-action slice | No backend or generation behavior changed; recommendation is derived from analytics data | Hermes chooses next slice |
 | RV-JC-006 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for feedback prompt revision | No backend, feedback upload, history, or project sync contract changed | Broader validation before release |
+| RV-JC-007 | JC-T001 | Product Agent + Engineering Agent | Architecture Agent + Test Agent | PASS for project iterations | Optional workspace field preserves old local payload compatibility | Broader validation before release |

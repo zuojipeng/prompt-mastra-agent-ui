@@ -1,7 +1,11 @@
 'use client';
 
 import type { FeedbackAnalytics } from '@/lib/api-client';
-import { buildFeedbackPromptRevision, deriveFeedbackNextAction } from '@/lib/feedback-next-action';
+import {
+  buildFeedbackPromptRevision,
+  deriveFeedbackNextAction,
+  type FeedbackNextAction,
+} from '@/lib/feedback-next-action';
 
 const FEEDBACK_LABELS: Record<string, string> = {
   director_kit: '执行包整体',
@@ -78,7 +82,7 @@ export function FeedbackInsightPanel({
   state: 'idle' | 'loading' | 'error';
   analytics: FeedbackAnalytics | null;
   currentPrompt?: string;
-  onApplyPromptRevision?: (draft: string) => void;
+  onApplyPromptRevision?: (draft: string, action: FeedbackNextAction) => void;
 }) {
   if (!open) return null;
   const nextAction = deriveFeedbackNextAction(analytics);
@@ -112,7 +116,7 @@ export function FeedbackInsightPanel({
               {onApplyPromptRevision && (
                 <button
                   type="button"
-                  onClick={() => onApplyPromptRevision(buildFeedbackPromptRevision(currentPrompt, nextAction))}
+                  onClick={() => onApplyPromptRevision(buildFeedbackPromptRevision(currentPrompt, nextAction), nextAction)}
                   className="mt-3 w-full rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-950"
                 >
                   应用到下一轮创意

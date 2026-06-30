@@ -35,8 +35,10 @@ import {
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
 import {
+  appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   isLocalProjectWorkspace,
   loadLocalProjectWorkspaceById,
@@ -46,6 +48,7 @@ import {
   type LocalProjectWorkspace,
   type LocalProjectWorkspaceSummary,
 } from '@/lib/project-workspace';
+import type { FeedbackNextAction } from '@/lib/feedback-next-action';
 import {
   deriveProjectShellSummary,
   deriveProjectSyncDisplay,
@@ -360,11 +363,46 @@ export function ChatBox() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleApplyFeedbackPromptRevision = (draft: string) => {
+  const handleApplyFeedbackPromptRevision = (draft: string, action: FeedbackNextAction) => {
+    const sourcePrompt = input;
+    const baseWorkspace = createLocalProjectWorkspace(
+      {
+        creativeInput: sourcePrompt,
+        targetDuration,
+        targetType,
+        v2State,
+        directorKit,
+        selectedVersionIndex,
+        selectedShotId,
+        shotExecutionStatus,
+        shotResultNotes,
+      },
+      workspace,
+    );
+    const iteration = createProjectWorkspaceIteration({
+      source: 'feedback_next_action',
+      focus: action.focus,
+      sourcePrompt,
+      promptDraft: draft,
+      evidence: action.evidence,
+    });
+    const nextWorkspace = appendProjectWorkspaceIteration(baseWorkspace, iteration);
+
     setInput(draft);
     setV2State('input');
     setMobileTab('work');
     setV2Error('');
+    saveLocalProjectWorkspace(nextWorkspace);
+    setWorkspace(nextWorkspace);
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    setWorkspaceStatus('saved');
+    setProjectSyncState('syncing');
+    syncProjectWorkspace(nextWorkspace)
+      .then((ok) => {
+        setProjectSyncState(ok ? 'synced' : 'error');
+        if (ok) refreshProjectSummaries().catch(() => {});
+      })
+      .catch(() => setProjectSyncState('error'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.setTimeout(() => document.getElementById('prompt')?.focus(), 250);
   };
@@ -893,6 +931,28 @@ export function ChatBox() {
             >
               {projectSyncDisplay.label}
             </p>
+            {workspace?.iterations && workspace.iterations.length > 0 && (
+              <div className="mt-3 rounded-md border border-emerald-100 bg-emerald-50/60 p-2 dark:border-emerald-900/60 dark:bg-emerald-950/20">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">最近迭代</p>
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-300">
+                    {workspace.iterations.length}/8
+                  </span>
+                </div>
+                <div className="mt-2 grid gap-1">
+                  {workspace.iterations.slice(0, 2).map((iteration) => (
+                    <div key={iteration.id} className="min-w-0">
+                      <p className="truncate text-[11px] font-medium text-gray-800 dark:text-gray-100">
+                        {iteration.title}
+                      </p>
+                      <p className="truncate text-[10px] text-gray-500 dark:text-gray-400">
+                        {iteration.evidence}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="mt-3 grid grid-cols-3 gap-1.5">
               <button
                 type="button"

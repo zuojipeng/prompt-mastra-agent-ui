@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectTitle,
   loadLocalProjectWorkspaceById,
@@ -138,6 +140,45 @@ describe('project workspace persistence', () => {
     expect(second.shotExecutionStatus[1]).toBe('usable');
   });
 
+  it('appends named project iterations without changing the workspace identity', () => {
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 2,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'usable' },
+        shotResultNotes: { 1: 'Seedance 链接：shot-1' },
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const iteration = createProjectWorkspaceIteration(
+      {
+        source: 'feedback_next_action',
+        focus: '主体一致性',
+        sourcePrompt: workspace.creativeInput,
+        promptDraft: `${workspace.creativeInput}\n\n下一轮改写要求：固定机器人轮廓。`,
+        evidence: '4/5 条反馈提到该问题',
+      },
+      '2026-06-16T01:00:00.000Z',
+    );
+    const updated = appendProjectWorkspaceIteration(workspace, iteration);
+
+    expect(updated.id).toBe(workspace.id);
+    expect(updated.v2State).toBe('input');
+    expect(updated.updatedAt).toBe('2026-06-16T01:00:00.000Z');
+    expect(updated.creativeInput).toContain('下一轮改写要求');
+    expect(updated.iterations?.[0]).toMatchObject({
+      title: '主体一致性 改写',
+      focus: '主体一致性',
+      source: 'feedback_next_action',
+    });
+  });
+
   it('saves, loads, and clears a valid local workspace', () => {
     const storage = createStorage();
     const workspace = createLocalProjectWorkspace(
@@ -257,6 +298,34 @@ describe('project workspace persistence', () => {
         creativeInput: 'invalid',
       }),
     );
+    expect(loadLocalProjectWorkspace(storage)).toBeNull();
+  });
+
+  it('rejects workspaces with invalid iteration payloads', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'input',
+        directorKit: null,
+        selectedVersionIndex: null,
+        selectedShotId: null,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    storage.setItem(
+      'jingci-current-project',
+      JSON.stringify({
+        ...workspace,
+        iterations: [{ id: 'bad', source: 'unknown' }],
+      }),
+    );
+
     expect(loadLocalProjectWorkspace(storage)).toBeNull();
   });
 });
