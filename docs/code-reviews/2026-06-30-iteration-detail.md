@@ -15,11 +15,11 @@ No blocking findings.
 
 ## Test Gaps
 
-- Browser click evidence is not captured yet.
+No blocking test gaps for this slice. Browser screenshots cover desktop and mobile visibility; they do not automate the restore click.
 
 ## Residual Risk
 
-Low. The change is frontend-local and uses existing workspace data.
+Low. The change is frontend-local and uses existing workspace data. A mobile fixed CTA overlap was found during screenshot review and repaired before release.
 
 ## Decision
 

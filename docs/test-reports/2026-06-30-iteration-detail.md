@@ -17,12 +17,13 @@ git diff --check
 
 ## Results
 
-- Targeted tests: PASS, 2 files / 14 tests.
+- Targeted tests: PASS, 2 files / 15 tests.
 - TypeScript: PASS.
-- Full unit suite: PASS, 11 files / 67 tests.
+- Full unit suite: PASS, 11 files / 68 tests.
 - Lint: PASS with existing `baseline-browser-mapping` warning.
 - Build: PASS.
 - `git diff --check`: PASS.
+- Browser evidence: PASS, desktop and mobile screenshots captured.
 
 ## Coverage
 
@@ -30,11 +31,14 @@ Validated:
 - iteration digest derives source label and length delta
 - Snapshot source keeps selected iteration state
 - Snapshot source exposes restore action
+- Snapshot source hides the mobile fixed action bar during Work/input state
 - existing project workspace tests still pass
+- desktop Snapshot iteration detail renders
+- mobile Snapshot iteration detail renders without the fixed CTA covering it
 
 Not validated yet:
-- browser click evidence
+- automated restore click
 
 ## Decision
 
-PASS for commit. Browser evidence can be added if the Snapshot iteration detail becomes a larger interaction surface.
+PASS for commit.

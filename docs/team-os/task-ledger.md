@@ -135,7 +135,7 @@ To: Code Review Agent + Test Agent
 Task: JC-T001
 Gate: Product / UE / Engineering / Test
 Message: Added Snapshot iteration detail with source label, length delta, draft preview, and restore-to-input action.
-Evidence: E3 `lib/project-workspace.ts`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/project-workspace.test.ts`, E3 `__tests__/chatbox-v2-source.test.ts`
+Evidence: E3 `lib/project-workspace.ts`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/project-workspace.test.ts`, E3 `__tests__/chatbox-v2-source.test.ts`, E3 `output/playwright/iteration-detail-desktop.png`, E3 `output/playwright/iteration-detail-mobile.png`
 Decision: SHIP
 Next owner: Hermes Orchestrator
 Close condition: Commit and push after validation.
@@ -171,7 +171,7 @@ Close condition: Commit and push after validation.
 | EV-JC-012 | JC-T001 | E3 | Feedback next-action UI renders without mobile fixed-action overlap | `output/playwright/feedback-next-action-desktop.png`, `output/playwright/feedback-next-action-mobile.png` | PASS, headed Chromium screenshots captured | UEAgent + Test Agent |
 | EV-JC-013 | JC-T001 | E3 | Feedback recommendation can be applied into a next-round prompt draft | `lib/feedback-next-action.ts`, `app/components/FeedbackInsightPanel.tsx`, `app/components/ChatBox.tsx`, `npm test`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 | EV-JC-014 | JC-T001 | E3 | Applied feedback revisions are persisted as project iterations | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Architecture Agent + Test Agent |
-| EV-JC-015 | JC-T001 | E3 | Saved project iterations can be inspected and restored from Snapshot | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `npm test`, `npm run build` | Added, full validation passes | UEAgent + Test Agent |
+| EV-JC-015 | JC-T001 | E3 | Saved project iterations can be inspected and restored from Snapshot | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `npm test`, `npm run build`, `output/playwright/iteration-detail-desktop.png`, `output/playwright/iteration-detail-mobile.png` | Added, full validation and browser evidence pass | UEAgent + Test Agent |
 
 ## Review Index
 

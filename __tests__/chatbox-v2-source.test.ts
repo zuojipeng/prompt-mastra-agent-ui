@@ -37,4 +37,8 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('恢复到输入区');
     expect(source).toContain('handleRestoreIteration');
   });
+
+  it('does not cover the mobile Work input state with the fixed action bar', () => {
+    expect(source).toContain("!(mobileTab === 'work' && v2State === 'input')");
+  });
 });

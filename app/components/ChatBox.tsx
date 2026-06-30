@@ -878,7 +878,7 @@ export function ChatBox() {
       />
 
       <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)_320px] lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className={`${mobileTab === 'work' ? 'block' : 'hidden'} space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:block lg:self-start`}>
+        <aside className={`${mobileTab === 'work' ? 'block' : 'hidden'} space-y-4 rounded-lg border border-gray-200 bg-white p-4 pb-28 dark:border-gray-800 dark:bg-gray-900 lg:sticky lg:top-20 lg:block lg:self-start lg:pb-4`}>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Project</p>
             <p className="mt-2 line-clamp-3 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -1813,7 +1813,7 @@ export function ChatBox() {
         </aside>
       </div>
 
-      {mobileTab !== 'feedback' && (
+      {mobileTab !== 'feedback' && !(mobileTab === 'work' && v2State === 'input') && (
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 lg:hidden">
         {mobileTab === 'work' && (
           <button
