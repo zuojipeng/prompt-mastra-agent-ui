@@ -14,6 +14,8 @@ const getApiUrl = () =>
 
 const getProjectsUrl = () => getApiUrl().replace(/\/api\/optimize$/, '/api/projects');
 
+export type ProjectCloudSyncResult = 'synced' | 'unavailable' | 'error';
+
 export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorkspaceSummary | null {
   if (!value || typeof value !== 'object') return null;
   const row = value as Record<string, unknown>;
@@ -46,7 +48,7 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
   };
 }
 
-export async function syncProjectWorkspace(workspace: LocalProjectWorkspace): Promise<boolean> {
+export async function syncProjectWorkspaceStatus(workspace: LocalProjectWorkspace): Promise<ProjectCloudSyncResult> {
   const userId = getUserId();
   try {
     const res = await fetch(getProjectsUrl(), {
@@ -54,10 +56,15 @@ export async function syncProjectWorkspace(workspace: LocalProjectWorkspace): Pr
       headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
       body: JSON.stringify({ workspace }),
     });
-    return res.ok;
+    if (res.ok) return 'synced';
+    return res.status === 404 ? 'unavailable' : 'error';
   } catch {
-    return false;
+    return 'error';
   }
+}
+
+export async function syncProjectWorkspace(workspace: LocalProjectWorkspace): Promise<boolean> {
+  return (await syncProjectWorkspaceStatus(workspace)) === 'synced';
 }
 
 export async function fetchProjectSummaries(): Promise<LocalProjectWorkspaceSummary[]> {
@@ -90,15 +97,19 @@ export async function fetchProjectWorkspace(projectId: string): Promise<LocalPro
 }
 
 export async function deleteProjectWorkspace(projectId: string): Promise<boolean> {
+  return (await deleteProjectWorkspaceStatus(projectId)) === 'synced';
+}
+
+export async function deleteProjectWorkspaceStatus(projectId: string): Promise<ProjectCloudSyncResult> {
   const userId = getUserId();
   try {
     const res = await fetch(`${getProjectsUrl()}/${encodeURIComponent(projectId)}`, {
       method: 'DELETE',
       headers: { 'X-User-Id': userId },
     });
-    return res.ok;
+    if (res.ok) return 'synced';
+    return res.status === 404 ? 'unavailable' : 'error';
   } catch {
-    return false;
+    return 'error';
   }
 }
-

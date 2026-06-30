@@ -15,10 +15,11 @@ import {
 } from '@/lib/api-client';
 import type { FeedbackAnalytics } from '@/lib/api-client';
 import {
-  deleteProjectWorkspace,
+  deleteProjectWorkspaceStatus,
   fetchProjectSummaries,
   fetchProjectWorkspace,
-  syncProjectWorkspace,
+  type ProjectCloudSyncResult,
+  syncProjectWorkspaceStatus,
 } from '@/lib/project-api-client';
 import {
   DIRECTOR_KIT_TARGET_DURATIONS,
@@ -85,6 +86,10 @@ type MobileWorkbenchTab = 'work' | 'execute' | 'feedback';
 type WorkspaceStatus = 'idle' | 'saved' | 'restored' | 'cleared' | 'missing' | 'error';
 type ShotCard = DirectorKit['shotCards'][number];
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
+
+function toProjectSyncState(result: ProjectCloudSyncResult): ProjectSyncState {
+  return result === 'synced' ? 'synced' : result === 'unavailable' ? 'localOnly' : 'error';
+}
 
 const FAILURE_REASONS = [
   '主体漂移',
@@ -401,10 +406,10 @@ export function ChatBox() {
     setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
     setWorkspaceStatus('saved');
     setProjectSyncState('syncing');
-    syncProjectWorkspace(nextWorkspace)
-      .then((ok) => {
-        setProjectSyncState(ok ? 'synced' : 'error');
-        if (ok) refreshProjectSummaries().catch(() => {});
+    syncProjectWorkspaceStatus(nextWorkspace)
+      .then((result) => {
+        setProjectSyncState(toProjectSyncState(result));
+        if (result === 'synced') refreshProjectSummaries().catch(() => {});
       })
       .catch(() => setProjectSyncState('error'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -543,10 +548,10 @@ export function ChatBox() {
       setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
       setWorkspaceStatus('saved');
       setProjectSyncState('syncing');
-      syncProjectWorkspace(nextWorkspace)
-        .then((ok) => {
-          setProjectSyncState(ok ? 'synced' : 'error');
-          if (ok) refreshProjectSummaries().catch(() => {});
+      syncProjectWorkspaceStatus(nextWorkspace)
+        .then((result) => {
+          setProjectSyncState(toProjectSyncState(result));
+          if (result === 'synced') refreshProjectSummaries().catch(() => {});
         })
         .catch(() => setProjectSyncState('error'));
     } catch {
@@ -724,10 +729,10 @@ export function ChatBox() {
     deleteLocalProjectWorkspace(workspaceId);
     refreshProjectSummaries().catch(() => {});
     setProjectSyncState('syncing');
-    deleteProjectWorkspace(workspaceId)
-      .then((ok) => {
-        setProjectSyncState(ok ? 'synced' : 'error');
-        if (ok) refreshProjectSummaries().catch(() => {});
+    deleteProjectWorkspaceStatus(workspaceId)
+      .then((result) => {
+        setProjectSyncState(toProjectSyncState(result));
+        if (result === 'synced') refreshProjectSummaries().catch(() => {});
       })
       .catch(() => setProjectSyncState('error'));
     if (workspace?.id === workspaceId) {

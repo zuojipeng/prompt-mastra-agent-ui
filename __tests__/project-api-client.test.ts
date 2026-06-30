@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   deleteProjectWorkspace,
+  deleteProjectWorkspaceStatus,
   fetchProjectSummaries,
   fetchProjectWorkspace,
   normalizeCloudProjectSummary,
   syncProjectWorkspace,
+  syncProjectWorkspaceStatus,
 } from '@/lib/project-api-client';
 import type { LocalProjectWorkspace } from '@/lib/project-workspace';
 
@@ -111,6 +113,15 @@ describe('project-api-client', () => {
     });
   });
 
+  it('classifies missing projects API routes as unavailable', async () => {
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 }) as typeof fetch;
+
+    await expect(syncProjectWorkspaceStatus(createWorkspace())).resolves.toBe('unavailable');
+    await expect(syncProjectWorkspace(createWorkspace())).resolves.toBe(false);
+    await expect(deleteProjectWorkspaceStatus('missing')).resolves.toBe('unavailable');
+    await expect(deleteProjectWorkspace('missing')).resolves.toBe(false);
+  });
+
   it('fetches and deletes one cloud project', async () => {
     const workspace = createWorkspace('project/with space');
     const fetchMock = vi
@@ -143,9 +154,10 @@ describe('project-api-client', () => {
     await expect(syncProjectWorkspace(createWorkspace())).resolves.toBe(false);
     await expect(deleteProjectWorkspace('missing')).resolves.toBe(false);
 
-    global.fetch = vi.fn().mockResolvedValue({ ok: false }) as typeof fetch;
+    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500 }) as typeof fetch;
     await expect(fetchProjectSummaries()).resolves.toEqual([]);
     await expect(fetchProjectWorkspace('missing')).resolves.toBeNull();
+    await expect(syncProjectWorkspaceStatus(createWorkspace())).resolves.toBe('error');
+    await expect(deleteProjectWorkspaceStatus('missing')).resolves.toBe('error');
   });
 });
-

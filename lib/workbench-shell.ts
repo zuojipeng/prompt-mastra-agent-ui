@@ -1,6 +1,6 @@
 import type { ProjectWorkspaceStage } from './project-workspace';
 
-export type ProjectSyncState = 'idle' | 'syncing' | 'synced' | 'error';
+export type ProjectSyncState = 'idle' | 'syncing' | 'synced' | 'localOnly' | 'error';
 
 export type WorkbenchStageId =
   | 'idea'
@@ -63,8 +63,11 @@ export function deriveProjectSyncDisplay(syncState: ProjectSyncState): ProjectSy
   if (syncState === 'synced') {
     return { label: '云端已同步', tone: 'success', blocked: false };
   }
+  if (syncState === 'localOnly') {
+    return { label: '本地已保存，云端待上线', tone: 'warning', blocked: false };
+  }
   if (syncState === 'error') {
-    return { label: '云端未同步', tone: 'warning', blocked: true };
+    return { label: '云端同步失败', tone: 'warning', blocked: true };
   }
   return { label: '本地优先', tone: 'neutral', blocked: false };
 }

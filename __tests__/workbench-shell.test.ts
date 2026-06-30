@@ -42,8 +42,13 @@ describe('workbench shell state', () => {
       tone: 'success',
       blocked: false,
     });
+    expect(deriveProjectSyncDisplay('localOnly')).toEqual({
+      label: '本地已保存，云端待上线',
+      tone: 'warning',
+      blocked: false,
+    });
     expect(deriveProjectSyncDisplay('error')).toEqual({
-      label: '云端未同步',
+      label: '云端同步失败',
       tone: 'warning',
       blocked: true,
     });

@@ -9,7 +9,7 @@ Last Updated: 2026-06-30
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + UEAgent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should decide whether to resume production Projects API release verification or add browser evidence for iteration detail |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add browser evidence for local-only sync copy or continue projectized creation workflow hardening |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -153,6 +153,19 @@ Decision: BLOCKED
 Next owner: Human Owner or authenticated deploy environment
 Close condition: A deploy-capable Cloudflare token/session or GitHub Actions dispatch path is available and `npm run release:worker -- --smoke-only` passes.
 
+### 2026-06-30 23:40 T012
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001 / JC-T002
+Gate: Product / Engineering / Test
+Message: Added a local-only project sync state so production Projects API 404 is shown as `本地已保存，云端待上线` instead of generic sync failure.
+Evidence: E3 `lib/project-api-client.ts`, E3 `lib/workbench-shell.ts`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/project-api-client.test.ts`, E3 `__tests__/workbench-shell.test.ts`, E3 `output/playwright/project-sync-local-only-desktop.png`, E3 `output/playwright/project-sync-local-only-mobile.png`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Run broader validation, then commit and push if clean.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -185,6 +198,7 @@ Close condition: Commit and push after validation.
 | EV-JC-013 | JC-T001 | E3 | Feedback recommendation can be applied into a next-round prompt draft | `lib/feedback-next-action.ts`, `app/components/FeedbackInsightPanel.tsx`, `app/components/ChatBox.tsx`, `npm test`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 | EV-JC-014 | JC-T001 | E3 | Applied feedback revisions are persisted as project iterations | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Architecture Agent + Test Agent |
 | EV-JC-015 | JC-T001 | E3 | Saved project iterations can be inspected and restored from Snapshot | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `npm test`, `npm run build`, `output/playwright/iteration-detail-desktop.png`, `output/playwright/iteration-detail-mobile.png` | Added, full validation and browser evidence pass | UEAgent + Test Agent |
+| EV-JC-016 | JC-T001 / JC-T002 | E3 | Projects API 404 now degrades to local-only sync copy instead of generic failure | `lib/project-api-client.ts`, `lib/workbench-shell.ts`, `app/components/ChatBox.tsx`, `__tests__/project-api-client.test.ts`, `__tests__/workbench-shell.test.ts`, `output/playwright/project-sync-local-only-desktop.png`, `output/playwright/project-sync-local-only-mobile.png` | Added, targeted tests and browser evidence pass | Product Agent + Test Agent |
 
 ## Review Index
 
@@ -198,3 +212,4 @@ Close condition: Commit and push after validation.
 | RV-JC-006 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for feedback prompt revision | No backend, feedback upload, history, or project sync contract changed | Broader validation before release |
 | RV-JC-007 | JC-T001 | Product Agent + Engineering Agent | Architecture Agent + Test Agent | PASS for project iterations | Optional workspace field preserves old local payload compatibility | Broader validation before release |
 | RV-JC-008 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for iteration detail | Local UI state only; no project API or generation contract changed | Broader validation before release |
+| RV-JC-009 | JC-T001 / JC-T002 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local-only sync state | 404 route unavailable is separated from 500/network errors | Broader validation before release |
