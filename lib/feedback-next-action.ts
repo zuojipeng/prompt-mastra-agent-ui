@@ -8,6 +8,19 @@ export type FeedbackNextAction = {
   promptHint: string;
 };
 
+export function buildFeedbackPromptRevision(input: string, action: FeedbackNextAction): string {
+  const basePrompt = input.trim() || '基于上一版 DirectorKit，继续优化当前视频创意。';
+  const revisionBlock = [
+    '下一轮改写要求：',
+    `- 反馈重点：${action.focus}`,
+    `- ${action.promptHint}`,
+    `- ${action.recommendation}`,
+    '- 保留原始故事核心，只调整与反馈重点相关的镜头约束。',
+  ].join('\n');
+
+  return `${basePrompt}\n\n${revisionBlock}`;
+}
+
 function getTopBucket(items: FeedbackAnalyticsBucket[]) {
   return [...items].sort((a, b) => {
     if (b.dislikeRate !== a.dislikeRate) return b.dislikeRate - a.dislikeRate;

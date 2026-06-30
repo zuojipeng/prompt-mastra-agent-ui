@@ -13,5 +13,8 @@ describe('FeedbackInsightPanel next-action source contract', () => {
     expect(source).toContain('下一轮建议');
     expect(source).toContain('nextAction.recommendation');
     expect(source).toContain('nextAction.promptHint');
+    expect(source).toContain('buildFeedbackPromptRevision');
+    expect(source).toContain('应用到下一轮创意');
+    expect(source).toContain('onApplyPromptRevision');
   });
 });

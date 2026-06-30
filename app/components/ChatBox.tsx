@@ -360,6 +360,15 @@ export function ChatBox() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleApplyFeedbackPromptRevision = (draft: string) => {
+    setInput(draft);
+    setV2State('input');
+    setMobileTab('work');
+    setV2Error('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.setTimeout(() => document.getElementById('prompt')?.focus(), 250);
+  };
+
   const submitV2Feedback = async ({
     key,
     rating,
@@ -1679,7 +1688,13 @@ export function ChatBox() {
               <span>{analyticsOpen ? '收起' : '展开'}</span>
             </button>
             <div className="mt-3">
-              <FeedbackInsightPanel open={analyticsOpen} state={analyticsState} analytics={feedbackAnalytics} />
+              <FeedbackInsightPanel
+                open={analyticsOpen}
+                state={analyticsState}
+                analytics={feedbackAnalytics}
+                currentPrompt={input}
+                onApplyPromptRevision={handleApplyFeedbackPromptRevision}
+              />
             </div>
           </div>
         </aside>

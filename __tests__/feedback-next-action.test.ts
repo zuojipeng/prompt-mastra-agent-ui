@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deriveFeedbackNextAction } from '@/lib/feedback-next-action';
+import { buildFeedbackPromptRevision, deriveFeedbackNextAction } from '@/lib/feedback-next-action';
 import type { FeedbackAnalytics } from '@/lib/api-client';
 
 function createAnalytics(overrides: Partial<FeedbackAnalytics> = {}): FeedbackAnalytics {
@@ -84,5 +84,29 @@ describe('deriveFeedbackNextAction', () => {
       title: '下一轮可以扩大复用',
       focus: '高满意方向',
     });
+  });
+
+  it('builds a next-round prompt revision from feedback evidence', () => {
+    const action = deriveFeedbackNextAction(
+      createAnalytics({
+        dimensions: {
+          eventTypes: [],
+          targetTypes: [],
+          platforms: [],
+          generationModes: [],
+          riskLevels: [],
+          riskTags: [],
+          failureReasons: [{ key: '画面不稳定', total: 5, likes: 1, dislikes: 4, dislikeRate: 80 }],
+        },
+      }),
+    );
+
+    expect(action).not.toBeNull();
+    const draft = buildFeedbackPromptRevision('雨夜街头，一个女孩缓慢回头。', action!);
+
+    expect(draft).toContain('雨夜街头');
+    expect(draft).toContain('下一轮改写要求');
+    expect(draft).toContain('反馈重点：画面稳定性');
+    expect(draft).toContain('保留原始故事核心');
   });
 });
