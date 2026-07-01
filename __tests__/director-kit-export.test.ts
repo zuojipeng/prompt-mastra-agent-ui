@@ -187,6 +187,11 @@ describe('director kit export builders', () => {
 
     expect(pack).toContain('# Seedance 平台投喂包');
     expect(pack).toContain('推荐级别：推荐');
+    expect(pack).toContain('## 项目上下文');
+    expect(pack).toContain('原始创意：废土小镇里，一个旧清洁机器人守护红裙人偶');
+    expect(pack).toContain('目标时长：60s');
+    expect(pack).toContain('目标类型：赛博都市');
+    expect(pack).toContain('出片进度：2/2（100%）');
     expect(pack).toContain('## 分镜投喂顺序');
     expect(pack).toContain('- 镜头 1｜5s｜文生视频');
     expect(pack).toContain('状态：已生成');

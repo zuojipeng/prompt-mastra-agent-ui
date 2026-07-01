@@ -249,6 +249,16 @@ export function buildPlatformFeedPack(
 ) {
   const list = (title: string, items: string[] | undefined) =>
     items?.length ? [`${title}：`, ...items.map((item) => `- ${item}`)].join('\n') : '';
+  const execution = context ? summarizeShotExecution(kit, context) : null;
+  const projectLines = context
+    ? [
+      '## 项目上下文',
+      `原始创意：${context.creativeInput}`,
+      `目标时长：${context.targetDuration}`,
+      `目标类型：${label(context.targetType)}`,
+      execution ? `出片进度：${execution.completed}/${execution.total}（${execution.progress}%）` : '',
+    ].filter(Boolean)
+    : [];
   const shotQueue = (kit.shotCards ?? []).map((card) =>
     [
       `- 镜头 ${card.shotId}｜${card.duration}｜${label(card.generationMode)}`,
@@ -266,6 +276,8 @@ export function buildPlatformFeedPack(
     `适合：${advice.bestFor || advice.note}`,
     `说明：${advice.note}`,
     '',
+    projectLines.join('\n'),
+    projectLines.length > 0 ? '' : '',
     '## 主 Prompt',
     kit.masterPrompt,
     kit.negativePrompt ? `\n## Negative Prompt\n${kit.negativePrompt}` : '',
