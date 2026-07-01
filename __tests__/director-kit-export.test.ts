@@ -192,6 +192,11 @@ describe('director kit export builders', () => {
     expect(pack).toContain('目标时长：60s');
     expect(pack).toContain('目标类型：赛博都市');
     expect(pack).toContain('出片进度：2/2（100%）');
+    expect(pack).toContain('## 平台适配策略');
+    expect(pack).toContain('首轮测试：先跑下列低风险/高匹配镜头，再扩展到全片。');
+    expect(pack).toContain('- 镜头 1｜文生视频｜低风险｜建立世界');
+    expect(pack).toContain('平台偏好：文生视频主路径。');
+    expect(pack).toContain('规避重点：避免多人同屏复杂动作。');
     expect(pack).toContain('## 分镜投喂顺序');
     expect(pack).toContain('- 镜头 1｜5s｜文生视频');
     expect(pack).toContain('状态：已生成');
