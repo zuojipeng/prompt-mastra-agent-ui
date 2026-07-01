@@ -9,7 +9,7 @@ Last Updated: 2026-07-01
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should continue projectized creation workflow hardening or add platform handoff evidence |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should continue projectized creation workflow hardening or add platform-specific filtering evidence |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -179,6 +179,19 @@ Decision: SHIP
 Next owner: Test Agent
 Close condition: Commit and push after validation.
 
+### 2026-07-01 01:00 T014
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / Engineering / Test
+Message: Added per-shot feed order and execution context to platform feed packs so handoff packages can be used directly for shot-by-shot generation.
+Evidence: E3 `lib/director-kit-export.ts`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/director-kit-export.test.ts`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -213,6 +226,7 @@ Close condition: Commit and push after validation.
 | EV-JC-015 | JC-T001 | E3 | Saved project iterations can be inspected and restored from Snapshot | `lib/project-workspace.ts`, `app/components/ChatBox.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `npm test`, `npm run build`, `output/playwright/iteration-detail-desktop.png`, `output/playwright/iteration-detail-mobile.png` | Added, full validation and browser evidence pass | UEAgent + Test Agent |
 | EV-JC-016 | JC-T001 / JC-T002 | E3 | Projects API 404 now degrades to local-only sync copy instead of generic failure | `lib/project-api-client.ts`, `lib/workbench-shell.ts`, `app/components/ChatBox.tsx`, `__tests__/project-api-client.test.ts`, `__tests__/workbench-shell.test.ts`, `output/playwright/project-sync-local-only-desktop.png`, `output/playwright/project-sync-local-only-mobile.png` | Added, targeted tests and browser evidence pass | Product Agent + Test Agent |
 | EV-JC-017 | JC-T001 | E3 | Copied project snapshots include recent feedback iteration history | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
+| EV-JC-018 | JC-T001 | E3 | Platform feed packs include per-shot feed order and execution context | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
 
 ## Review Index
 
@@ -228,3 +242,4 @@ Close condition: Commit and push after validation.
 | RV-JC-008 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for iteration detail | Local UI state only; no project API or generation contract changed | Broader validation before release |
 | RV-JC-009 | JC-T001 / JC-T002 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local-only sync state | 404 route unavailable is separated from 500/network errors | Broader validation before release |
 | RV-JC-010 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for snapshot iteration export | Optional export content only; no persistence or API contract changed | Broader validation before release |
+| RV-JC-011 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform feed shot queue | Additive export content; no API, persistence, or UI state contract changed | Broader validation before release |

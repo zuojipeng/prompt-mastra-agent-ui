@@ -635,7 +635,7 @@ export function ChatBox() {
 
   const buildPlatformFeedPack = (advice: PlatformAdvice) => {
     if (!directorKit) return '';
-    return buildDirectorKitPlatformFeedPack(directorKit, advice);
+    return buildDirectorKitPlatformFeedPack(directorKit, advice, getDirectorKitExportContext());
   };
 
   const handleCopyPlatformFeedPack = async (advice: PlatformAdvice) => {

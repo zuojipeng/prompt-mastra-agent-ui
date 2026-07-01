@@ -183,10 +183,14 @@ describe('director kit export builders', () => {
   });
 
   it('builds a platform feed pack', () => {
-    const pack = buildPlatformFeedPack(kit, kit.platformAdvice[0]);
+    const pack = buildPlatformFeedPack(kit, kit.platformAdvice[0], context);
 
     expect(pack).toContain('# Seedance 平台投喂包');
     expect(pack).toContain('推荐级别：推荐');
+    expect(pack).toContain('## 分镜投喂顺序');
+    expect(pack).toContain('- 镜头 1｜5s｜文生视频');
+    expect(pack).toContain('状态：已生成');
+    expect(pack).toContain('素材/备注：动作抖动，需改静态特写');
     expect(pack).toContain('Prompt 写法：');
     expect(pack).toContain('- 建议 5s 单镜测试');
     expect(pack).toContain('## 执行提醒');

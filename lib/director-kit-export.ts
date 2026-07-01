@@ -242,9 +242,22 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
   ].filter(Boolean).join('\n');
 }
 
-export function buildPlatformFeedPack(kit: DirectorKit, advice: PlatformAdvice) {
+export function buildPlatformFeedPack(
+  kit: DirectorKit,
+  advice: PlatformAdvice,
+  context?: DirectorKitExportContext,
+) {
   const list = (title: string, items: string[] | undefined) =>
     items?.length ? [`${title}：`, ...items.map((item) => `- ${item}`)].join('\n') : '';
+  const shotQueue = (kit.shotCards ?? []).map((card) =>
+    [
+      `- 镜头 ${card.shotId}｜${card.duration}｜${label(card.generationMode)}`,
+      `  画面：${card.description}`,
+      `  动作：${card.action}`,
+      context ? `  状态：${getShotStatusLabel(context, card.shotId)}` : '',
+      context && getResultNote(context, card.shotId) ? `  素材/备注：${getResultNote(context, card.shotId)}` : '',
+    ].filter(Boolean).join('\n'),
+  );
 
   return [
     `# ${advice.platform} 平台投喂包`,
@@ -257,6 +270,9 @@ export function buildPlatformFeedPack(kit: DirectorKit, advice: PlatformAdvice) 
     kit.masterPrompt,
     kit.negativePrompt ? `\n## Negative Prompt\n${kit.negativePrompt}` : '',
     '',
+    shotQueue.length > 0 ? '## 分镜投喂顺序' : '',
+    shotQueue.join('\n'),
+    shotQueue.length > 0 ? '' : '',
     list('Prompt 写法', advice.promptTips),
     '',
     list('推荐设置', advice.settings),
