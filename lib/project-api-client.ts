@@ -45,6 +45,8 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
     stage: row.stage as LocalProjectWorkspaceSummary['stage'],
     shotCount: typeof row.shotCount === 'number' ? row.shotCount : 0,
     completedShotCount: typeof row.completedShotCount === 'number' ? row.completedShotCount : 0,
+    iterationCount: typeof row.iterationCount === 'number' ? row.iterationCount : 0,
+    latestIterationFocus: typeof row.latestIterationFocus === 'string' ? row.latestIterationFocus : null,
   };
 }
 

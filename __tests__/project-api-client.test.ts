@@ -54,6 +54,8 @@ describe('project-api-client', () => {
         stage: 'result',
         shotCount: 3,
         completedShotCount: 2,
+        iterationCount: 2,
+        latestIterationFocus: '主体一致性',
         updatedAt: Date.UTC(2026, 5, 17),
       }),
     ).toEqual({
@@ -64,6 +66,8 @@ describe('project-api-client', () => {
       stage: 'result',
       shotCount: 3,
       completedShotCount: 2,
+      iterationCount: 2,
+      latestIterationFocus: '主体一致性',
       updatedAt: '2026-06-17T00:00:00.000Z',
     });
 
@@ -93,7 +97,13 @@ describe('project-api-client', () => {
     global.fetch = fetchMock as typeof fetch;
 
     await expect(fetchProjectSummaries()).resolves.toEqual([
-      expect.objectContaining({ id: 'project-1', shotCount: 0, completedShotCount: 0 }),
+      expect.objectContaining({
+        id: 'project-1',
+        shotCount: 0,
+        completedShotCount: 0,
+        iterationCount: 0,
+        latestIterationFocus: null,
+      }),
     ]);
     expect(fetchMock).toHaveBeenCalledWith('https://worker.example.com/api/projects', {
       headers: { 'X-User-Id': 'test-user' },

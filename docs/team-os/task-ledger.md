@@ -9,7 +9,7 @@ Last Updated: 2026-07-01
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should continue platform-specific handoff hardening or move feedback回流 into project dashboard evidence |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add platform-specific handoff filtering or browser evidence for dashboard feedback iteration state |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -205,6 +205,19 @@ Decision: SHIP
 Next owner: Test Agent
 Close condition: Commit and push after validation.
 
+### 2026-07-01 08:30 T016
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / UE / Engineering / Test
+Message: Surfaced feedback-driven project iteration count and latest focus in the Project Dashboard summary and project rows.
+Evidence: E3 `lib/project-workspace.ts`, E3 `lib/project-api-client.ts`, E3 `app/components/ProjectDashboardPanel.tsx`, E3 `__tests__/project-workspace.test.ts`, E3 `__tests__/project-api-client.test.ts`, E3 `__tests__/project-dashboard-source.test.ts`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -241,6 +254,7 @@ Close condition: Commit and push after validation.
 | EV-JC-017 | JC-T001 | E3 | Copied project snapshots include recent feedback iteration history | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
 | EV-JC-018 | JC-T001 | E3 | Platform feed packs include per-shot feed order and execution context | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
 | EV-JC-019 | JC-T001 | E3 | Platform feed packs include project context and shot progress | `lib/director-kit-export.ts`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
+| EV-JC-020 | JC-T001 | E3 | Project Dashboard shows feedback iteration count and latest focus from project summaries | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `npm test`, `npm run build`, `output/playwright/dashboard-feedback-iterations-desktop.png`, `output/playwright/dashboard-feedback-iterations-mobile.png` | Added, full validation and browser evidence pass | Product Agent + Test Agent |
 
 ## Review Index
 
@@ -258,3 +272,4 @@ Close condition: Commit and push after validation.
 | RV-JC-010 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for snapshot iteration export | Optional export content only; no persistence or API contract changed | Broader validation before release |
 | RV-JC-011 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform feed shot queue | Additive export content; no API, persistence, or UI state contract changed | Broader validation before release |
 | RV-JC-012 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform feed project context | Additive export content; reuses existing execution summary and optional context | Broader validation before release |
+| RV-JC-013 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard feedback iterations | Additive summary/display fields; cloud summary remains backward-compatible | Broader validation before release |

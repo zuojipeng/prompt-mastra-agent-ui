@@ -63,6 +63,8 @@ export type LocalProjectWorkspaceSummary = {
   stage: ProjectWorkspaceStage;
   shotCount: number;
   completedShotCount: number;
+  iterationCount: number;
+  latestIterationFocus: string | null;
 };
 
 export type LocalProjectWorkspaceInput = Pick<
@@ -198,6 +200,8 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     stage: project.v2State,
     shotCount: shotCards.length,
     completedShotCount,
+    iterationCount: project.iterations?.length ?? 0,
+    latestIterationFocus: project.iterations?.[0]?.focus ?? null,
   };
 }
 

@@ -299,12 +299,52 @@ describe('project workspace persistence', () => {
         stage: 'result',
         shotCount: 1,
         completedShotCount: 1,
+        iterationCount: 0,
+        latestIterationFocus: null,
       }),
     ]);
 
     expect(deleteLocalProjectWorkspace(workspace.id, storage)).toBe(true);
     expect(loadLocalProjectWorkspace(storage)).toBeNull();
     expect(loadLocalProjectWorkspaceLibrary(storage)).toEqual([]);
+  });
+
+  it('includes feedback iteration evidence in project summaries', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'input',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: { 1: '初版可用' },
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const iteration = createProjectWorkspaceIteration(
+      {
+        source: 'feedback_next_action',
+        focus: '主体一致性',
+        sourcePrompt: workspace.creativeInput,
+        promptDraft: `${workspace.creativeInput}\n\n下一轮改写要求：固定主体轮廓。`,
+        evidence: '4/5 条反馈提到该问题',
+      },
+      '2026-06-16T01:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(appendProjectWorkspaceIteration(workspace, iteration), storage);
+
+    expect(loadLocalProjectWorkspaceSummaries(storage)).toEqual([
+      expect.objectContaining({
+        iterationCount: 1,
+        latestIterationFocus: '主体一致性',
+      }),
+    ]);
   });
 
   it('ignores invalid or corrupted workspace payloads', () => {
