@@ -4,7 +4,11 @@ import type {
   DirectorKitTargetType,
   ShotCard,
 } from './director-kit-contract';
-import { rankPlatformFirstPassShots, resolvePlatformCapability } from './platform-capabilities';
+import {
+  explainPlatformFirstPassShot,
+  rankPlatformFirstPassShots,
+  resolvePlatformCapability,
+} from './platform-capabilities';
 import type { ProjectWorkspaceIteration } from './project-workspace';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
@@ -262,7 +266,10 @@ export function buildPlatformFeedPack(
     : [];
   const platformCapability = resolvePlatformCapability(advice.platform);
   const firstPassShots = rankPlatformFirstPassShots(kit.shotCards ?? [], platformCapability).map((card) =>
-    `- 镜头 ${card.shotId}｜${label(card.generationMode)}｜${label(card.riskLevel)}｜${card.purpose}`,
+    [
+      `- 镜头 ${card.shotId}｜${label(card.generationMode)}｜${label(card.riskLevel)}｜${card.purpose}`,
+      `  选择理由：${explainPlatformFirstPassShot(card, platformCapability)}`,
+    ].join('\n'),
   );
   const platformStrategy = [
     '## 平台适配策略',

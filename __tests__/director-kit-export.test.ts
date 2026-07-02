@@ -195,6 +195,7 @@ describe('director kit export builders', () => {
     expect(pack).toContain('## 平台适配策略');
     expect(pack).toContain('首轮测试：先跑下列低风险/高匹配镜头，再扩展到全片。');
     expect(pack).toContain('- 镜头 1｜文生视频｜低风险｜建立世界');
+    expect(pack).toContain('选择理由：匹配平台偏好模式；风险在首轮容忍范围内；一致性压力适中；有明确翻车补救建议');
     expect(pack).toContain('能力画像：Seedance｜偏好 文生视频、参考图｜首轮 2 镜头');
     expect(pack).toContain('风险容忍：中风险');
     expect(pack).toContain('平台偏好：文生视频主路径。');

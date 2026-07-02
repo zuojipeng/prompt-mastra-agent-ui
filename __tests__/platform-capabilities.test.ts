@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  explainPlatformFirstPassShot,
   rankPlatformFirstPassShots,
   resolvePlatformCapability,
 } from '@/lib/platform-capabilities';
@@ -51,5 +52,20 @@ describe('platform capabilities', () => {
     );
 
     expect(ranked.map((item) => item.shotId)).toEqual([1, 2]);
+  });
+
+  it('explains why a shot is selected for first-pass handoff', () => {
+    const profile = resolvePlatformCapability('Seedance');
+
+    expect(
+      explainPlatformFirstPassShot(
+        {
+          ...shot({ shotId: 1, generationMode: 'text-to-video', riskLevel: 'low' }),
+          consistencyNeed: 'medium',
+          fixSuggestion: '保持主体轮廓稳定。',
+        },
+        profile,
+      ),
+    ).toBe('匹配平台偏好模式；风险在首轮容忍范围内；一致性压力适中；有明确翻车补救建议');
   });
 });

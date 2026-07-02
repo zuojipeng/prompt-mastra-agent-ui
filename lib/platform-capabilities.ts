@@ -92,3 +92,24 @@ export function rankPlatformFirstPassShots(
     })
     .slice(0, profile.maxFirstPassShots);
 }
+
+export function explainPlatformFirstPassShot(
+  shot: ShotCard,
+  profile: PlatformCapabilityProfile,
+) {
+  const reasons = [];
+  if (profile.preferredModes.includes(shot.generationMode)) {
+    reasons.push('匹配平台偏好模式');
+  }
+  if (RISK_SCORE[shot.riskLevel] <= RISK_SCORE[profile.riskTolerance]) {
+    reasons.push('风险在首轮容忍范围内');
+  }
+  if (shot.consistencyNeed === 'low' || shot.consistencyNeed === 'medium') {
+    reasons.push('一致性压力适中');
+  }
+  if (shot.fixSuggestion?.trim()) {
+    reasons.push('有明确翻车补救建议');
+  }
+
+  return reasons.length ? reasons.join('；') : '作为完整队列的一部分保留观察';
+}
