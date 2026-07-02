@@ -36,6 +36,24 @@ export type ProjectWorkspaceIterationDigest = {
   deltaLength: number;
 };
 
+export type PlatformCalibrationOutcome = 'validated' | 'rejected' | 'inconclusive';
+
+export type PlatformCalibrationNextAction = 'expand_full_queue' | 'retry_same' | 'revise_prompt' | 'skip_platform';
+
+export type PlatformCalibrationEvidence = {
+  id: string;
+  createdAt: string;
+  platform: string;
+  capabilityProfileId: string;
+  shotId: number;
+  outcome: PlatformCalibrationOutcome;
+  resultNote: string;
+  failureReasons: string[];
+  reusableSettings: string;
+  materialLink: string;
+  nextAction: PlatformCalibrationNextAction;
+};
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -52,6 +70,7 @@ export type LocalProjectWorkspace = {
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotResultNotes: Record<number, string>;
   iterations?: ProjectWorkspaceIteration[];
+  platformCalibrations?: PlatformCalibrationEvidence[];
 };
 
 export type LocalProjectWorkspaceSummary = {
@@ -65,6 +84,9 @@ export type LocalProjectWorkspaceSummary = {
   completedShotCount: number;
   iterationCount: number;
   latestIterationFocus: string | null;
+  calibrationCount: number;
+  latestCalibrationOutcome: PlatformCalibrationOutcome | null;
+  latestCalibrationPlatform: string | null;
 };
 
 export type LocalProjectWorkspaceInput = Pick<
@@ -85,7 +107,15 @@ type WorkspaceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 const WORKSPACE_STAGES: ProjectWorkspaceStage[] = ['input', 'diagnosis', 'reconstruct', 'result'];
 const SHOT_STATUS_VALUES: ShotExecutionStatus[] = ['pending', 'generated', 'failed', 'usable'];
 const ITERATION_SOURCE_VALUES: ProjectWorkspaceIterationSource[] = ['feedback_next_action', 'manual'];
+const CALIBRATION_OUTCOME_VALUES: PlatformCalibrationOutcome[] = ['validated', 'rejected', 'inconclusive'];
+const CALIBRATION_NEXT_ACTION_VALUES: PlatformCalibrationNextAction[] = [
+  'expand_full_queue',
+  'retry_same',
+  'revise_prompt',
+  'skip_platform',
+];
 const PROJECT_ITERATION_LIMIT = 8;
+const PLATFORM_CALIBRATION_LIMIT = 12;
 
 function getBrowserStorage() {
   if (typeof window === 'undefined') return null;
@@ -148,6 +178,29 @@ function normalizeIterations(value: unknown): ProjectWorkspaceIteration[] {
   return value.filter(isProjectWorkspaceIteration).slice(0, PROJECT_ITERATION_LIMIT);
 }
 
+function isPlatformCalibrationEvidence(value: unknown): value is PlatformCalibrationEvidence {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.createdAt === 'string' &&
+    typeof value.platform === 'string' &&
+    typeof value.capabilityProfileId === 'string' &&
+    typeof value.shotId === 'number' &&
+    CALIBRATION_OUTCOME_VALUES.includes(value.outcome as PlatformCalibrationOutcome) &&
+    typeof value.resultNote === 'string' &&
+    Array.isArray(value.failureReasons) &&
+    value.failureReasons.every((reason) => typeof reason === 'string') &&
+    typeof value.reusableSettings === 'string' &&
+    typeof value.materialLink === 'string' &&
+    CALIBRATION_NEXT_ACTION_VALUES.includes(value.nextAction as PlatformCalibrationNextAction)
+  );
+}
+
+function normalizePlatformCalibrations(value: unknown): PlatformCalibrationEvidence[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isPlatformCalibrationEvidence).slice(0, PLATFORM_CALIBRATION_LIMIT);
+}
+
 function isDirectorKit(value: unknown): value is DirectorKit {
   if (value === null) return false;
   if (!isRecord(value)) return false;
@@ -202,6 +255,9 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     completedShotCount,
     iterationCount: project.iterations?.length ?? 0,
     latestIterationFocus: project.iterations?.[0]?.focus ?? null,
+    calibrationCount: project.platformCalibrations?.length ?? 0,
+    latestCalibrationOutcome: project.platformCalibrations?.[0]?.outcome ?? null,
+    latestCalibrationPlatform: project.platformCalibrations?.[0]?.platform ?? null,
   };
 }
 
@@ -258,6 +314,36 @@ export function appendProjectWorkspaceIteration(
   };
 }
 
+export function createPlatformCalibrationEvidence(
+  input: Omit<PlatformCalibrationEvidence, 'id' | 'createdAt'>,
+  now = new Date().toISOString(),
+): PlatformCalibrationEvidence {
+  return {
+    id: createWorkspaceId(),
+    createdAt: now,
+    platform: input.platform,
+    capabilityProfileId: input.capabilityProfileId,
+    shotId: input.shotId,
+    outcome: input.outcome,
+    resultNote: input.resultNote,
+    failureReasons: input.failureReasons,
+    reusableSettings: input.reusableSettings,
+    materialLink: input.materialLink,
+    nextAction: input.nextAction,
+  };
+}
+
+export function appendPlatformCalibrationEvidence(
+  workspace: LocalProjectWorkspace,
+  calibration: PlatformCalibrationEvidence,
+): LocalProjectWorkspace {
+  return {
+    ...workspace,
+    updatedAt: calibration.createdAt,
+    platformCalibrations: [calibration, ...(workspace.platformCalibrations ?? [])].slice(0, PLATFORM_CALIBRATION_LIMIT),
+  };
+}
+
 export function createLocalProjectWorkspace(
   input: LocalProjectWorkspaceInput,
   existing?: LocalProjectWorkspace | null,
@@ -269,6 +355,7 @@ export function createLocalProjectWorkspace(
     title: deriveProjectTitle(input.creativeInput),
     ...input,
     iterations: normalizeIterations(existing?.iterations),
+    platformCalibrations: normalizePlatformCalibrations(existing?.platformCalibrations),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
@@ -292,7 +379,9 @@ export function isLocalProjectWorkspace(value: unknown): value is LocalProjectWo
     isShotExecutionStatusRecord(value.shotExecutionStatus) &&
     isShotResultNotesRecord(value.shotResultNotes) &&
     (value.iterations === undefined ||
-      (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration)))
+      (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration))) &&
+    (value.platformCalibrations === undefined ||
+      (Array.isArray(value.platformCalibrations) && value.platformCalibrations.every(isPlatformCalibrationEvidence)))
   );
 }
 

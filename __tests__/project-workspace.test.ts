@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  createPlatformCalibrationEvidence,
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectTitle,
@@ -301,6 +303,9 @@ describe('project workspace persistence', () => {
         completedShotCount: 1,
         iterationCount: 0,
         latestIterationFocus: null,
+        calibrationCount: 0,
+        latestCalibrationOutcome: null,
+        latestCalibrationPlatform: null,
       }),
     ]);
 
@@ -347,6 +352,90 @@ describe('project workspace persistence', () => {
     ]);
   });
 
+  it('appends platform calibration evidence without changing workspace identity', () => {
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: { 1: '初版可用' },
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const calibration = createPlatformCalibrationEvidence(
+      {
+        platform: 'Seedance',
+        capabilityProfileId: 'seedance',
+        shotId: 1,
+        outcome: 'validated',
+        resultNote: '主体稳定，动作轻微可用。',
+        failureReasons: [],
+        reusableSettings: '5s, cinematic, low motion',
+        materialLink: 'https://example.com/shot-1',
+        nextAction: 'expand_full_queue',
+      },
+      '2026-06-16T03:00:00.000Z',
+    );
+    const updated = appendPlatformCalibrationEvidence(workspace, calibration);
+
+    expect(updated.id).toBe(workspace.id);
+    expect(updated.updatedAt).toBe('2026-06-16T03:00:00.000Z');
+    expect(updated.platformCalibrations?.[0]).toMatchObject({
+      platform: 'Seedance',
+      outcome: 'validated',
+      nextAction: 'expand_full_queue',
+    });
+  });
+
+  it('summarizes platform calibration evidence for project dashboards', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: { 1: '初版可用' },
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const calibration = createPlatformCalibrationEvidence(
+      {
+        platform: 'Seedance',
+        capabilityProfileId: 'seedance',
+        shotId: 1,
+        outcome: 'rejected',
+        resultNote: '主体漂移明显。',
+        failureReasons: ['主体漂移'],
+        reusableSettings: '',
+        materialLink: '',
+        nextAction: 'revise_prompt',
+      },
+      '2026-06-16T03:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(appendPlatformCalibrationEvidence(workspace, calibration), storage);
+
+    expect(loadLocalProjectWorkspaceSummaries(storage)).toEqual([
+      expect.objectContaining({
+        calibrationCount: 1,
+        latestCalibrationOutcome: 'rejected',
+        latestCalibrationPlatform: 'Seedance',
+      }),
+    ]);
+  });
+
   it('ignores invalid or corrupted workspace payloads', () => {
     const storage = createStorage();
     storage.setItem('jingci-current-project', '{broken');
@@ -384,6 +473,34 @@ describe('project workspace persistence', () => {
       JSON.stringify({
         ...workspace,
         iterations: [{ id: 'bad', source: 'unknown' }],
+      }),
+    );
+
+    expect(loadLocalProjectWorkspace(storage)).toBeNull();
+  });
+
+  it('rejects workspaces with invalid platform calibration payloads', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'input',
+        directorKit: null,
+        selectedVersionIndex: null,
+        selectedShotId: null,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    storage.setItem(
+      'jingci-current-project',
+      JSON.stringify({
+        ...workspace,
+        platformCalibrations: [{ id: 'bad', outcome: 'unknown' }],
       }),
     );
 

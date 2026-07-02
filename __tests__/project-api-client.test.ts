@@ -56,6 +56,9 @@ describe('project-api-client', () => {
         completedShotCount: 2,
         iterationCount: 2,
         latestIterationFocus: '主体一致性',
+        calibrationCount: 1,
+        latestCalibrationOutcome: 'validated',
+        latestCalibrationPlatform: 'Seedance',
         updatedAt: Date.UTC(2026, 5, 17),
       }),
     ).toEqual({
@@ -68,6 +71,9 @@ describe('project-api-client', () => {
       completedShotCount: 2,
       iterationCount: 2,
       latestIterationFocus: '主体一致性',
+      calibrationCount: 1,
+      latestCalibrationOutcome: 'validated',
+      latestCalibrationPlatform: 'Seedance',
       updatedAt: '2026-06-17T00:00:00.000Z',
     });
 
@@ -103,6 +109,9 @@ describe('project-api-client', () => {
         completedShotCount: 0,
         iterationCount: 0,
         latestIterationFocus: null,
+        calibrationCount: 0,
+        latestCalibrationOutcome: null,
+        latestCalibrationPlatform: null,
       }),
     ]);
     expect(fetchMock).toHaveBeenCalledWith('https://worker.example.com/api/projects', {

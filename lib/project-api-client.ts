@@ -47,6 +47,14 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
     completedShotCount: typeof row.completedShotCount === 'number' ? row.completedShotCount : 0,
     iterationCount: typeof row.iterationCount === 'number' ? row.iterationCount : 0,
     latestIterationFocus: typeof row.latestIterationFocus === 'string' ? row.latestIterationFocus : null,
+    calibrationCount: typeof row.calibrationCount === 'number' ? row.calibrationCount : 0,
+    latestCalibrationOutcome:
+      row.latestCalibrationOutcome === 'validated' ||
+      row.latestCalibrationOutcome === 'rejected' ||
+      row.latestCalibrationOutcome === 'inconclusive'
+        ? row.latestCalibrationOutcome
+        : null,
+    latestCalibrationPlatform: typeof row.latestCalibrationPlatform === 'string' ? row.latestCalibrationPlatform : null,
   };
 }
 
