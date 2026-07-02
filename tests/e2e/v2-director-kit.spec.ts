@@ -344,6 +344,10 @@ test.describe('V2 DirectorKit browser flow', () => {
       const raw = window.localStorage.getItem('jingci-current-project');
       return raw?.includes('platformCalibrations') && raw.includes('"outcome":"validated"');
     });
+    await page.getByRole('button', { name: /Projects/ }).click();
+    await expect(page.getByText('Calibrations')).toBeVisible();
+    await expect(page.getByText('最近校准：Seedance · 通过')).toBeVisible();
+    await page.getByRole('button', { name: '收起' }).click();
 
     if (isMobile) {
       await page.getByRole('button', { name: /Feedback/ }).click();

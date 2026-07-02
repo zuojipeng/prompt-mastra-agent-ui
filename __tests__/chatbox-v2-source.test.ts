@@ -46,6 +46,10 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('校准证据已保存到项目快照');
   });
 
+  it('keeps local project summaries authoritative on equal timestamps', () => {
+    expect(source).toContain('Date.parse(summary.updatedAt) >= Date.parse(current.updatedAt)');
+  });
+
   it('keeps the mobile fixed action bar out of the Work view', () => {
     expect(source).toContain("mobileTab === 'execute'");
     expect(source).not.toContain("mobileTab === 'work' &&");

@@ -10,4 +10,12 @@ describe('project dashboard source contract', () => {
     expect(source).toContain('Revisions');
     expect(source).toContain('project.iterationCount');
   });
+
+  it('surfaces platform calibration evidence in the project dashboard', () => {
+    expect(source).toContain('Calibrations');
+    expect(source).toContain('totalCalibrations');
+    expect(source).toContain('project.latestCalibrationPlatform');
+    expect(source).toContain('最近校准：');
+    expect(source).toContain('project.calibrationCount');
+  });
 });

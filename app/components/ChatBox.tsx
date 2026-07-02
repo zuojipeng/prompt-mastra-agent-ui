@@ -250,7 +250,7 @@ export function ChatBox() {
     const merged = new Map<string, LocalProjectWorkspaceSummary>();
     [...remote, ...local].forEach((summary) => {
       const current = merged.get(summary.id);
-      if (!current || Date.parse(summary.updatedAt) > Date.parse(current.updatedAt)) {
+      if (!current || Date.parse(summary.updatedAt) >= Date.parse(current.updatedAt)) {
         merged.set(summary.id, summary);
       }
     });

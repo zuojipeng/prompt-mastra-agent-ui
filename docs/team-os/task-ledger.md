@@ -9,7 +9,7 @@ Last Updated: 2026-07-02
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should surface saved calibration evidence in the project dashboard rows |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should export dashboard calibration state into operator handoff notes |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -322,6 +322,19 @@ Decision: SHIP
 Next owner: Test Agent
 Close condition: Commit and push after validation.
 
+### 2026-07-02 22:15 T025
+
+Type: EVIDENCE_ADDED
+From: Product Agent + UEAgent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / UE / Engineering / Test
+Message: Surfaced saved platform calibration evidence in project dashboard summaries and repaired equal-timestamp summary merging.
+Evidence: E3 `app/components/ProjectDashboardPanel.tsx`, E3 `app/components/ChatBox.tsx`, E3 `__tests__/project-dashboard-source.test.ts`, E3 `__tests__/chatbox-v2-source.test.ts`, E3 `tests/e2e/v2-director-kit.spec.ts`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -367,6 +380,7 @@ Close condition: Commit and push after validation.
 | EV-JC-026 | JC-T001 | E3 | Project snapshots include platform calibration evidence only when evidence exists | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `npx vitest run --pool=threads`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 | EV-JC-027 | JC-T001 | E3 | Workbench UI can capture platform calibration evidence for the selected shot | `app/components/ChatBox.tsx`, `app/components/DirectorKitPlatformAdvicePanel.tsx`, `__tests__/chatbox-v2-source.test.ts`, `__tests__/project-workspace.test.ts`, `npx vitest run --pool=threads`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 | EV-JC-028 | JC-T001 | E3 | Calibration capture UI works in desktop/mobile browser flows without mobile Work-view overlap | `tests/e2e/v2-director-kit.spec.ts`, `output/playwright/calibration-capture-desktop.png`, `output/playwright/calibration-capture-mobile.png`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run build` | Added, full validation passes | UEAgent + Test Agent |
+| EV-JC-029 | JC-T001 | E3 | Project dashboard rows surface saved calibration evidence and preserve local summary fields on equal timestamps | `app/components/ProjectDashboardPanel.tsx`, `app/components/ChatBox.tsx`, `__tests__/project-dashboard-source.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -393,3 +407,4 @@ Close condition: Commit and push after validation.
 | RV-JC-019 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for snapshot calibration evidence | Export-only optional section; no backend or generation claim | Broader validation before release |
 | RV-JC-020 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for calibration capture UI | Reuses workspace persistence; does not claim analytics automation | Broader validation before release |
 | RV-JC-021 | JC-T001 | UEAgent + Engineering Agent + Test Agent | Code Review Agent + Hermes | PASS for calibration browser evidence | Browser tests verify local evidence persistence; mobile fixed Work action removed | Broader validation before release |
+| RV-JC-022 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard calibration summary | Additive dashboard evidence; local summaries win equal timestamp remote summaries | Broader validation before release |
