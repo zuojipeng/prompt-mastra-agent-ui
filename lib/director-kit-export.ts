@@ -4,6 +4,7 @@ import type {
   DirectorKitTargetType,
   ShotCard,
 } from './director-kit-contract';
+import { rankPlatformFirstPassShots, resolvePlatformCapability } from './platform-capabilities';
 import type { ProjectWorkspaceIteration } from './project-workspace';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
@@ -54,29 +55,6 @@ function getShotStatusLabel(context: DirectorKitExportContext, shotId: number) {
 
 function getResultNote(context: DirectorKitExportContext, shotId: number) {
   return context.shotResultNotes[shotId]?.trim();
-}
-
-function getPlatformFirstPassShots(kit: DirectorKit, advice: PlatformAdvice) {
-  const bestFor = advice.bestFor?.toLowerCase() ?? '';
-  const preferredMode = bestFor.includes('参考图')
-    ? 'reference-image'
-    : bestFor.includes('图生')
-      ? 'image-to-video'
-      : bestFor.includes('文生')
-        ? 'text-to-video'
-        : null;
-
-  return [...(kit.shotCards ?? [])]
-    .sort((a, b) => {
-      const aModeMatch = preferredMode && a.generationMode === preferredMode ? 0 : 1;
-      const bModeMatch = preferredMode && b.generationMode === preferredMode ? 0 : 1;
-      if (aModeMatch !== bModeMatch) return aModeMatch - bModeMatch;
-
-      const riskOrder = { low: 0, medium: 1, high: 2 };
-      const riskDiff = riskOrder[a.riskLevel] - riskOrder[b.riskLevel];
-      return riskDiff || a.shotId - b.shotId;
-    })
-    .slice(0, 2);
 }
 
 export function summarizeShotExecution(kit: DirectorKit, context: DirectorKitExportContext) {
@@ -282,13 +260,17 @@ export function buildPlatformFeedPack(
       execution ? `出片进度：${execution.completed}/${execution.total}（${execution.progress}%）` : '',
     ].filter(Boolean)
     : [];
-  const firstPassShots = getPlatformFirstPassShots(kit, advice).map((card) =>
+  const platformCapability = resolvePlatformCapability(advice.platform);
+  const firstPassShots = rankPlatformFirstPassShots(kit.shotCards ?? [], platformCapability).map((card) =>
     `- 镜头 ${card.shotId}｜${label(card.generationMode)}｜${label(card.riskLevel)}｜${card.purpose}`,
   );
   const platformStrategy = [
     '## 平台适配策略',
     `首轮测试：${firstPassShots.length ? '先跑下列低风险/高匹配镜头，再扩展到全片。' : '暂无分镜，先补齐 DirectorKit 分镜。'}`,
     firstPassShots.join('\n'),
+    `能力画像：${platformCapability.displayName}｜偏好 ${platformCapability.preferredModes.map(label).join('、')}｜首轮 ${platformCapability.maxFirstPassShots} 镜头`,
+    `风险容忍：${label(platformCapability.riskTolerance)}`,
+    platformCapability.handoffNotes.length ? `交付提示：${platformCapability.handoffNotes.join('；')}` : '',
     advice.bestFor ? `平台偏好：${advice.bestFor}` : '',
     advice.avoid?.length ? `规避重点：${advice.avoid.join('；')}` : '',
   ].filter(Boolean);
