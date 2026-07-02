@@ -10,7 +10,7 @@ import {
   rankPlatformFirstPassShots,
   resolvePlatformCapability,
 } from './platform-capabilities';
-import type { ProjectWorkspaceIteration } from './project-workspace';
+import type { PlatformCalibrationEvidence, ProjectWorkspaceIteration } from './project-workspace';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 
@@ -22,6 +22,7 @@ export type DirectorKitExportContext = {
   shotResultNotes: Record<number, string>;
   generatedAt?: string;
   projectIterations?: ProjectWorkspaceIteration[];
+  platformCalibrations?: PlatformCalibrationEvidence[];
 };
 
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
@@ -48,6 +49,19 @@ const SHOT_STATUS_LABELS: Record<ShotExecutionStatus, string> = {
   generated: '已生成',
   failed: '翻车',
   usable: '可用',
+};
+
+const CALIBRATION_OUTCOME_LABELS: Record<PlatformCalibrationEvidence['outcome'], string> = {
+  validated: '已验证',
+  rejected: '未通过',
+  inconclusive: '不确定',
+};
+
+const CALIBRATION_NEXT_ACTION_LABELS: Record<PlatformCalibrationEvidence['nextAction'], string> = {
+  expand_full_queue: '扩展到全片队列',
+  retry_same: '同镜头重试',
+  revise_prompt: '回到 Prompt 修订',
+  skip_platform: '暂跳过该平台',
 };
 
 function label(value: string) {
@@ -202,6 +216,18 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
       `- 草稿：${iteration.promptDraft}`,
     ].join('\n'),
   );
+  const calibrationLines = (context.platformCalibrations ?? []).slice(0, 5).map((calibration, index) =>
+    [
+      `### 校准 ${index + 1}｜${calibration.platform}｜镜头 ${calibration.shotId}`,
+      `- 结果：${CALIBRATION_OUTCOME_LABELS[calibration.outcome]}`,
+      `- 能力画像：${calibration.capabilityProfileId}`,
+      `- 结论：${calibration.resultNote || '待补充'}`,
+      `- 失败原因：${calibration.failureReasons.length ? calibration.failureReasons.join('、') : '无'}`,
+      calibration.reusableSettings ? `- 可复用设置：${calibration.reusableSettings}` : '',
+      calibration.materialLink ? `- 素材链接：${calibration.materialLink}` : '',
+      `- 下一步：${CALIBRATION_NEXT_ACTION_LABELS[calibration.nextAction]}`,
+    ].filter(Boolean).join('\n'),
+  );
 
   return [
     '# 镜词项目快照',
@@ -229,6 +255,9 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
     '## 平台投喂策略',
     platformLines.join('\n\n'),
     '',
+    calibrationLines.length > 0 ? '## 平台校准证据' : '',
+    calibrationLines.join('\n\n'),
+    calibrationLines.length > 0 ? '' : '',
     iterationLines.length > 0 ? '## 迭代记录' : '',
     iterationLines.join('\n\n'),
     iterationLines.length > 0 ? '' : '',

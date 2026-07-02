@@ -133,6 +133,21 @@ const context: DirectorKitExportContext = {
       evidence: '4/5 条反馈提到该问题，差评率 80%',
     },
   ],
+  platformCalibrations: [
+    {
+      id: 'calibration-1',
+      createdAt: '2026-06-06T01:00:00.000Z',
+      platform: 'Seedance',
+      capabilityProfileId: 'seedance',
+      shotId: 1,
+      outcome: 'validated',
+      resultNote: '主体稳定，动作轻微可用。',
+      failureReasons: [],
+      reusableSettings: '5s, cinematic, low motion',
+      materialLink: 'https://example.com/shot-1',
+      nextAction: 'expand_full_queue',
+    },
+  ],
 };
 
 describe('director kit export builders', () => {
@@ -179,7 +194,20 @@ describe('director kit export builders', () => {
     expect(snapshot).toContain('## 迭代记录');
     expect(snapshot).toContain('### 迭代 1｜主体一致性 改写');
     expect(snapshot).toContain('- 证据：4/5 条反馈提到该问题，差评率 80%');
+    expect(snapshot).toContain('## 平台校准证据');
+    expect(snapshot).toContain('### 校准 1｜Seedance｜镜头 1');
+    expect(snapshot).toContain('- 结果：已验证');
+    expect(snapshot).toContain('- 能力画像：seedance');
+    expect(snapshot).toContain('- 可复用设置：5s, cinematic, low motion');
+    expect(snapshot).toContain('- 素材链接：https://example.com/shot-1');
+    expect(snapshot).toContain('- 下一步：扩展到全片队列');
     expect(snapshot).toContain('## 下一步');
+  });
+
+  it('omits platform calibration section when no evidence exists', () => {
+    const snapshot = buildProjectSnapshot(kit, { ...context, platformCalibrations: [] });
+
+    expect(snapshot).not.toContain('## 平台校准证据');
   });
 
   it('builds a platform feed pack', () => {
