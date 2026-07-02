@@ -5,6 +5,7 @@ import type {
   ShotCard,
 } from './director-kit-contract';
 import {
+  buildPlatformCalibrationChecklist,
   explainPlatformFirstPassShot,
   rankPlatformFirstPassShots,
   resolvePlatformCapability,
@@ -265,7 +266,8 @@ export function buildPlatformFeedPack(
     ].filter(Boolean)
     : [];
   const platformCapability = resolvePlatformCapability(advice.platform);
-  const firstPassShots = rankPlatformFirstPassShots(kit.shotCards ?? [], platformCapability).map((card) =>
+  const firstPassShotCards = rankPlatformFirstPassShots(kit.shotCards ?? [], platformCapability);
+  const firstPassShots = firstPassShotCards.map((card) =>
     [
       `- 镜头 ${card.shotId}｜${label(card.generationMode)}｜${label(card.riskLevel)}｜${card.purpose}`,
       `  选择理由：${explainPlatformFirstPassShot(card, platformCapability)}`,
@@ -281,6 +283,12 @@ export function buildPlatformFeedPack(
     advice.bestFor ? `平台偏好：${advice.bestFor}` : '',
     advice.avoid?.length ? `规避重点：${advice.avoid.join('；')}` : '',
   ].filter(Boolean);
+  const calibrationLines = firstPassShotCards.map((card) =>
+    [
+      `### 镜头 ${card.shotId} 校准`,
+      ...buildPlatformCalibrationChecklist(card, platformCapability).map((item) => `- ${item}`),
+    ].join('\n'),
+  );
   const shotQueue = (kit.shotCards ?? []).map((card) =>
     [
       `- 镜头 ${card.shotId}｜${card.duration}｜${label(card.generationMode)}`,
@@ -302,6 +310,9 @@ export function buildPlatformFeedPack(
     projectLines.length > 0 ? '' : '',
     platformStrategy.join('\n'),
     '',
+    calibrationLines.length > 0 ? '## 反馈校准点' : '',
+    calibrationLines.join('\n\n'),
+    calibrationLines.length > 0 ? '' : '',
     '## 主 Prompt',
     kit.masterPrompt,
     kit.negativePrompt ? `\n## Negative Prompt\n${kit.negativePrompt}` : '',

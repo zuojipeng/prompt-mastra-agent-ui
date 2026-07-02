@@ -113,3 +113,15 @@ export function explainPlatformFirstPassShot(
 
   return reasons.length ? reasons.join('；') : '作为完整队列的一部分保留观察';
 }
+
+export function buildPlatformCalibrationChecklist(
+  shot: ShotCard,
+  profile: PlatformCapabilityProfile,
+) {
+  return [
+    `镜头 ${shot.shotId} 是否验证了 ${profile.displayName} 的 ${shot.generationMode} 能力画像？`,
+    `实际结果是否符合选择理由：${explainPlatformFirstPassShot(shot, profile)}？`,
+    '如果失败，记录失败原因：主体漂移 / 动作失真 / 平台不适配 / Prompt 太泛 / 画面不稳定 / 其他。',
+    '如果成功，记录可复用设置、素材链接和下一轮是否扩大到完整队列。',
+  ];
+}

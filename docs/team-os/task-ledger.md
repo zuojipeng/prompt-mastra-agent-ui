@@ -9,7 +9,7 @@ Last Updated: 2026-07-02
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add feedback calibration hooks for platform first-pass rationale |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should persist platform calibration responses as structured project evidence |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -257,6 +257,19 @@ Decision: SHIP
 Next owner: Test Agent
 Close condition: Commit and push after validation.
 
+### 2026-07-02 08:45 T020
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / Engineering / Test
+Message: Added platform feedback calibration checklist hooks to feed packs so first-pass platform assumptions can be checked after generation.
+Evidence: E3 `lib/platform-capabilities.ts`, E3 `lib/director-kit-export.ts`, E3 `__tests__/platform-capabilities.test.ts`, E3 `__tests__/director-kit-export.test.ts`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -297,6 +310,7 @@ Close condition: Commit and push after validation.
 | EV-JC-021 | JC-T001 | E3 | Platform feed packs include conservative first-pass shot strategy while preserving the full queue | `lib/director-kit-export.ts`, `__tests__/director-kit-export.test.ts`, `npm test`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
 | EV-JC-022 | JC-T001 | E3 | Platform first-pass ranking is backed by explicit capability profiles and generic fallback | `lib/platform-capabilities.ts`, `lib/director-kit-export.ts`, `__tests__/platform-capabilities.test.ts`, `__tests__/director-kit-export.test.ts`, `npx vitest run --pool=threads`, `npm run build` | Added, full validation passes with threads pool; default forks pool timed out twice | Product Agent + Test Agent |
 | EV-JC-023 | JC-T001 | E3 | Platform feed packs explain why each first-pass shot is recommended | `lib/platform-capabilities.ts`, `lib/director-kit-export.ts`, `__tests__/platform-capabilities.test.ts`, `__tests__/director-kit-export.test.ts`, `npx vitest run --pool=threads`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
+| EV-JC-024 | JC-T001 | E3 | Platform feed packs include calibration checklist hooks for first-pass feedback | `lib/platform-capabilities.ts`, `lib/director-kit-export.ts`, `__tests__/platform-capabilities.test.ts`, `__tests__/director-kit-export.test.ts`, `npx vitest run --pool=threads`, `npm run build` | Added, full validation passes | Product Agent + Test Agent |
 
 ## Review Index
 
@@ -318,3 +332,4 @@ Close condition: Commit and push after validation.
 | RV-JC-014 | JC-T001 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform first-pass strategy | Additive export guidance; avoids hard filtering until capability model exists | Broader validation before release |
 | RV-JC-015 | JC-T001 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform capability model | Explicit pure domain model; does not hard-filter or hide shots | Broader validation before release |
 | RV-JC-016 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform handoff rationale | Deterministic rationale from shot/profile fields; no hidden filtering | Broader validation before release |
+| RV-JC-017 | JC-T001 | Product Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for platform feedback calibration hooks | Exported checklist only; does not overclaim persisted telemetry | Broader validation before release |

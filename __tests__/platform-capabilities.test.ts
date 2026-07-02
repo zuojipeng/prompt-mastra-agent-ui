@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildPlatformCalibrationChecklist,
   explainPlatformFirstPassShot,
   rankPlatformFirstPassShots,
   resolvePlatformCapability,
@@ -67,5 +68,20 @@ describe('platform capabilities', () => {
         profile,
       ),
     ).toBe('匹配平台偏好模式；风险在首轮容忍范围内；一致性压力适中；有明确翻车补救建议');
+  });
+
+  it('builds calibration questions for platform feedback', () => {
+    const profile = resolvePlatformCapability('Seedance');
+    const checklist = buildPlatformCalibrationChecklist(
+      {
+        ...shot({ shotId: 1, generationMode: 'text-to-video', riskLevel: 'low' }),
+        fixSuggestion: '保持主体轮廓稳定。',
+      },
+      profile,
+    );
+
+    expect(checklist).toContain('镜头 1 是否验证了 Seedance 的 text-to-video 能力画像？');
+    expect(checklist.join('\n')).toContain('主体漂移 / 动作失真 / 平台不适配');
+    expect(checklist.join('\n')).toContain('记录可复用设置、素材链接');
   });
 });

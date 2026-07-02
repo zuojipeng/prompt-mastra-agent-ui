@@ -200,6 +200,10 @@ describe('director kit export builders', () => {
     expect(pack).toContain('风险容忍：中风险');
     expect(pack).toContain('平台偏好：文生视频主路径。');
     expect(pack).toContain('规避重点：避免多人同屏复杂动作。');
+    expect(pack).toContain('## 反馈校准点');
+    expect(pack).toContain('### 镜头 1 校准');
+    expect(pack).toContain('镜头 1 是否验证了 Seedance 的 text-to-video 能力画像？');
+    expect(pack).toContain('如果失败，记录失败原因：主体漂移 / 动作失真 / 平台不适配 / Prompt 太泛 / 画面不稳定 / 其他。');
     expect(pack).toContain('## 分镜投喂顺序');
     expect(pack).toContain('- 镜头 1｜5s｜文生视频');
     expect(pack).toContain('状态：已生成');
