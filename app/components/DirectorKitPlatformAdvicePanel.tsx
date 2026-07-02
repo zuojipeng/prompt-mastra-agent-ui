@@ -34,11 +34,13 @@ export function DirectorKitPlatformAdvicePanel({
   copiedPlatform,
   onCopyPlatformFeedPack,
   renderFeedback,
+  renderCalibration,
 }: {
   platformAdvice: PlatformAdvice[];
   copiedPlatform: string | null;
   onCopyPlatformFeedPack: (advice: PlatformAdvice) => void;
   renderFeedback: (advice: PlatformAdvice) => ReactNode;
+  renderCalibration?: (advice: PlatformAdvice) => ReactNode;
 }) {
   if (!platformAdvice.length) return null;
 
@@ -84,6 +86,7 @@ export function DirectorKitPlatformAdvicePanel({
                 )}
               </div>
               {renderFeedback(advice)}
+              {renderCalibration?.(advice)}
             </div>
           </div>
         ))}

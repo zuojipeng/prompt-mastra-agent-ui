@@ -38,6 +38,14 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('handleRestoreIteration');
   });
 
+  it('captures platform calibration evidence from the workbench', () => {
+    expect(source).toContain('handleCapturePlatformCalibration');
+    expect(source).toContain('createPlatformCalibrationEvidence');
+    expect(source).toContain('appendPlatformCalibrationEvidence');
+    expect(source).toContain('校准当前镜头');
+    expect(source).toContain('校准证据已保存到项目快照');
+  });
+
   it('does not cover the mobile Work input state with the fixed action bar', () => {
     expect(source).toContain("!(mobileTab === 'work' && v2State === 'input')");
   });

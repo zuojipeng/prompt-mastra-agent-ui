@@ -35,10 +35,13 @@ import {
   type DirectorKitExportContext,
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
+import { resolvePlatformCapability } from '@/lib/platform-capabilities';
 import {
+  appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
+  createPlatformCalibrationEvidence,
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectWorkspaceIterationDigest,
@@ -49,6 +52,7 @@ import {
   saveLocalProjectWorkspace,
   type LocalProjectWorkspace,
   type LocalProjectWorkspaceSummary,
+  type PlatformCalibrationOutcome,
 } from '@/lib/project-workspace';
 import type { FeedbackNextAction } from '@/lib/feedback-next-action';
 import {
@@ -223,6 +227,7 @@ export function ChatBox() {
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
+  const [calibrationSavedKey, setCalibrationSavedKey] = useState<string | null>(null);
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -260,6 +265,20 @@ export function ChatBox() {
       setWorkspaceSummaries(mergeWorkspaceSummaries(localSummaries, cloudSummaries));
     }
   }, [mergeWorkspaceSummaries]);
+
+  const persistProjectWorkspace = useCallback((nextWorkspace: LocalProjectWorkspace) => {
+    saveLocalProjectWorkspace(nextWorkspace);
+    setWorkspace(nextWorkspace);
+    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
+    setWorkspaceStatus('saved');
+    setProjectSyncState('syncing');
+    syncProjectWorkspaceStatus(nextWorkspace)
+      .then((result) => {
+        setProjectSyncState(toProjectSyncState(result));
+        if (result === 'synced') refreshProjectSummaries().catch(() => {});
+      })
+      .catch(() => setProjectSyncState('error'));
+  }, [refreshProjectSummaries]);
 
   const applyProjectWorkspace = useCallback((nextWorkspace: LocalProjectWorkspace) => {
     setInput(nextWorkspace.creativeInput);
@@ -400,18 +419,8 @@ export function ChatBox() {
     setV2State('input');
     setMobileTab('work');
     setV2Error('');
-    saveLocalProjectWorkspace(nextWorkspace);
-    setWorkspace(nextWorkspace);
+    persistProjectWorkspace(nextWorkspace);
     setSelectedIterationId(iteration.id);
-    setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
-    setWorkspaceStatus('saved');
-    setProjectSyncState('syncing');
-    syncProjectWorkspaceStatus(nextWorkspace)
-      .then((result) => {
-        setProjectSyncState(toProjectSyncState(result));
-        if (result === 'synced') refreshProjectSummaries().catch(() => {});
-      })
-      .catch(() => setProjectSyncState('error'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.setTimeout(() => document.getElementById('prompt')?.focus(), 250);
   };
@@ -527,6 +536,59 @@ export function ChatBox() {
     setShotResultNotes((prev) => ({ ...prev, [shotId]: value }));
   };
 
+  const handleCapturePlatformCalibration = (
+    advice: PlatformAdvice,
+    outcome: PlatformCalibrationOutcome,
+  ) => {
+    if (!directorKit || !selectedShot) return;
+    const profile = resolvePlatformCapability(advice.platform);
+    const resultNote = (shotResultNotes[selectedShot.shotId] ?? '').trim();
+    const materialLink = resultNote.match(/https?:\/\/\S+/)?.[0] ?? '';
+    const nextAction =
+      outcome === 'validated'
+        ? 'expand_full_queue'
+        : outcome === 'rejected'
+          ? 'revise_prompt'
+          : 'retry_same';
+    const failureReasons =
+      outcome === 'rejected'
+        ? selectedShot.riskTags?.length
+          ? selectedShot.riskTags
+          : ['待复盘']
+        : [];
+    const baseWorkspace = createLocalProjectWorkspace(
+      {
+        creativeInput: input,
+        targetDuration,
+        targetType,
+        v2State,
+        directorKit,
+        selectedVersionIndex,
+        selectedShotId: selectedShot.shotId,
+        shotExecutionStatus,
+        shotResultNotes,
+      },
+      workspace,
+    );
+    const calibration = createPlatformCalibrationEvidence({
+      platform: advice.platform,
+      capabilityProfileId: profile.id,
+      shotId: selectedShot.shotId,
+      outcome,
+      resultNote: resultNote || `${advice.platform} 镜头 ${selectedShot.shotId} 校准：${outcome}`,
+      failureReasons,
+      reusableSettings: advice.settings?.join('；') ?? '',
+      materialLink,
+      nextAction,
+    });
+    const nextWorkspace = appendPlatformCalibrationEvidence(baseWorkspace, calibration);
+    const savedKey = `${advice.platform}-${selectedShot.shotId}-${outcome}`;
+
+    persistProjectWorkspace(nextWorkspace);
+    setCalibrationSavedKey(savedKey);
+    setTimeout(() => setCalibrationSavedKey((current) => (current === savedKey ? null : current)), 2500);
+  };
+
   const handleSaveWorkspace = () => {
     try {
       const nextWorkspace = createLocalProjectWorkspace(
@@ -543,17 +605,7 @@ export function ChatBox() {
         },
         workspace,
       );
-      saveLocalProjectWorkspace(nextWorkspace);
-      setWorkspace(nextWorkspace);
-      setWorkspaceSummaries(loadLocalProjectWorkspaceSummaries());
-      setWorkspaceStatus('saved');
-      setProjectSyncState('syncing');
-      syncProjectWorkspaceStatus(nextWorkspace)
-        .then((result) => {
-          setProjectSyncState(toProjectSyncState(result));
-          if (result === 'synced') refreshProjectSummaries().catch(() => {});
-        })
-        .catch(() => setProjectSyncState('error'));
+      persistProjectWorkspace(nextWorkspace);
     } catch {
       setWorkspaceStatus('error');
       setProjectSyncState('error');
@@ -1629,6 +1681,41 @@ export function ChatBox() {
                     failureReasons,
                   }),
               })
+            }
+            renderCalibration={(advice) =>
+              selectedShot ? (
+                <div className="rounded-lg border border-cyan-100 bg-cyan-50/60 p-3 dark:border-cyan-900/50 dark:bg-cyan-950/20">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[11px] font-semibold text-cyan-900 dark:text-cyan-100">
+                      校准当前镜头 {selectedShot.shotId}
+                    </p>
+                    <span className="text-[10px] text-cyan-700 dark:text-cyan-300">
+                      {shotResultNotes[selectedShot.shotId]?.trim() ? '已读取素材备注' : '可先填写素材备注'}
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    {[
+                      { outcome: 'validated' as const, label: '通过' },
+                      { outcome: 'rejected' as const, label: '未通过' },
+                      { outcome: 'inconclusive' as const, label: '不确定' },
+                    ].map((item) => {
+                      return (
+                        <button
+                          key={item.outcome}
+                          type="button"
+                          onClick={() => handleCapturePlatformCalibration(advice, item.outcome)}
+                          className="rounded-md border border-cyan-200 bg-white px-2 py-1.5 text-[11px] font-medium text-cyan-800 transition-colors hover:bg-cyan-100 dark:border-cyan-900/70 dark:bg-gray-900 dark:text-cyan-200 dark:hover:bg-cyan-950/40"
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {calibrationSavedKey?.startsWith(`${advice.platform}-${selectedShot.shotId}-`) && (
+                    <p className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300">校准证据已保存到项目快照</p>
+                  )}
+                </div>
+              ) : null
             }
           />
 
