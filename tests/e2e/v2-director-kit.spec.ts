@@ -335,6 +335,15 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('100%')).toBeVisible();
     await page.getByRole('button', { name: '可用' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
+    if (isMobile) {
+      await page.getByRole('button', { name: /Work/ }).click();
+    }
+    await page.getByRole('button', { name: '通过', exact: true }).click();
+    await expect(page.getByText('校准证据已保存到项目快照')).toBeVisible();
+    await page.waitForFunction(() => {
+      const raw = window.localStorage.getItem('jingci-current-project');
+      return raw?.includes('platformCalibrations') && raw.includes('"outcome":"validated"');
+    });
 
     if (isMobile) {
       await page.getByRole('button', { name: /Feedback/ }).click();
@@ -373,7 +382,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await page.getByRole('button', { name: '保存' }).click();
     await expect(page.getByText('项目已保存')).toBeVisible();
-    await expect(page.getByText('云端已同步')).toBeVisible();
+    await expect(page.getByText('云端已同步').first()).toBeVisible();
     await expect(page.getByText('最近项目')).toBeVisible();
 
     await page.getByRole('button', { name: /Projects/ }).click();

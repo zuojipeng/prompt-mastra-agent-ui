@@ -1907,34 +1907,16 @@ export function ChatBox() {
         </aside>
       </div>
 
-      {mobileTab !== 'feedback' && !(mobileTab === 'work' && v2State === 'input') && (
+      {mobileTab === 'execute' && (
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-gray-800 dark:bg-gray-950/95 lg:hidden">
-        {mobileTab === 'work' && (
-          <button
-            type="button"
-            onClick={() => {
-              if (v2State === 'result') {
-                setMobileTab('execute');
-              } else {
-                submitDirectorKit().catch(() => {});
-              }
-            }}
-            disabled={v2Loading || (v2State !== 'result' && !!validateInput(input))}
-            className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
-          >
-            {shellSummary.primaryActionLabel}
-          </button>
-        )}
-        {mobileTab === 'execute' && (
-          <button
-            type="button"
-            onClick={handleCopyExecutionChecklist}
-            disabled={!trackedShotCount}
-            className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
-          >
-            复制清单
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleCopyExecutionChecklist}
+          disabled={!trackedShotCount}
+          className="w-full rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white disabled:bg-gray-300 disabled:text-gray-500 dark:bg-gray-100 dark:text-gray-950 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+        >
+          复制清单
+        </button>
       </div>
       )}
     </div>

@@ -46,7 +46,8 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('校准证据已保存到项目快照');
   });
 
-  it('does not cover the mobile Work input state with the fixed action bar', () => {
-    expect(source).toContain("!(mobileTab === 'work' && v2State === 'input')");
+  it('keeps the mobile fixed action bar out of the Work view', () => {
+    expect(source).toContain("mobileTab === 'execute'");
+    expect(source).not.toContain("mobileTab === 'work' &&");
   });
 });
