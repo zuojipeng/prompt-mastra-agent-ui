@@ -5,6 +5,7 @@ import {
   buildPlatformFeedPack,
   buildProjectSnapshot,
   buildShotPrompt,
+  summarizeOperatorHandoffAcceptance,
   summarizeShotExecution,
   type DirectorKitExportContext,
 } from '@/lib/director-kit-export';
@@ -164,6 +165,31 @@ describe('director kit export builders', () => {
     });
   });
 
+  it('summarizes operator handoff acceptance blockers', () => {
+    expect(summarizeOperatorHandoffAcceptance(kit, context)).toEqual({
+      ready: true,
+      blockingIssueCount: 0,
+      pendingShotIds: [],
+      missingEvidenceShotIds: [],
+      failedWithoutReasonShotIds: [],
+      calibrationCount: 1,
+    });
+
+    expect(summarizeOperatorHandoffAcceptance(kit, {
+      ...context,
+      shotExecutionStatus: { 1: 'generated', 2: 'failed' },
+      shotResultNotes: {},
+      platformCalibrations: [],
+    })).toMatchObject({
+      ready: false,
+      blockingIssueCount: 2,
+      pendingShotIds: [],
+      missingEvidenceShotIds: [1],
+      failedWithoutReasonShotIds: [2],
+      calibrationCount: 0,
+    });
+  });
+
   it('builds a per-shot prompt with stability checklist', () => {
     const prompt = buildShotPrompt(kit, kit.shotCards[0]);
 
@@ -216,6 +242,7 @@ describe('director kit export builders', () => {
 
     expect(handoff).toContain('# 镜词 Operator 交接说明');
     expect(handoff).toContain('平台校准：共 1 条｜已验证 1｜未通过 0');
+    expect(handoff).toContain('交接验收：可交接');
     expect(handoff).toContain('- 1 条校准建议扩展到全片队列。');
     expect(handoff).toContain('## 逐镜头交接');
     expect(handoff).toContain('- 镜头 1｜已生成｜文生视频｜低风险');

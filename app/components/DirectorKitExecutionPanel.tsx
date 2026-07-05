@@ -1,6 +1,6 @@
 'use client';
 
-import type { ShotExecutionStatus } from '@/lib/director-kit-export';
+import type { ShotExecutionStatus, summarizeOperatorHandoffAcceptance } from '@/lib/director-kit-export';
 
 export type ShotExecutionOption = {
   status: ShotExecutionStatus;
@@ -9,12 +9,14 @@ export type ShotExecutionOption = {
 };
 
 export type ShotExecutionSummary = Record<ShotExecutionStatus, number>;
+export type OperatorHandoffAcceptance = ReturnType<typeof summarizeOperatorHandoffAcceptance>;
 
 export function DirectorKitExecutionPanel({
   completedShotCount,
   trackedShotCount,
   executionProgress,
   executionSummary,
+  handoffAcceptance,
   shotExecutionOptions,
   copiedChecklist,
   copiedSnapshot,
@@ -27,6 +29,7 @@ export function DirectorKitExecutionPanel({
   trackedShotCount: number;
   executionProgress: number;
   executionSummary: ShotExecutionSummary;
+  handoffAcceptance: OperatorHandoffAcceptance;
   shotExecutionOptions: ShotExecutionOption[];
   copiedChecklist: boolean;
   copiedSnapshot: boolean;
@@ -86,6 +89,33 @@ export function DirectorKitExecutionPanel({
         </button>
         {copiedHandoff && (
           <span className="text-[11px] text-emerald-600 dark:text-emerald-300">交接说明已复制</span>
+        )}
+      </div>
+      <div
+        className={`mt-3 rounded-lg border px-3 py-2 text-xs ${
+          handoffAcceptance.ready
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200'
+            : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200'
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold">{handoffAcceptance.ready ? '交接状态：可交接' : '交接状态：需补证据'}</span>
+          <span className="tabular-nums">
+            {handoffAcceptance.ready ? '0 项阻塞' : `${handoffAcceptance.blockingIssueCount} 项待补`}
+          </span>
+        </div>
+        {!handoffAcceptance.ready && (
+          <p className="mt-1 text-[11px]">
+            {[
+              handoffAcceptance.pendingShotIds.length ? `未生成 ${handoffAcceptance.pendingShotIds.join('、')}` : '',
+              handoffAcceptance.missingEvidenceShotIds.length
+                ? `缺素材 ${handoffAcceptance.missingEvidenceShotIds.join('、')}`
+                : '',
+              handoffAcceptance.failedWithoutReasonShotIds.length
+                ? `缺失败说明 ${handoffAcceptance.failedWithoutReasonShotIds.join('、')}`
+                : '',
+            ].filter(Boolean).join('；')}
+          </p>
         )}
       </div>
       <div className="mt-3 grid grid-cols-4 gap-2 text-center">

@@ -52,6 +52,7 @@ describe('ChatBox V2 source states', () => {
 
   it('exposes operator handoff notes from the execution panel', () => {
     expect(source).toContain('buildDirectorKitOperatorHandoffNotes');
+    expect(source).toContain('summarizeOperatorHandoffAcceptance');
     expect(source).toContain('handleCopyOperatorHandoffNotes');
     expect(source).toContain('copiedHandoff');
   });

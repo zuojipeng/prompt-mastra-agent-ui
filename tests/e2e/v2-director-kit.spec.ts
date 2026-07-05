@@ -311,6 +311,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await expect(page.getByText('出片执行进度')).toBeVisible();
     await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
+    await expect(page.getByText('交接状态：需补证据')).toBeVisible();
     if (isMobile) {
       await expect(page.getByLabel('当前镜头素材 / 备注')).toBeVisible();
       await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
@@ -335,6 +336,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: '翻车' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
     await expect(page.getByText('100%')).toBeVisible();
+    await expect(page.getByText('交接状态：可交接')).toBeVisible();
     await page.getByRole('button', { name: '可用' }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
     if (isMobile) {

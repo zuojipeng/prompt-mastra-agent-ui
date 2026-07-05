@@ -33,6 +33,7 @@ import {
   buildPlatformFeedPack as buildDirectorKitPlatformFeedPack,
   buildProjectSnapshot as buildDirectorKitProjectSnapshot,
   buildShotPrompt as buildDirectorKitShotPrompt,
+  summarizeOperatorHandoffAcceptance,
   type DirectorKitExportContext,
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
@@ -244,6 +245,24 @@ export function ChatBox() {
   const completedShotCount = executionSummary.generated + executionSummary.failed + executionSummary.usable;
   const executionProgress = trackedShotCount > 0 ? Math.round((completedShotCount / trackedShotCount) * 100) : 0;
   const selectedShot = shotCards.find((card) => card.shotId === selectedShotId) ?? shotCards[0] ?? null;
+  const handoffAcceptance = directorKit
+    ? summarizeOperatorHandoffAcceptance(directorKit, {
+      creativeInput: input,
+      targetDuration,
+      targetType,
+      shotExecutionStatus,
+      shotResultNotes,
+      projectIterations: workspace?.iterations ?? [],
+      platformCalibrations: workspace?.platformCalibrations ?? [],
+    })
+    : {
+      ready: false,
+      blockingIssueCount: 0,
+      pendingShotIds: [],
+      missingEvidenceShotIds: [],
+      failedWithoutReasonShotIds: [],
+      calibrationCount: 0,
+    };
 
   const mergeWorkspaceSummaries = useCallback((
     local: LocalProjectWorkspaceSummary[],
@@ -1858,6 +1877,7 @@ export function ChatBox() {
               trackedShotCount={trackedShotCount}
               executionProgress={executionProgress}
               executionSummary={executionSummary}
+              handoffAcceptance={handoffAcceptance}
               shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
               copiedChecklist={copiedChecklist}
               copiedSnapshot={copiedSnapshot}

@@ -97,6 +97,39 @@ export function summarizeShotExecution(kit: DirectorKit, context: DirectorKitExp
   };
 }
 
+export function summarizeOperatorHandoffAcceptance(kit: DirectorKit, context: DirectorKitExportContext) {
+  const shots = kit.shotCards ?? [];
+  const pendingShotIds: number[] = [];
+  const missingEvidenceShotIds: number[] = [];
+  const failedWithoutReasonShotIds: number[] = [];
+
+  shots.forEach((card) => {
+    const status = context.shotExecutionStatus[card.shotId] ?? 'pending';
+    const resultNote = getResultNote(context, card.shotId);
+
+    if (status === 'pending') {
+      pendingShotIds.push(card.shotId);
+    }
+    if ((status === 'generated' || status === 'usable') && !resultNote) {
+      missingEvidenceShotIds.push(card.shotId);
+    }
+    if (status === 'failed' && !resultNote) {
+      failedWithoutReasonShotIds.push(card.shotId);
+    }
+  });
+
+  const blockingIssueCount = pendingShotIds.length + missingEvidenceShotIds.length + failedWithoutReasonShotIds.length;
+
+  return {
+    ready: shots.length > 0 && blockingIssueCount === 0,
+    blockingIssueCount,
+    pendingShotIds,
+    missingEvidenceShotIds,
+    failedWithoutReasonShotIds,
+    calibrationCount: context.platformCalibrations?.length ?? 0,
+  };
+}
+
 export function buildShotPrompt(kit: DirectorKit, card: ShotCard) {
   const checklist = (card.stabilityChecklist ?? []).map((item) => `- ${item}`).join('\n');
   const riskTags = (card.riskTags ?? []).join('、') || '无';
@@ -279,6 +312,7 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
 
 export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKitExportContext) {
   const execution = summarizeShotExecution(kit, context);
+  const acceptance = summarizeOperatorHandoffAcceptance(kit, context);
   const latestCalibrations = (context.platformCalibrations ?? []).slice(0, 5);
   const validatedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'validated');
   const rejectedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'rejected');
@@ -332,6 +366,7 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
     `出片进度：${execution.completed}/${execution.total}（${execution.progress}%）`,
     `状态分布：未生成 ${execution.pending}｜已生成 ${execution.generated}｜翻车 ${execution.failed}｜可用 ${execution.usable}`,
     `平台校准：共 ${context.platformCalibrations?.length ?? 0} 条｜已验证 ${validatedCalibrations.length}｜未通过 ${rejectedCalibrations.length}`,
+    `交接验收：${acceptance.ready ? '可交接' : `需补 ${acceptance.blockingIssueCount} 项证据`}`,
     '',
     '## Operator 下一步',
     nextActionCounts.expand_full_queue > 0 ? `- ${nextActionCounts.expand_full_queue} 条校准建议扩展到全片队列。` : '',
@@ -356,6 +391,9 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
     kit.negativePrompt ? `\nNegative Prompt：${kit.negativePrompt}` : '',
     '',
     '## 交接验收',
+    acceptance.pendingShotIds.length ? `- 未生成镜头：${acceptance.pendingShotIds.join('、')}` : '',
+    acceptance.missingEvidenceShotIds.length ? `- 缺少素材/备注的已生成镜头：${acceptance.missingEvidenceShotIds.join('、')}` : '',
+    acceptance.failedWithoutReasonShotIds.length ? `- 缺少失败说明的翻车镜头：${acceptance.failedWithoutReasonShotIds.join('、')}` : '',
     '- 所有可用镜头有素材链接或备注。',
     '- 翻车镜头有失败原因和下一步动作。',
     '- 下一轮 Prompt 修订要引用本交接说明中的平台校准证据。',
