@@ -50,6 +50,12 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('Date.parse(summary.updatedAt) >= Date.parse(current.updatedAt)');
   });
 
+  it('downgrades unavailable history to a local-first notice', () => {
+    expect(source).toContain('formatHistoryError');
+    expect(source).toContain('历史记录暂不可用，当前项目仍会保存在本地项目库。');
+    expect(source).toContain('setHistory([])');
+  });
+
   it('exposes operator handoff notes from the execution panel', () => {
     expect(source).toContain('buildDirectorKitOperatorHandoffNotes');
     expect(source).toContain('summarizeOperatorHandoffAcceptance');

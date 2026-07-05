@@ -97,6 +97,17 @@ function toProjectSyncState(result: ProjectCloudSyncResult): ProjectSyncState {
   return result === 'synced' ? 'synced' : result === 'unavailable' ? 'localOnly' : 'error';
 }
 
+function formatHistoryError(err: unknown) {
+  const message = err instanceof Error ? err.message : '';
+  if (!message || message.includes('Failed to fetch') || message.includes('NetworkError')) {
+    return '历史记录暂不可用，当前项目仍会保存在本地项目库。';
+  }
+  if (message.startsWith('HTTP 404')) {
+    return '历史记录服务暂未上线，当前项目仍会保存在本地项目库。';
+  }
+  return `历史记录读取失败：${message}`;
+}
+
 const FAILURE_REASONS = [
   '主体漂移',
   '动作太复杂',
@@ -392,7 +403,8 @@ export function ChatBox() {
     try {
       setHistory(await fetchPromptHistory());
     } catch (err) {
-      setHistoryError(err instanceof Error ? err.message : '历史记录读取失败');
+      setHistory([]);
+      setHistoryError(formatHistoryError(err));
     } finally {
       setHistoryLoading(false);
     }

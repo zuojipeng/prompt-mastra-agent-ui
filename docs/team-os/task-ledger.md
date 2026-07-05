@@ -9,7 +9,7 @@ Last Updated: 2026-07-05
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should connect handoff readiness into dashboard scanning or repair local history fetch |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should connect handoff readiness into dashboard scanning |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -361,6 +361,19 @@ Decision: SHIP
 Next owner: Test Agent
 Close condition: Commit and push after validation.
 
+### 2026-07-05 16:45 T028
+
+Type: EVIDENCE_ADDED
+From: Product Agent + UEAgent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / UE / Engineering / Test
+Message: Made remote history failures local-first and non-blocking so the workbench no longer exposes raw `Failed to fetch` when `/api/history` is unavailable.
+Evidence: E3 `app/components/ChatBox.tsx`, E3 `app/components/HistoryPanel.tsx`, E3 `__tests__/chatbox-v2-source.test.ts`, E3 `tests/e2e/v2-director-kit.spec.ts`
+Decision: SHIP
+Next owner: Test Agent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -409,6 +422,7 @@ Close condition: Commit and push after validation.
 | EV-JC-029 | JC-T001 | E3 | Project dashboard rows surface saved calibration evidence and preserve local summary fields on equal timestamps | `app/components/ProjectDashboardPanel.tsx`, `app/components/ChatBox.tsx`, `__tests__/project-dashboard-source.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run build` | Added, full validation passes | Code Review Agent + Test Agent |
 | EV-JC-030 | JC-T001 | E3 | Operator handoff notes include execution progress, platform calibration state, and actionable next steps | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `app/components/DirectorKitExecutionPanel.tsx`, `tests/e2e/v2-director-kit.spec.ts`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `npx vitest run __tests__/director-kit-export.test.ts __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-031 | JC-T001 | E3 | Handoff readiness is derived from shot execution evidence and shown in the execution panel | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `app/components/DirectorKitExecutionPanel.tsx`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/director-kit-export.test.ts __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
+| EV-JC-032 | JC-T001 | E3 | History API failures degrade to local-first copy without blocking the DirectorKit flow | `app/components/ChatBox.tsx`, `app/components/HistoryPanel.tsx`, `__tests__/chatbox-v2-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx vitest run --pool=threads`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -438,3 +452,4 @@ Close condition: Commit and push after validation.
 | RV-JC-022 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard calibration summary | Additive dashboard evidence; local summaries win equal timestamp remote summaries | Broader validation before release |
 | RV-JC-023 | JC-T001 | Product Agent + Operator Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for operator handoff notes | Additive copy/export surface; no workspace schema, backend, or generation behavior changed | Broader validation before release |
 | RV-JC-024 | JC-T001 | Operator Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for handoff acceptance | Derived state only; no new persistence or API contract | Broader validation before release |
+| RV-JC-025 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for history local-first degrade | Optional remote history failure is now non-blocking; production history route remains separate release work | Broader validation before release |

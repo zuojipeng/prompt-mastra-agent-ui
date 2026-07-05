@@ -176,6 +176,14 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
     await route.fulfill({ status: 405, contentType: 'application/json', body: JSON.stringify({ success: false }) });
   });
 
+  await page.route('**/api/history', async (route: Route) => {
+    await route.fulfill({
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: false, error: 'history route not deployed' }),
+    });
+  });
+
   await page.route('**/api/feedback/analytics**', async (route: Route) => {
     await route.fulfill({
       status: 200,
@@ -265,12 +273,16 @@ async function createDirectorKitResult(page: Page) {
 }
 
 test.describe('V2 DirectorKit browser flow', () => {
+  test.describe.configure({ timeout: 45_000 });
+
   test('happy path reaches DirectorKit result', async ({ page }, testInfo) => {
     const isMobile = testInfo.project.name === 'mobile-chrome';
     await mockDirectorKit(page);
     await page.goto('/');
 
     await page.getByPlaceholder('例如：雨夜街头，一个女孩回头...').fill(creative);
+    await expect(page.getByText('历史记录服务暂未上线，当前项目仍会保存在本地项目库。')).toBeVisible();
+    await expect(page.getByText('Failed to fetch')).toHaveCount(0);
     await page.getByRole('button', { name: '60s' }).click();
     await page.getByRole('button', { name: '赛博朋克' }).click();
     await page.getByRole('button', { name: /先做创意体检/ }).click();
