@@ -18,8 +18,10 @@ export function DirectorKitExecutionPanel({
   shotExecutionOptions,
   copiedChecklist,
   copiedSnapshot,
+  copiedHandoff,
   onCopyExecutionChecklist,
   onCopyProjectSnapshot,
+  onCopyOperatorHandoffNotes,
 }: {
   completedShotCount: number;
   trackedShotCount: number;
@@ -28,8 +30,10 @@ export function DirectorKitExecutionPanel({
   shotExecutionOptions: ShotExecutionOption[];
   copiedChecklist: boolean;
   copiedSnapshot: boolean;
+  copiedHandoff: boolean;
   onCopyExecutionChecklist: () => void;
   onCopyProjectSnapshot: () => void;
+  onCopyOperatorHandoffNotes: () => void;
 }) {
   if (!trackedShotCount) return null;
 
@@ -72,6 +76,16 @@ export function DirectorKitExecutionPanel({
         </button>
         {copiedSnapshot && (
           <span className="text-[11px] text-emerald-600 dark:text-emerald-300">项目快照已复制</span>
+        )}
+        <button
+          type="button"
+          onClick={onCopyOperatorHandoffNotes}
+          className="rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-[11px] font-medium text-cyan-800 transition-colors hover:bg-cyan-100 dark:border-cyan-900/70 dark:bg-cyan-950/30 dark:text-cyan-200 dark:hover:bg-cyan-950/50"
+        >
+          复制交接说明
+        </button>
+        {copiedHandoff && (
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-300">交接说明已复制</span>
         )}
       </div>
       <div className="mt-3 grid grid-cols-4 gap-2 text-center">

@@ -29,6 +29,7 @@ import {
 } from '@/lib/director-kit-contract';
 import {
   buildExecutionChecklist as buildDirectorKitExecutionChecklist,
+  buildOperatorHandoffNotes as buildDirectorKitOperatorHandoffNotes,
   buildPlatformFeedPack as buildDirectorKitPlatformFeedPack,
   buildProjectSnapshot as buildDirectorKitProjectSnapshot,
   buildShotPrompt as buildDirectorKitShotPrompt,
@@ -226,6 +227,7 @@ export function ChatBox() {
   const [copiedShotId, setCopiedShotId] = useState<number | null>(null);
   const [copiedChecklist, setCopiedChecklist] = useState(false);
   const [copiedSnapshot, setCopiedSnapshot] = useState(false);
+  const [copiedHandoff, setCopiedHandoff] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
   const [calibrationSavedKey, setCalibrationSavedKey] = useState<string | null>(null);
 
@@ -684,6 +686,17 @@ export function ChatBox() {
     await copyTextToClipboard(buildProjectSnapshot());
     setCopiedSnapshot(true);
     setTimeout(() => setCopiedSnapshot(false), 2000);
+  };
+
+  const buildOperatorHandoffNotes = () => {
+    if (!directorKit) return '';
+    return buildDirectorKitOperatorHandoffNotes(directorKit, getDirectorKitExportContext(new Date().toISOString()));
+  };
+
+  const handleCopyOperatorHandoffNotes = async () => {
+    await copyTextToClipboard(buildOperatorHandoffNotes());
+    setCopiedHandoff(true);
+    setTimeout(() => setCopiedHandoff(false), 2000);
   };
 
   const buildPlatformFeedPack = (advice: PlatformAdvice) => {
@@ -1848,8 +1861,10 @@ export function ChatBox() {
               shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
               copiedChecklist={copiedChecklist}
               copiedSnapshot={copiedSnapshot}
+              copiedHandoff={copiedHandoff}
               onCopyExecutionChecklist={handleCopyExecutionChecklist}
               onCopyProjectSnapshot={handleCopyProjectSnapshot}
+              onCopyOperatorHandoffNotes={handleCopyOperatorHandoffNotes}
             />
           </div>
 

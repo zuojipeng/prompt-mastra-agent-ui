@@ -322,6 +322,8 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('执行清单已复制')).toBeVisible();
     await page.getByRole('button', { name: '复制项目快照' }).click();
     await expect(page.getByText('项目快照已复制')).toBeVisible();
+    await page.getByRole('button', { name: '复制交接说明' }).click();
+    await expect(page.getByText('交接说明已复制')).toBeVisible();
     if (isMobile) {
       await page.getByRole('button', { name: '复制当前镜头 Prompt' }).click();
       await expect(page.getByText('当前镜头 Prompt 已复制')).toBeVisible();

@@ -277,6 +277,91 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
   ].filter(Boolean).join('\n');
 }
 
+export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKitExportContext) {
+  const execution = summarizeShotExecution(kit, context);
+  const latestCalibrations = (context.platformCalibrations ?? []).slice(0, 5);
+  const validatedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'validated');
+  const rejectedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'rejected');
+  const nextActionCounts = latestCalibrations.reduce(
+    (acc, calibration) => {
+      acc[calibration.nextAction] += 1;
+      return acc;
+    },
+    {
+      expand_full_queue: 0,
+      retry_same: 0,
+      revise_prompt: 0,
+      skip_platform: 0,
+    } satisfies Record<PlatformCalibrationEvidence['nextAction'], number>,
+  );
+  const shotLines = (kit.shotCards ?? []).map((card) => {
+    const resultNote = getResultNote(context, card.shotId);
+    return [
+      `- 镜头 ${card.shotId}｜${getShotStatusLabel(context, card.shotId)}｜${label(card.generationMode)}｜${label(card.riskLevel)}`,
+      `  目的：${card.purpose}`,
+      resultNote ? `  素材/备注：${resultNote}` : '  素材/备注：待补充',
+      card.fixSuggestion ? `  异常处理：${card.fixSuggestion}` : '',
+    ].filter(Boolean).join('\n');
+  });
+  const calibrationLines = latestCalibrations.map((calibration) =>
+    [
+      `- ${calibration.platform}｜镜头 ${calibration.shotId}｜${CALIBRATION_OUTCOME_LABELS[calibration.outcome]}`,
+      `  结论：${calibration.resultNote || '待补充'}`,
+      calibration.failureReasons.length ? `  失败原因：${calibration.failureReasons.join('、')}` : '',
+      calibration.reusableSettings ? `  可复用设置：${calibration.reusableSettings}` : '',
+      calibration.materialLink ? `  素材链接：${calibration.materialLink}` : '',
+      `  下一步：${CALIBRATION_NEXT_ACTION_LABELS[calibration.nextAction]}`,
+    ].filter(Boolean).join('\n'),
+  );
+  const platformLines = (kit.platformAdvice ?? []).map((advice) =>
+    [
+      `- ${advice.platform}${advice.recommended ? '（优先）' : ''}：${advice.bestFor || advice.note}`,
+      advice.settings?.length ? `  建议设置：${advice.settings.join('；')}` : '',
+      advice.avoid?.length ? `  避免：${advice.avoid.join('；')}` : '',
+    ].filter(Boolean).join('\n'),
+  );
+
+  return [
+    '# 镜词 Operator 交接说明',
+    '',
+    `生成时间：${context.generatedAt ?? new Date().toISOString()}`,
+    `项目创意：${context.creativeInput}`,
+    `目标：${context.targetDuration}｜${label(context.targetType)}`,
+    '',
+    '## 当前状态',
+    `出片进度：${execution.completed}/${execution.total}（${execution.progress}%）`,
+    `状态分布：未生成 ${execution.pending}｜已生成 ${execution.generated}｜翻车 ${execution.failed}｜可用 ${execution.usable}`,
+    `平台校准：共 ${context.platformCalibrations?.length ?? 0} 条｜已验证 ${validatedCalibrations.length}｜未通过 ${rejectedCalibrations.length}`,
+    '',
+    '## Operator 下一步',
+    nextActionCounts.expand_full_queue > 0 ? `- ${nextActionCounts.expand_full_queue} 条校准建议扩展到全片队列。` : '',
+    nextActionCounts.retry_same > 0 ? `- ${nextActionCounts.retry_same} 条校准建议同镜头重试。` : '',
+    nextActionCounts.revise_prompt > 0 ? `- ${nextActionCounts.revise_prompt} 条校准建议回到 Prompt 修订。` : '',
+    nextActionCounts.skip_platform > 0 ? `- ${nextActionCounts.skip_platform} 条校准建议暂跳过对应平台。` : '',
+    latestCalibrations.length === 0 ? '- 先执行推荐平台首轮镜头，并回填平台校准结果。' : '',
+    execution.pending > 0 ? '- 对未生成镜头继续逐镜头投喂，并补齐素材链接。' : '',
+    execution.failed > 0 ? '- 对翻车镜头记录失败原因，优先重试低风险改写版本。' : '',
+    '',
+    '## 逐镜头交接',
+    shotLines.join('\n'),
+    '',
+    platformLines.length > 0 ? '## 平台投喂重点' : '',
+    platformLines.join('\n'),
+    platformLines.length > 0 ? '' : '',
+    calibrationLines.length > 0 ? '## 最近平台校准证据' : '',
+    calibrationLines.join('\n\n'),
+    calibrationLines.length > 0 ? '' : '',
+    '## 主 Prompt',
+    kit.masterPrompt,
+    kit.negativePrompt ? `\nNegative Prompt：${kit.negativePrompt}` : '',
+    '',
+    '## 交接验收',
+    '- 所有可用镜头有素材链接或备注。',
+    '- 翻车镜头有失败原因和下一步动作。',
+    '- 下一轮 Prompt 修订要引用本交接说明中的平台校准证据。',
+  ].filter(Boolean).join('\n');
+}
+
 export function buildPlatformFeedPack(
   kit: DirectorKit,
   advice: PlatformAdvice,

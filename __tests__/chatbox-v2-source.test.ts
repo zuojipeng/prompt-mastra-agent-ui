@@ -50,6 +50,12 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('Date.parse(summary.updatedAt) >= Date.parse(current.updatedAt)');
   });
 
+  it('exposes operator handoff notes from the execution panel', () => {
+    expect(source).toContain('buildDirectorKitOperatorHandoffNotes');
+    expect(source).toContain('handleCopyOperatorHandoffNotes');
+    expect(source).toContain('copiedHandoff');
+  });
+
   it('keeps the mobile fixed action bar out of the Work view', () => {
     expect(source).toContain("mobileTab === 'execute'");
     expect(source).not.toContain("mobileTab === 'work' &&");

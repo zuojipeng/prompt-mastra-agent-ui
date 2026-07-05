@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildExecutionChecklist,
+  buildOperatorHandoffNotes,
   buildPlatformFeedPack,
   buildProjectSnapshot,
   buildShotPrompt,
@@ -208,6 +209,29 @@ describe('director kit export builders', () => {
     const snapshot = buildProjectSnapshot(kit, { ...context, platformCalibrations: [] });
 
     expect(snapshot).not.toContain('## 平台校准证据');
+  });
+
+  it('builds operator handoff notes with calibration state and next actions', () => {
+    const handoff = buildOperatorHandoffNotes(kit, context);
+
+    expect(handoff).toContain('# 镜词 Operator 交接说明');
+    expect(handoff).toContain('平台校准：共 1 条｜已验证 1｜未通过 0');
+    expect(handoff).toContain('- 1 条校准建议扩展到全片队列。');
+    expect(handoff).toContain('## 逐镜头交接');
+    expect(handoff).toContain('- 镜头 1｜已生成｜文生视频｜低风险');
+    expect(handoff).toContain('素材/备注：Seedance 链接：shot-1');
+    expect(handoff).toContain('## 最近平台校准证据');
+    expect(handoff).toContain('- Seedance｜镜头 1｜已验证');
+    expect(handoff).toContain('可复用设置：5s, cinematic, low motion');
+    expect(handoff).toContain('下一轮 Prompt 修订要引用本交接说明中的平台校准证据。');
+  });
+
+  it('keeps operator handoff actionable before calibration exists', () => {
+    const handoff = buildOperatorHandoffNotes(kit, { ...context, platformCalibrations: [] });
+
+    expect(handoff).toContain('平台校准：共 0 条｜已验证 0｜未通过 0');
+    expect(handoff).toContain('- 先执行推荐平台首轮镜头，并回填平台校准结果。');
+    expect(handoff).not.toContain('## 最近平台校准证据');
   });
 
   it('builds a platform feed pack', () => {
