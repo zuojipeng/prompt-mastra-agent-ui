@@ -87,6 +87,8 @@ export type LocalProjectWorkspaceSummary = {
   calibrationCount: number;
   latestCalibrationOutcome: PlatformCalibrationOutcome | null;
   latestCalibrationPlatform: string | null;
+  handoffReady: boolean;
+  handoffBlockingIssueCount: number;
 };
 
 export type LocalProjectWorkspaceInput = Pick<
@@ -243,6 +245,14 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
     return status === 'pending' ? count : count + 1;
   }, 0);
+  const handoffBlockingIssueCount = shotCards.reduce((count, card) => {
+    const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
+    const resultNote = project.shotResultNotes[card.shotId]?.trim();
+    if (status === 'pending') return count + 1;
+    if ((status === 'generated' || status === 'usable') && !resultNote) return count + 1;
+    if (status === 'failed' && !resultNote) return count + 1;
+    return count;
+  }, 0);
 
   return {
     id: project.id,
@@ -258,6 +268,8 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     calibrationCount: project.platformCalibrations?.length ?? 0,
     latestCalibrationOutcome: project.platformCalibrations?.[0]?.outcome ?? null,
     latestCalibrationPlatform: project.platformCalibrations?.[0]?.platform ?? null,
+    handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
+    handoffBlockingIssueCount,
   };
 }
 

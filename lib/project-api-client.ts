@@ -55,6 +55,8 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
         ? row.latestCalibrationOutcome
         : null,
     latestCalibrationPlatform: typeof row.latestCalibrationPlatform === 'string' ? row.latestCalibrationPlatform : null,
+    handoffReady: typeof row.handoffReady === 'boolean' ? row.handoffReady : false,
+    handoffBlockingIssueCount: typeof row.handoffBlockingIssueCount === 'number' ? row.handoffBlockingIssueCount : 0,
   };
 }
 

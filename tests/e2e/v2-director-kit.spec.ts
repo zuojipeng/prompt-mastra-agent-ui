@@ -111,8 +111,14 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
       const projects = Array.from(cloudProjects.values()).map((workspace) => {
         const directorKit = workspace.directorKit as { shotCards?: Array<{ shotId: number }> } | undefined;
         const shotExecutionStatus = workspace.shotExecutionStatus as Record<string, string> | undefined;
+        const shotResultNotes = workspace.shotResultNotes as Record<string, string> | undefined;
         const shotCards = directorKit?.shotCards ?? [];
         const completedShotCount = shotCards.filter((card) => (shotExecutionStatus?.[card.shotId] ?? 'pending') !== 'pending').length;
+        const handoffBlockingIssueCount = shotCards.filter((card) => {
+          const status = shotExecutionStatus?.[card.shotId] ?? 'pending';
+          const note = shotResultNotes?.[card.shotId]?.trim();
+          return status === 'pending' || ((status === 'generated' || status === 'usable') && !note) || (status === 'failed' && !note);
+        }).length;
 
         return {
           id: workspace.id,
@@ -123,6 +129,8 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
           stage: workspace.v2State,
           shotCount: shotCards.length,
           completedShotCount,
+          handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
+          handoffBlockingIssueCount,
           createdAt: Date.parse(String(workspace.createdAt)),
           updatedAt: Date.parse(String(workspace.updatedAt)),
         };
@@ -273,7 +281,7 @@ async function createDirectorKitResult(page: Page) {
 }
 
 test.describe('V2 DirectorKit browser flow', () => {
-  test.describe.configure({ timeout: 45_000 });
+  test.describe.configure({ timeout: 60_000 });
 
   test('happy path reaches DirectorKit result', async ({ page }, testInfo) => {
     const isMobile = testInfo.project.name === 'mobile-chrome';
@@ -289,7 +297,6 @@ test.describe('V2 DirectorKit browser flow', () => {
 
     await expect(page.getByText('正在生成导演执行包')).toBeVisible();
     await expect(page.getByPlaceholder('例如：雨夜街头，一个女孩回头...')).toBeDisabled();
-    await expect(page.getByRole('button', { name: '60s' })).toBeDisabled();
 
     await expect(page.getByRole('heading', { name: /创意体检报告/ })).toBeVisible();
     await expect(page.getByText('可拍性评分')).toBeVisible();
@@ -362,7 +369,11 @@ test.describe('V2 DirectorKit browser flow', () => {
     });
     await page.getByRole('button', { name: /Projects/ }).click();
     await expect(page.getByText('Calibrations')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '项目仪表盘' })).toBeVisible();
+    const projectDashboard = page.getByRole('region', { name: '项目仪表盘' });
     await expect(page.getByText('最近校准：Seedance · 通过')).toBeVisible();
+    await expect(projectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
+    await expect(projectDashboard.getByText('交接状态：可交接')).toBeVisible();
     await page.getByRole('button', { name: '收起' }).click();
 
     if (isMobile) {

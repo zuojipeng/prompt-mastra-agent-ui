@@ -306,6 +306,8 @@ describe('project workspace persistence', () => {
         calibrationCount: 0,
         latestCalibrationOutcome: null,
         latestCalibrationPlatform: null,
+        handoffReady: true,
+        handoffBlockingIssueCount: 0,
       }),
     ]);
 
@@ -432,6 +434,34 @@ describe('project workspace persistence', () => {
         calibrationCount: 1,
         latestCalibrationOutcome: 'rejected',
         latestCalibrationPlatform: 'Seedance',
+      }),
+    ]);
+  });
+
+  it('summarizes handoff blockers for project dashboards', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(workspace, storage);
+
+    expect(loadLocalProjectWorkspaceSummaries(storage)).toEqual([
+      expect.objectContaining({
+        handoffReady: false,
+        handoffBlockingIssueCount: 1,
       }),
     ]);
   });

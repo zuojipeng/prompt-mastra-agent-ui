@@ -34,6 +34,10 @@ const CALIBRATION_OUTCOME_LABELS: Record<NonNullable<LocalProjectWorkspaceSummar
   inconclusive: '不确定',
 };
 
+function getHandoffLabel(project: LocalProjectWorkspaceSummary) {
+  return project.handoffReady ? '可交接' : project.handoffBlockingIssueCount > 0 ? `缺 ${project.handoffBlockingIssueCount} 项` : '--';
+}
+
 function formatProjectTime(updatedAt: string) {
   return new Intl.DateTimeFormat('zh-CN', {
     month: '2-digit',
@@ -66,7 +70,8 @@ export function ProjectDashboardPanel({
         project.title.toLowerCase().includes(normalizedQuery) ||
         getTargetTypeLabel(project.targetType).toLowerCase().includes(normalizedQuery) ||
         (project.latestIterationFocus ?? '').toLowerCase().includes(normalizedQuery) ||
-        (project.latestCalibrationPlatform ?? '').toLowerCase().includes(normalizedQuery);
+        (project.latestCalibrationPlatform ?? '').toLowerCase().includes(normalizedQuery) ||
+        getHandoffLabel(project).toLowerCase().includes(normalizedQuery);
       const matchesStage = stageFilter === 'all' || project.stage === stageFilter;
       return matchesQuery && matchesStage;
     });
@@ -77,11 +82,15 @@ export function ProjectDashboardPanel({
   const readyProjects = projects.filter((project) => project.stage === 'result').length;
   const totalIterations = projects.reduce((total, project) => total + project.iterationCount, 0);
   const totalCalibrations = projects.reduce((total, project) => total + project.calibrationCount, 0);
+  const handoffReadyProjects = projects.filter((project) => project.handoffReady).length;
 
   if (!open) return null;
 
   return (
-    <section className="mb-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <section
+      aria-label="项目仪表盘"
+      className="mb-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+    >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">Project Dashboard</p>
@@ -96,7 +105,7 @@ export function ProjectDashboardPanel({
         </button>
       </div>
 
-      <div className="mt-4 grid gap-2 text-xs sm:grid-cols-5">
+      <div className="mt-4 grid gap-2 text-xs sm:grid-cols-6">
         <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
           <p className="text-[10px] text-gray-400">Projects</p>
           <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100">{projects.length}</p>
@@ -118,6 +127,10 @@ export function ProjectDashboardPanel({
         <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
           <p className="text-[10px] text-gray-400">Calibrations</p>
           <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100">{totalCalibrations}</p>
+        </div>
+        <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
+          <p className="text-[10px] text-gray-400">Handoff</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100">{handoffReadyProjects}</p>
         </div>
       </div>
 
@@ -148,20 +161,21 @@ export function ProjectDashboardPanel({
 
       {filteredProjects.length > 0 ? (
         <div className="mt-4 overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
-          <div className="hidden grid-cols-[minmax(0,1.5fr)_120px_110px_90px_90px_120px_110px] gap-3 border-b border-gray-200 bg-gray-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:border-gray-800 dark:bg-gray-950 lg:grid">
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_110px_100px_80px_80px_110px_100px_100px] gap-3 border-b border-gray-200 bg-gray-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:border-gray-800 dark:bg-gray-950 lg:grid">
             <span>Project</span>
             <span>Stage</span>
             <span>Type</span>
             <span>Progress</span>
             <span>Revision</span>
             <span>Calibration</span>
+            <span>Handoff</span>
             <span>Updated</span>
           </div>
           <div className="divide-y divide-gray-200 dark:divide-gray-800">
             {filteredProjects.map((project) => (
               <div
                 key={project.id}
-                className={`grid gap-3 px-3 py-3 lg:grid-cols-[minmax(0,1.5fr)_120px_110px_90px_90px_120px_110px] lg:items-center ${
+                className={`grid gap-3 px-3 py-3 lg:grid-cols-[minmax(0,1.5fr)_110px_100px_80px_80px_110px_100px_100px] lg:items-center ${
                   activeProjectId === project.id ? 'bg-emerald-50/70 dark:bg-emerald-950/20' : 'bg-white dark:bg-gray-900'
                 }`}
               >
@@ -186,6 +200,9 @@ export function ProjectDashboardPanel({
                       最近校准：{project.latestCalibrationPlatform} · {CALIBRATION_OUTCOME_LABELS[project.latestCalibrationOutcome]}
                     </p>
                   )}
+                  <p className={`mt-1 truncate text-[11px] ${project.handoffReady ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                    交接状态：{getHandoffLabel(project)}
+                  </p>
                 </div>
                 <span className="hidden text-xs font-medium text-gray-600 dark:text-gray-300 lg:block">
                   {STAGE_LABELS[project.stage]}
@@ -203,6 +220,9 @@ export function ProjectDashboardPanel({
                   {project.calibrationCount
                     ? `${project.calibrationCount} 次${project.latestCalibrationOutcome ? ` · ${CALIBRATION_OUTCOME_LABELS[project.latestCalibrationOutcome]}` : ''}`
                     : '--'}
+                </span>
+                <span className={`text-xs font-medium tabular-nums ${project.handoffReady ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                  {getHandoffLabel(project)}
                 </span>
                 <div className="flex items-center justify-between gap-3">
                   <span className="hidden text-xs text-gray-500 dark:text-gray-400 lg:block">

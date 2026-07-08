@@ -59,6 +59,8 @@ describe('project-api-client', () => {
         calibrationCount: 1,
         latestCalibrationOutcome: 'validated',
         latestCalibrationPlatform: 'Seedance',
+        handoffReady: true,
+        handoffBlockingIssueCount: 0,
         updatedAt: Date.UTC(2026, 5, 17),
       }),
     ).toEqual({
@@ -74,6 +76,8 @@ describe('project-api-client', () => {
       calibrationCount: 1,
       latestCalibrationOutcome: 'validated',
       latestCalibrationPlatform: 'Seedance',
+      handoffReady: true,
+      handoffBlockingIssueCount: 0,
       updatedAt: '2026-06-17T00:00:00.000Z',
     });
 
@@ -112,6 +116,8 @@ describe('project-api-client', () => {
         calibrationCount: 0,
         latestCalibrationOutcome: null,
         latestCalibrationPlatform: null,
+        handoffReady: false,
+        handoffBlockingIssueCount: 0,
       }),
     ]);
     expect(fetchMock).toHaveBeenCalledWith('https://worker.example.com/api/projects', {

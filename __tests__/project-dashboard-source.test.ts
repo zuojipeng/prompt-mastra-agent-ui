@@ -18,4 +18,12 @@ describe('project dashboard source contract', () => {
     expect(source).toContain('最近校准：');
     expect(source).toContain('project.calibrationCount');
   });
+
+  it('surfaces handoff readiness in the project dashboard', () => {
+    expect(source).toContain('Handoff');
+    expect(source).toContain('handoffReadyProjects');
+    expect(source).toContain('getHandoffLabel');
+    expect(source).toContain('交接状态：');
+    expect(source).toContain('project.handoffReady');
+  });
 });
