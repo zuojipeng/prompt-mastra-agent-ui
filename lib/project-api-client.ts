@@ -35,6 +35,9 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
       : typeof row.updatedAt === 'string'
         ? row.updatedAt
         : new Date().toISOString();
+  const handoffBlockingReasons = Array.isArray(row.handoffBlockingReasons)
+    ? row.handoffBlockingReasons.filter((reason): reason is string => typeof reason === 'string')
+    : [];
 
   return {
     id: row.id,
@@ -56,7 +59,9 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
         : null,
     latestCalibrationPlatform: typeof row.latestCalibrationPlatform === 'string' ? row.latestCalibrationPlatform : null,
     handoffReady: typeof row.handoffReady === 'boolean' ? row.handoffReady : false,
-    handoffBlockingIssueCount: typeof row.handoffBlockingIssueCount === 'number' ? row.handoffBlockingIssueCount : 0,
+    handoffBlockingIssueCount:
+      typeof row.handoffBlockingIssueCount === 'number' ? row.handoffBlockingIssueCount : handoffBlockingReasons.length,
+    handoffBlockingReasons,
   };
 }
 

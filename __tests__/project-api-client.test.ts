@@ -61,6 +61,7 @@ describe('project-api-client', () => {
         latestCalibrationPlatform: 'Seedance',
         handoffReady: true,
         handoffBlockingIssueCount: 0,
+        handoffBlockingReasons: [],
         updatedAt: Date.UTC(2026, 5, 17),
       }),
     ).toEqual({
@@ -78,6 +79,7 @@ describe('project-api-client', () => {
       latestCalibrationPlatform: 'Seedance',
       handoffReady: true,
       handoffBlockingIssueCount: 0,
+      handoffBlockingReasons: [],
       updatedAt: '2026-06-17T00:00:00.000Z',
     });
 
@@ -118,10 +120,29 @@ describe('project-api-client', () => {
         latestCalibrationPlatform: null,
         handoffReady: false,
         handoffBlockingIssueCount: 0,
+        handoffBlockingReasons: [],
       }),
     ]);
     expect(fetchMock).toHaveBeenCalledWith('https://worker.example.com/api/projects', {
       headers: { 'X-User-Id': 'test-user' },
+    });
+  });
+
+  it('normalizes handoff reasons and derives the count when older summaries omit it', () => {
+    expect(
+      normalizeCloudProjectSummary({
+        id: 'project-1',
+        title: '废土项目',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        stage: 'result',
+        handoffReady: false,
+        handoffBlockingReasons: ['镜头 1 未执行', null, 2],
+        updatedAt: '2026-06-17T00:00:00.000Z',
+      }),
+    ).toMatchObject({
+      handoffBlockingIssueCount: 1,
+      handoffBlockingReasons: ['镜头 1 未执行'],
     });
   });
 

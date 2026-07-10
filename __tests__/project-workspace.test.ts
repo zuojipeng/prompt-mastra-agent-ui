@@ -308,6 +308,7 @@ describe('project workspace persistence', () => {
         latestCalibrationPlatform: null,
         handoffReady: true,
         handoffBlockingIssueCount: 0,
+        handoffBlockingReasons: [],
       }),
     ]);
 
@@ -462,8 +463,42 @@ describe('project workspace persistence', () => {
       expect.objectContaining({
         handoffReady: false,
         handoffBlockingIssueCount: 1,
+        handoffBlockingReasons: ['镜头 1 缺素材链接或结果备注'],
       }),
     ]);
+  });
+
+  it('explains pending and failed handoff blockers separately', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: {
+          ...kit,
+          shotCards: [
+            kit.shotCards[0],
+            { ...kit.shotCards[0], shotId: 2 },
+          ],
+        },
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 2: 'failed' },
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+
+    saveLocalProjectWorkspace(workspace, storage);
+
+    expect(loadLocalProjectWorkspaceSummaries(storage)[0]).toMatchObject({
+      handoffReady: false,
+      handoffBlockingIssueCount: 2,
+      handoffBlockingReasons: ['镜头 1 未执行', '镜头 2 缺失败原因'],
+    });
   });
 
   it('ignores invalid or corrupted workspace payloads', () => {

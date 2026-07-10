@@ -24,6 +24,9 @@ describe('project dashboard source contract', () => {
     expect(source).toContain('handoffReadyProjects');
     expect(source).toContain('getHandoffLabel');
     expect(source).toContain('交接状态：');
+    expect(source).toContain('需补：');
+    expect(source).toContain('getHandoffReasonLabel');
+    expect(source).toContain('project.handoffBlockingReasons');
     expect(source).toContain('project.handoffReady');
   });
 

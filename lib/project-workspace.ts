@@ -89,6 +89,7 @@ export type LocalProjectWorkspaceSummary = {
   latestCalibrationPlatform: string | null;
   handoffReady: boolean;
   handoffBlockingIssueCount: number;
+  handoffBlockingReasons: string[];
 };
 
 export type LocalProjectWorkspaceInput = Pick<
@@ -245,14 +246,17 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
     return status === 'pending' ? count : count + 1;
   }, 0);
-  const handoffBlockingIssueCount = shotCards.reduce((count, card) => {
+  const handoffBlockingReasons = shotCards.flatMap((card) => {
     const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
     const resultNote = project.shotResultNotes[card.shotId]?.trim();
-    if (status === 'pending') return count + 1;
-    if ((status === 'generated' || status === 'usable') && !resultNote) return count + 1;
-    if (status === 'failed' && !resultNote) return count + 1;
-    return count;
-  }, 0);
+    if (status === 'pending') return [`镜头 ${card.shotId} 未执行`];
+    if ((status === 'generated' || status === 'usable') && !resultNote) {
+      return [`镜头 ${card.shotId} 缺素材链接或结果备注`];
+    }
+    if (status === 'failed' && !resultNote) return [`镜头 ${card.shotId} 缺失败原因`];
+    return [];
+  });
+  const handoffBlockingIssueCount = handoffBlockingReasons.length;
 
   return {
     id: project.id,
@@ -270,6 +274,7 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     latestCalibrationPlatform: project.platformCalibrations?.[0]?.platform ?? null,
     handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
     handoffBlockingIssueCount,
+    handoffBlockingReasons,
   };
 }
 

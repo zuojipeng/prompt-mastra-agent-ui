@@ -46,6 +46,13 @@ function getHandoffLabel(project: LocalProjectWorkspaceSummary) {
   return project.handoffReady ? '可交接' : project.handoffBlockingIssueCount > 0 ? `缺 ${project.handoffBlockingIssueCount} 项` : '--';
 }
 
+function getHandoffReasonLabel(project: LocalProjectWorkspaceSummary) {
+  const [firstReason] = project.handoffBlockingReasons;
+  if (!firstReason) return null;
+  const remainingCount = project.handoffBlockingReasons.length - 1;
+  return remainingCount > 0 ? `${firstReason}，另 ${remainingCount} 项` : firstReason;
+}
+
 function formatProjectTime(updatedAt: string) {
   return new Intl.DateTimeFormat('zh-CN', {
     month: '2-digit',
@@ -80,6 +87,7 @@ export function ProjectDashboardPanel({
         getTargetTypeLabel(project.targetType).toLowerCase().includes(normalizedQuery) ||
         (project.latestIterationFocus ?? '').toLowerCase().includes(normalizedQuery) ||
         (project.latestCalibrationPlatform ?? '').toLowerCase().includes(normalizedQuery) ||
+        project.handoffBlockingReasons.some((reason) => reason.toLowerCase().includes(normalizedQuery)) ||
         getHandoffLabel(project).toLowerCase().includes(normalizedQuery);
       const matchesStage = stageFilter === 'all' || project.stage === stageFilter;
       const matchesHandoff =
@@ -235,6 +243,11 @@ export function ProjectDashboardPanel({
                   <p className={`mt-1 truncate text-[11px] ${project.handoffReady ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>
                     交接状态：{getHandoffLabel(project)}
                   </p>
+                  {getHandoffReasonLabel(project) && (
+                    <p className="mt-1 truncate text-[11px] text-amber-700 dark:text-amber-300" title={project.handoffBlockingReasons.join('；')}>
+                      需补：{getHandoffReasonLabel(project)}
+                    </p>
+                  )}
                 </div>
                 <span className="hidden text-xs font-medium text-gray-600 dark:text-gray-300 lg:block">
                   {STAGE_LABELS[project.stage]}

@@ -114,11 +114,15 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
         const shotResultNotes = workspace.shotResultNotes as Record<string, string> | undefined;
         const shotCards = directorKit?.shotCards ?? [];
         const completedShotCount = shotCards.filter((card) => (shotExecutionStatus?.[card.shotId] ?? 'pending') !== 'pending').length;
-        const handoffBlockingIssueCount = shotCards.filter((card) => {
+        const handoffBlockingReasons = shotCards.flatMap((card) => {
           const status = shotExecutionStatus?.[card.shotId] ?? 'pending';
           const note = shotResultNotes?.[card.shotId]?.trim();
-          return status === 'pending' || ((status === 'generated' || status === 'usable') && !note) || (status === 'failed' && !note);
-        }).length;
+          if (status === 'pending') return [`镜头 ${card.shotId} 未执行`];
+          if ((status === 'generated' || status === 'usable') && !note) return [`镜头 ${card.shotId} 缺素材链接或结果备注`];
+          if (status === 'failed' && !note) return [`镜头 ${card.shotId} 缺失败原因`];
+          return [];
+        });
+        const handoffBlockingIssueCount = handoffBlockingReasons.length;
 
         return {
           id: workspace.id,
@@ -131,6 +135,7 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
           completedShotCount,
           handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
           handoffBlockingIssueCount,
+          handoffBlockingReasons,
           createdAt: Date.parse(String(workspace.createdAt)),
           updatedAt: Date.parse(String(workspace.updatedAt)),
         };
@@ -325,12 +330,21 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('平台投喂包已复制')).toBeVisible();
     await expect(page.getByRole('heading', { name: /后期制作建议/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: /风险补救/ })).toBeVisible();
+    await page.getByRole('button', { name: '保存' }).click();
+    await expect(page.getByText('项目已保存')).toBeVisible();
     if (isMobile) {
       await page.getByRole('button', { name: /Execute/ }).click();
     }
     await expect(page.getByText('出片执行进度')).toBeVisible();
     await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
     await expect(page.getByText('交接状态：需补证据')).toBeVisible();
+    await page.getByRole('button', { name: /Projects/ }).click();
+    const blockedProjectDashboard = page.getByRole('region', { name: '项目仪表盘' });
+    await expect(blockedProjectDashboard.getByText('需补：镜头 1 未执行')).toBeVisible();
+    await blockedProjectDashboard.getByRole('button', { name: '缺证据' }).click();
+    await expect(blockedProjectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
+    await blockedProjectDashboard.getByRole('button', { name: '全部交接' }).click();
+    await page.getByRole('button', { name: '收起' }).click();
     if (isMobile) {
       await expect(page.getByLabel('当前镜头素材 / 备注')).toBeVisible();
       await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
