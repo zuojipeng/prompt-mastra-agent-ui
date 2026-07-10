@@ -374,6 +374,9 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('最近校准：Seedance · 通过')).toBeVisible();
     await expect(projectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
     await expect(projectDashboard.getByText('交接状态：可交接')).toBeVisible();
+    await projectDashboard.getByRole('button', { name: '可交接' }).click();
+    await expect(projectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
+    await expect(projectDashboard.getByRole('button', { name: '缺证据' })).toBeVisible();
     await page.getByRole('button', { name: '收起' }).click();
 
     if (isMobile) {

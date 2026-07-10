@@ -26,4 +26,13 @@ describe('project dashboard source contract', () => {
     expect(source).toContain('交接状态：');
     expect(source).toContain('project.handoffReady');
   });
+
+  it('filters projects by handoff readiness', () => {
+    expect(source).toContain("type HandoffFilter = 'all' | 'ready' | 'blocked'");
+    expect(source).toContain('HANDOFF_FILTER_OPTIONS');
+    expect(source).toContain('handoffFilter');
+    expect(source).toContain('handoffBlockedProjects');
+    expect(source).toContain('缺证据');
+    expect(source).toContain('project.handoffBlockingIssueCount > 0');
+  });
 });

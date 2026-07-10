@@ -28,6 +28,14 @@ const STAGE_OPTIONS: Array<{ id: 'all' | ProjectWorkspaceStage; label: string }>
   { id: 'result', label: 'Ready' },
 ];
 
+type HandoffFilter = 'all' | 'ready' | 'blocked';
+
+const HANDOFF_FILTER_OPTIONS: Array<{ id: HandoffFilter; label: string }> = [
+  { id: 'all', label: '全部交接' },
+  { id: 'ready', label: '可交接' },
+  { id: 'blocked', label: '缺证据' },
+];
+
 const CALIBRATION_OUTCOME_LABELS: Record<NonNullable<LocalProjectWorkspaceSummary['latestCalibrationOutcome']>, string> = {
   validated: '通过',
   rejected: '未通过',
@@ -61,6 +69,7 @@ export function ProjectDashboardPanel({
 }: ProjectDashboardPanelProps) {
   const [query, setQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | ProjectWorkspaceStage>('all');
+  const [handoffFilter, setHandoffFilter] = useState<HandoffFilter>('all');
 
   const filteredProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -73,9 +82,13 @@ export function ProjectDashboardPanel({
         (project.latestCalibrationPlatform ?? '').toLowerCase().includes(normalizedQuery) ||
         getHandoffLabel(project).toLowerCase().includes(normalizedQuery);
       const matchesStage = stageFilter === 'all' || project.stage === stageFilter;
-      return matchesQuery && matchesStage;
+      const matchesHandoff =
+        handoffFilter === 'all' ||
+        (handoffFilter === 'ready' && project.handoffReady) ||
+        (handoffFilter === 'blocked' && !project.handoffReady && project.handoffBlockingIssueCount > 0);
+      return matchesQuery && matchesStage && matchesHandoff;
     });
-  }, [projects, query, stageFilter]);
+  }, [handoffFilter, projects, query, stageFilter]);
 
   const totalShots = projects.reduce((total, project) => total + project.shotCount, 0);
   const completedShots = projects.reduce((total, project) => total + project.completedShotCount, 0);
@@ -83,6 +96,7 @@ export function ProjectDashboardPanel({
   const totalIterations = projects.reduce((total, project) => total + project.iterationCount, 0);
   const totalCalibrations = projects.reduce((total, project) => total + project.calibrationCount, 0);
   const handoffReadyProjects = projects.filter((project) => project.handoffReady).length;
+  const handoffBlockedProjects = projects.filter((project) => !project.handoffReady && project.handoffBlockingIssueCount > 0).length;
 
   if (!open) return null;
 
@@ -130,7 +144,9 @@ export function ProjectDashboardPanel({
         </div>
         <div className="rounded-md bg-gray-50 p-3 dark:bg-gray-800/70">
           <p className="text-[10px] text-gray-400">Handoff</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100">{handoffReadyProjects}</p>
+          <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {handoffReadyProjects}/{handoffBlockedProjects}
+          </p>
         </div>
       </div>
 
@@ -154,6 +170,22 @@ export function ProjectDashboardPanel({
               }`}
             >
               {stage.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {HANDOFF_FILTER_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setHandoffFilter(option.id)}
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                handoffFilter === option.id
+                  ? 'bg-emerald-700 text-white dark:bg-emerald-300 dark:text-emerald-950'
+                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950'
+              }`}
+            >
+              {option.label}
             </button>
           ))}
         </div>

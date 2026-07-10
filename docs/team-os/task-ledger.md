@@ -3,13 +3,13 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-08
+Last Updated: 2026-07-10
 
 ## Active Tasks
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add a handoff blocker filter or sort so operators can jump to projects missing production evidence |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add row-level missing evidence reasons so operators know exactly what to fix before handoff |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 
@@ -387,6 +387,19 @@ Decision: SHIP
 Next owner: Product Agent + UEAgent
 Close condition: Commit and push after validation.
 
+### 2026-07-10 21:00 T030
+
+Type: EVIDENCE_ADDED
+From: Product Agent + UEAgent + Engineering Agent
+To: Code Review Agent + Test Agent
+Task: JC-T001
+Gate: Product / UE / Engineering / Test
+Message: Added a Project Dashboard handoff filter so operators can switch between all projects, handoff-ready projects, and projects missing handoff evidence.
+Evidence: E3 `app/components/ProjectDashboardPanel.tsx`, E3 `__tests__/project-dashboard-source.test.ts`, E3 `tests/e2e/v2-director-kit.spec.ts`, E3 `docs/agent-runs/2026-07-10-dashboard-handoff-filter.md`, E3 `docs/test-reports/2026-07-10-dashboard-handoff-filter.md`
+Decision: SHIP
+Next owner: Product Agent + UEAgent
+Close condition: Commit and push after validation.
+
 ### 2026-06-30 08:30 T009
 
 Type: EVIDENCE_ADDED
@@ -437,6 +450,7 @@ Close condition: Commit and push after validation.
 | EV-JC-031 | JC-T001 | E3 | Handoff readiness is derived from shot execution evidence and shown in the execution panel | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `app/components/DirectorKitExecutionPanel.tsx`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/director-kit-export.test.ts __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-032 | JC-T001 | E3 | History API failures degrade to local-first copy without blocking the DirectorKit flow | `app/components/ChatBox.tsx`, `app/components/HistoryPanel.tsx`, `__tests__/chatbox-v2-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx vitest run --pool=threads`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-033 | JC-T001 | E3 | Project dashboard summaries surface handoff readiness and can verify the ready handoff state in desktop/mobile DirectorKit E2E | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/project-workspace.test.ts __tests__/project-api-client.test.ts __tests__/project-dashboard-source.test.ts`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `npx eslint app lib __tests__ tests --ignore-pattern 'playwright-report/**' --ignore-pattern 'test-results/**'`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
+| EV-JC-034 | JC-T001 | E3 | Project Dashboard can filter by handoff readiness and keep the ready project visible in desktop/mobile E2E | `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/project-dashboard-source.test.ts`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `npx eslint app lib __tests__ tests --ignore-pattern 'playwright-report/**' --ignore-pattern 'test-results/**'`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -468,3 +482,4 @@ Close condition: Commit and push after validation.
 | RV-JC-024 | JC-T001 | Operator Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for handoff acceptance | Derived state only; no new persistence or API contract | Broader validation before release |
 | RV-JC-025 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for history local-first degrade | Optional remote history failure is now non-blocking; production history route remains separate release work | Broader validation before release |
 | RV-JC-026 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff readiness | Additive summary/display fields; remote summaries remain backward-compatible; E2E is scoped to the named dashboard region | Commit and push after validation |
+| RV-JC-027 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff filter | Dashboard-only state; reuses existing summary fields; E2E covers ready filter on desktop and mobile | Commit and push after validation |
