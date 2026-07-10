@@ -12,6 +12,7 @@ Last Updated: 2026-07-10
 | JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Next slice should add row-level missing evidence reasons so operators know exactly what to fix before handoff |
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
+| JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
 
 ## Backlog
 
@@ -413,6 +414,19 @@ Decision: SHIP
 Next owner: Hermes Orchestrator
 Close condition: Commit and push after validation.
 
+### 2026-07-10 22:30 T031
+
+Type: REVIEWED
+From: Product Agent + Architecture Agent
+To: UEAgent + Test Agent + Hermes
+Task: JC-T004
+Gate: Product / Architecture
+Message: Defined Jingci's evolution from trustworthy project handoff to a bounded agentic creative studio, with metrics, non-goals, architecture constraints, hackathon reuse strategy, and three immediate delivery slices.
+Evidence: E2 `docs/product/2026-07-jingci-evolution-roadmap.md`, E2 `docs/agent-runs/2026-07-10-product-evolution-roadmap.md`, E2 `docs/code-reviews/2026-07-10-product-evolution-roadmap.md`, E2 `docs/test-reports/2026-07-10-product-evolution-roadmap.md`
+Decision: SHIP
+Next owner: Product Agent + Engineering Agent
+Close condition: implement handoff blocking reasons as the next bounded slice.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -451,6 +465,7 @@ Close condition: Commit and push after validation.
 | EV-JC-032 | JC-T001 | E3 | History API failures degrade to local-first copy without blocking the DirectorKit flow | `app/components/ChatBox.tsx`, `app/components/HistoryPanel.tsx`, `__tests__/chatbox-v2-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/chatbox-v2-source.test.ts`, `npx tsc --noEmit`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx vitest run --pool=threads`, `npm run lint`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-033 | JC-T001 | E3 | Project dashboard summaries surface handoff readiness and can verify the ready handoff state in desktop/mobile DirectorKit E2E | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/project-workspace.test.ts __tests__/project-api-client.test.ts __tests__/project-dashboard-source.test.ts`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `npx eslint app lib __tests__ tests --ignore-pattern 'playwright-report/**' --ignore-pattern 'test-results/**'`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-034 | JC-T001 | E3 | Project Dashboard can filter by handoff readiness and keep the ready project visible in desktop/mobile E2E | `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/project-dashboard-source.test.ts`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `npx eslint app lib __tests__ tests --ignore-pattern 'playwright-report/**' --ignore-pattern 'test-results/**'`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
+| EV-JC-035 | JC-T004 | E2 | Jingci has a staged evolution roadmap with product metrics, architecture constraints, hackathon asset strategy, and three bounded next slices | `docs/product/2026-07-jingci-evolution-roadmap.md`, `docs/agent-runs/2026-07-10-product-evolution-roadmap.md`, `docs/test-reports/2026-07-10-product-evolution-roadmap.md`, `git diff --check` | Added, planning evidence passes | UEAgent + Architecture Agent + Test Agent |
 
 ## Review Index
 
@@ -483,3 +498,4 @@ Close condition: Commit and push after validation.
 | RV-JC-025 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for history local-first degrade | Optional remote history failure is now non-blocking; production history route remains separate release work | Broader validation before release |
 | RV-JC-026 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff readiness | Additive summary/display fields; remote summaries remain backward-compatible; E2E is scoped to the named dashboard region | Commit and push after validation |
 | RV-JC-027 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff filter | Dashboard-only state; reuses existing summary fields; E2E covers ready filter on desktop and mobile | Commit and push after validation |
+| RV-JC-028 | JC-T004 | Product Agent | UEAgent + Architecture Agent + Test Agent | PASS for product evolution roadmap | Stage 1 completion is required before provider or collaboration expansion; market assumptions remain E2 | Start with handoff blocking reasons |
