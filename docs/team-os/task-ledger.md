@@ -13,7 +13,7 @@ Last Updated: 2026-07-13
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze hackathon Genblaze provenance spike | in_review | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Architecture / Engineering / Test | E3 isolated install, strict contract, verified manifest, regression tests | Review spike evidence before authorizing provider execution or B2 design |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | UEAgent defines selected-shot provenance states before fixture UI integration |
 
 ## Backlog
 
@@ -521,6 +521,32 @@ Decision: CONTINUE
 Next owner: Human owner + Operator Agent
 Close condition: Confirm eligibility and participation decision before any real B2 account, registration, terms, or campaign-mode action.
 
+### 2026-07-13 23:20 T027
+
+Type: DECIDED
+From: Human owner + Hermes Orchestrator
+To: Product Agent + Architecture Agent
+Task: JC-T005
+Gate: Human Gate A / Product / Architecture
+Message: Human Gate A was approved and the guarded workspace was promoted from evaluation to campaign without authorizing registration, terms, spend, publication, or submission.
+Evidence: E3 `docs/campaigns/backblaze-genmedia-2026/campaign.json`, Team OS generator full tests.
+Decision: CONTINUE
+Next owner: Product Agent + Architecture Agent
+Close condition: Define one judged demo promise, bounded MVP, strict runtime boundary, and test implications.
+
+### 2026-07-13 23:25 T028
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Product / Architecture / Engineering / Test
+Message: Accepted Jingci Provenance Vault product and architecture gates plus the TypeScript provenance run boundary after one P1 fail-closed repair.
+Evidence: E2 campaign product/architecture docs; E3 14 Vitest files / 98 tests, 9 Python tests, TypeScript, scoped lint, and production build.
+Decision: CONTINUE
+Next owner: UEAgent
+Close condition: Define the selected-shot state matrix and interaction handoff before fixture transport and UI implementation.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -557,3 +583,4 @@ Close condition: Confirm eligibility and participation decision before any real 
 | RV-JC-030 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local spike | Fixed pending-run semantic mismatch and dedicated negative-prompt mapping; provider/B2 behavior remains unproven | Hermes reviews before expanding authorization |
 | RV-JC-031 | JC-T005 | Engineering Agent | Code Review Agent + Test Agent | PASS for mocked storage boundary | Official Pipeline and ObjectStorageSink exercised; durable URLs are credential-free; B2 network behavior remains unproven | Human owner decides whether to authorize account-bound B2 verification |
 | RV-JC-032 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for offline B2 readiness | Secrets are redacted; preflight and lifecycle mutation disabled; workspace remains evaluation | Human owner closes eligibility and participation gate |
+| RV-JC-033 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for campaign contract slice | P1 malformed non-terminal evidence acceptance fixed; live transport, B2, and browser states remain unproven | UEAgent defines state handoff before UI work |

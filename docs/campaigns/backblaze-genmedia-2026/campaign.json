@@ -1,13 +1,14 @@
 {
   "schema_version": "team-os.campaign-workspace.v1",
-  "mode": "evaluation",
+  "mode": "campaign",
   "opportunity_id": "devpost-30205",
   "title": "Backblaze Generative Media Hackathon: Build with Genblaze on B2",
   "official_url": "https://backblaze-generative-media.devpost.com/",
-  "recommendation": "conditional_go",
+  "recommendation": "go",
   "created_at": "2026-07-13T15:08:15.719Z",
+  "refreshed_at": "2026-07-13T15:21:29.064Z",
   "human_gates": {
-    "participation": "pending",
+    "participation": "approved",
     "registration_terms": "pending",
     "submission": "pending"
   },

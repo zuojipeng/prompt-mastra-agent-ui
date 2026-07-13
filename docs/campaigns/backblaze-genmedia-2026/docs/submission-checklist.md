@@ -1,6 +1,6 @@
 # Submission Checklist
 
-- [ ] Human Gate A participation approval
+- [x] Human Gate A participation approval
 - [ ] Registration and terms completed by authorized human
 - [ ] Rules snapshot refreshed
 - [ ] Pre-existing work disclosure reviewed

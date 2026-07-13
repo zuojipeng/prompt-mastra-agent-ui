@@ -6,7 +6,7 @@
   "reviewed_at": "2026-07-13T00:35:53Z",
   "producer": "Opportunity Scout Agent",
   "reviewer": "Operator Agent",
-  "recommendation": "conditional_go",
+  "recommendation": "go",
   "field_decisions": {
     "submission_deadline_utc": {
       "status": "accepted",
@@ -91,9 +91,9 @@
     "may_contact_people": false
   },
   "human_gates": {
-    "participation": "pending",
+    "participation": "approved",
     "registration_terms": "pending",
     "submission": "pending"
   },
-  "next_action": "Complete the zero-cost Jingci Genblaze and B2 architecture spike, then request participation approval."
+  "next_action": "Build the approved Jingci Provenance Vault vertical slice while registration, terms, spend, publication, and submission remain separately gated."
 }

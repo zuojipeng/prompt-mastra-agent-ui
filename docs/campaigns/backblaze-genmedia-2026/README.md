@@ -1,9 +1,9 @@
 # Backblaze Generative Media Hackathon: Build with Genblaze on B2
 
-Workspace mode: **evaluation**
+Workspace mode: **campaign**
 
 Official event: https://backblaze-generative-media.devpost.com/
 
-This workspace may evaluate feasibility only. It does not authorize registration, terms acceptance, spend, publication, or submission.
+Participation was approved. Every account-bound or public action must still follow the recorded authorization envelope and remaining human gates.
 
-Next action: Complete the zero-cost Jingci Genblaze and B2 architecture spike, then request participation approval.
+Next action: Build the approved Jingci Provenance Vault vertical slice while registration, terms, spend, publication, and submission remain separately gated.
