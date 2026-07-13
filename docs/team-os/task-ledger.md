@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-13
+Last Updated: 2026-07-14
 
 ## Active Tasks
 
@@ -573,6 +573,19 @@ Decision: CONTINUE
 Next owner: Engineering Agent
 Close condition: Add an opt-in frontend client with timeout, strict normalization, and no silent fixture downgrade.
 
+### 2026-07-14 00:02 T031
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Engineering / Code Review / Test
+Message: Passed the opt-in loopback HTTP client after identity drift, invalid configuration, and timeout repairs; fixture remains default.
+Evidence: E3 HTTP client tests, frontend regression, TypeScript, lint, build, and desktop/mobile fixture E2E.
+Decision: CONTINUE
+Next owner: Test Agent + Engineering Agent
+Close condition: Prove browser-to-Python CORS and verified memory evidence over real local HTTP.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -612,3 +625,4 @@ Close condition: Add an opt-in frontend client with timeout, strict normalizatio
 | RV-JC-033 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for campaign contract slice | P1 malformed non-terminal evidence acceptance fixed; live transport, B2, and browser states remain unproven | UEAgent defines state handoff before UI work |
 | RV-JC-034 | JC-T005 | UEAgent + Engineering Agent | Product Agent + Code Review Agent + Test Agent | PASS for fixture UI | Four P1 findings closed; fixture remains explicit and session-only | Add local Python HTTP boundary next |
 | RV-JC-035 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local HTTP adapter | JSON, exception redaction, and negative length P1 findings closed | Add opt-in frontend client next |
+| RV-JC-036 | JC-T005 | Engineering Agent | Code Review Agent + Test Agent | PASS for opt-in HTTP client | Identity, invalid config, and timeout P1 findings closed | Run cross-process browser E2E next |

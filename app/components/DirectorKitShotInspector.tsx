@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
 import type { ProvenanceRun } from '@/lib/provenance-run-contract';
+import type { ProvenanceTransportMode } from '@/lib/provenance-http-client';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
 import { ShotProvenancePanel } from './ShotProvenancePanel';
@@ -16,6 +17,7 @@ export function DirectorKitShotInspector({
   resultNote,
   provenanceRun,
   provenanceBusy,
+  provenanceMode,
   onCopyShotPrompt,
   onRunProvenance,
   onStatusChange,
@@ -29,6 +31,7 @@ export function DirectorKitShotInspector({
   resultNote: string;
   provenanceRun: ProvenanceRun | null;
   provenanceBusy: boolean;
+  provenanceMode: ProvenanceTransportMode;
   onCopyShotPrompt: (card: ShotCard) => void;
   onRunProvenance: (card: ShotCard, outcome?: 'succeeded' | 'failed') => void;
   onStatusChange: (shotId: number, status: ShotExecutionStatus) => void;
@@ -77,6 +80,7 @@ export function DirectorKitShotInspector({
         shotId={shot.shotId}
         run={provenanceRun}
         busy={provenanceBusy}
+        mode={provenanceMode}
         embedded
         onRun={(outcome) => onRunProvenance(shot, outcome)}
       />

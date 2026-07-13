@@ -17,6 +17,14 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --port 8788
 PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
 ```
 
+To opt the frontend into this loopback adapter, start Next.js with:
+
+```bash
+NEXT_PUBLIC_PROVENANCE_API_URL=http://127.0.0.1:8788 npm run dev
+```
+
+Without this variable the UI stays in its explicit deterministic Fixture mode. A configured adapter failure is shown as a failed run and never silently downgraded to fixture evidence.
+
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
 
 ## Boundary

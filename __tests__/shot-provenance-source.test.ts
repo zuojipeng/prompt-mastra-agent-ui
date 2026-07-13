@@ -8,6 +8,7 @@ const chatBoxSource = readFileSync('app/components/ChatBox.tsx', 'utf8');
 describe('shot provenance UI source contract', () => {
   it('makes fixture evidence and lifecycle state explicit', () => {
     expect(panelSource).toContain('Fixture');
+    expect(panelSource).toContain('Local adapter');
     expect(panelSource).toContain('未写入真实存储');
     expect(panelSource).toContain('role="status"');
     expect(panelSource).toContain('role="alert"');
@@ -29,6 +30,7 @@ describe('shot provenance UI source contract', () => {
   it('keeps provenance state separate per shot and out of project persistence', () => {
     expect(chatBoxSource).toContain('Record<number, ProvenanceRun>');
     expect(chatBoxSource).toContain('[card.shotId]: run');
+    expect(chatBoxSource).toContain("provenanceTransportMode === 'local'");
     expect(chatBoxSource).not.toContain('provenanceRuns,\n      },\n      workspace');
   });
 });

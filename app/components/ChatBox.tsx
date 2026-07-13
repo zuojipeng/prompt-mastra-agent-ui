@@ -39,6 +39,7 @@ import {
 } from '@/lib/director-kit-export';
 import { resolvePlatformCapability } from '@/lib/platform-capabilities';
 import { runProvenanceFixture } from '@/lib/provenance-fixture-transport';
+import { getProvenanceTransportMode, runProvenanceHttp } from '@/lib/provenance-http-client';
 import {
   PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
   type ProvenanceRun,
@@ -250,6 +251,7 @@ export function ChatBox() {
   const [calibrationSavedKey, setCalibrationSavedKey] = useState<string | null>(null);
   const [provenanceRuns, setProvenanceRuns] = useState<Record<number, ProvenanceRun>>({});
   const [provenanceBusyShotId, setProvenanceBusyShotId] = useState<number | null>(null);
+  const provenanceTransportMode = getProvenanceTransportMode();
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -712,24 +714,32 @@ export function ChatBox() {
     const previousRun = provenanceRuns[card.shotId] ?? null;
     setProvenanceBusyShotId(card.shotId);
     try {
-      await runProvenanceFixture({
-        request: {
-          schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
-          project_id: workspace?.id ?? 'jingci-draft-project',
-          shot_id: card.shotId,
-          parent_job_id: previousRun?.job_id ?? null,
-          attempt: (previousRun?.attempt ?? 0) + 1,
-          prompt: buildShotPrompt(card),
-          negative_prompt: directorKit?.negativePrompt ?? '',
-          provider: 'genblaze-fixture',
-          model: 'local-proof',
-          modality: 'video',
-        },
-        onUpdate: (run) => {
-          setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
-        },
-        outcome,
-      });
+      const request = {
+        schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+        project_id: workspace?.id ?? 'jingci-draft-project',
+        shot_id: card.shotId,
+        parent_job_id: previousRun?.job_id ?? null,
+        attempt: (previousRun?.attempt ?? 0) + 1,
+        prompt: buildShotPrompt(card),
+        negative_prompt: directorKit?.negativePrompt ?? '',
+        provider: provenanceTransportMode === 'local' ? 'jingci-local-video' : 'genblaze-fixture',
+        model: 'local-proof',
+        modality: 'video',
+      };
+      const updateRun = (run: ProvenanceRun) => {
+        setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
+      };
+      if (provenanceTransportMode === 'local') {
+        await runProvenanceHttp({ request, onUpdate: updateRun });
+      } else {
+        await runProvenanceFixture({
+          request,
+          onUpdate: (run) => {
+            updateRun(run);
+          },
+          outcome,
+        });
+      }
     } finally {
       setProvenanceBusyShotId(null);
     }
@@ -1950,6 +1960,7 @@ export function ChatBox() {
                 shotId={selectedShot.shotId}
                 run={provenanceRuns[selectedShot.shotId] ?? null}
                 busy={provenanceBusyShotId === selectedShot.shotId}
+                mode={provenanceTransportMode}
                 onRun={(outcome) => handleRunProvenance(selectedShot, outcome)}
               />
             </div>
@@ -1964,6 +1975,7 @@ export function ChatBox() {
               resultNote={selectedShot ? shotResultNotes[selectedShot.shotId] ?? '' : ''}
               provenanceRun={selectedShot ? provenanceRuns[selectedShot.shotId] ?? null : null}
               provenanceBusy={selectedShot ? provenanceBusyShotId === selectedShot.shotId : false}
+              provenanceMode={provenanceTransportMode}
               onCopyShotPrompt={handleCopyShotPrompt}
               onRunProvenance={handleRunProvenance}
               onStatusChange={handleShotExecutionStatusChange}

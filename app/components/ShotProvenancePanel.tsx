@@ -1,6 +1,7 @@
 'use client';
 
 import type { ProvenanceRun } from '@/lib/provenance-run-contract';
+import type { ProvenanceTransportMode } from '@/lib/provenance-http-client';
 
 const STATUS_COPY = {
   queued: { label: '已排队', tone: 'bg-gray-400' },
@@ -17,12 +18,14 @@ export function ShotProvenancePanel({
   shotId,
   run,
   busy,
+  mode,
   embedded = false,
   onRun,
 }: {
   shotId: number;
   run: ProvenanceRun | null;
   busy: boolean;
+  mode: ProvenanceTransportMode;
   embedded?: boolean;
   onRun: (outcome?: 'succeeded' | 'failed') => void;
 }) {
@@ -39,10 +42,12 @@ export function ShotProvenancePanel({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">生成存证</h3>
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              Fixture
+              {mode === 'fixture' ? 'Fixture' : 'Local adapter'}
             </span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Genblaze + B2 契约演示，未写入真实存储</p>
+          <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+            {mode === 'fixture' ? 'Genblaze + B2 契约演示，未写入真实存储' : '本机 Genblaze adapter，使用内存存储'}
+          </p>
         </div>
         {status && (
           <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -106,7 +111,7 @@ export function ShotProvenancePanel({
         </p>
       )}
 
-      {!busy && (
+      {!busy && mode === 'fixture' && (
         <button
           type="button"
           onClick={() => onRun('failed')}

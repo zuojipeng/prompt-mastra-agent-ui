@@ -16,7 +16,8 @@ Status: in_progress
 | C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | done |
 | C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | done |
 | C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
-| C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | ready |
+| C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | done |
+| C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | ready |
 
 ## Event Log
 
@@ -70,3 +71,16 @@ Evidence: 14 Python tests, compileall, real random-port HTTP smoke, `spikes/genb
 Decision: CONTINUE
 Next owner: Engineering Agent
 Close condition: Add a frontend opt-in client with timeout and fail-closed response normalization while fixture remains the default.
+
+### 2026-07-14 00:02 C-E005
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-009
+Gate: Engineering / Code Review / Test
+Message: Opt-in loopback client passes identity, HTTP, timeout, configuration, and fixture-default checks without silent downgrade.
+Evidence: 5 HTTP client tests, full frontend regression, TypeScript, lint, build, desktop/mobile fixture E2E
+Decision: CONTINUE
+Next owner: Test Agent + Engineering Agent
+Close condition: Run the browser against the real local Python adapter and verify memory evidence reaches the selected-shot panel.
