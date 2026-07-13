@@ -16,6 +16,7 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.cli fixtures/shot-job.json
 PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --port 8788
 PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --plan
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:
@@ -45,6 +46,14 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --live
 ```
 
 The smoke writes one random key below `jingci-smoke/`, reads it back, verifies SHA-256, deletes it, and confirms absence. It does not change bucket lifecycle or visibility. A passing result is B2 transport evidence only; it does not prove an external AI media provider.
+
+The Genblaze-path smoke extends that boundary through the real deterministic provider, `Pipeline`, and `ObjectStorageSink`. Its plan mode is also credential-free:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
+```
+
+After the same separate live authorization and secure environment setup, `--live` writes one content-addressed video asset and one verified JSON manifest below a unique `jingci-smoke/` prefix. It reads both back, verifies bytes, SHA-256, manifest validity and canonical hash, then deletes both objects. The sink's backend close is deferred only long enough to complete read-back and cleanup, then the real connection is closed.
 
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
 

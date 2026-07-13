@@ -20,7 +20,8 @@ Status: in_progress
 | C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | done |
 | C-011 | Product Agent + Operator Agent | Claims Review Agent + Test Agent | Build the English draft submission packet and readiness gate | Official constraints, disclosure, demo path, evidence index, and strict blockers are reviewable | done |
 | C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | done |
-| C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | ready |
+| C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | done |
+| C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | ready |
 
 ## Event Log
 
@@ -126,3 +127,16 @@ Evidence: 22 Python tests, compileall, no-network JSON plan, expected denial of 
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Prepare the Genblaze ObjectStorageSink path to verify and clean both asset and manifest objects before any live authorization.
+
+### 2026-07-14 07:12 C-E009
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: C-013
+Gate: Architecture / Engineering / Code Review / Test
+Message: The Genblaze ObjectStorageSink-to-B2 harness passed after a first-run hard-coded-prefix isolation failure was repaired; asset, manifest, partial upload, integrity, cleanup, and close behavior are covered without network.
+Evidence: 7 focused tests, 29-test Python regression, compileall, no-network plan, expected unconfirmed-live denial
+Decision: CONTINUE
+Next owner: Architecture Agent + DevOps Agent + Claims Review Agent
+Close condition: Define a preview deployment threat model and executable judge-access runbook without deploying or using credentials.

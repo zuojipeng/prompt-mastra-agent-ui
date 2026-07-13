@@ -625,6 +625,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Extend the harness through Genblaze ObjectStorageSink for owned asset and manifest verification without running network I/O.
 
+### 2026-07-14 07:12 T035
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Code Review / Test
+Message: Passed the offline Genblaze ObjectStorageSink-to-B2 harness after tests exposed and closed a hard-coded-prefix isolation defect; two-object integrity and cleanup are now reproducible.
+Evidence: E3 7 focused tests, 29 Python regression tests, compileall, no-network plan, expected live denial.
+Decision: CONTINUE
+Next owner: Architecture Agent + DevOps Agent + Claims Review Agent
+Close condition: Threat-model preview deployment and define an executable judge smoke and rollback path.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -668,3 +681,4 @@ Close condition: Extend the harness through Genblaze ObjectStorageSink for owned
 | RV-JC-037 | JC-T005 | Engineering Agent + Test Agent | Code Review Agent + DevOps Agent | PASS for local browser integration | Real HTTP payload and desktop/mobile UI verified; Node runtime failure recorded | Human owner closes live B2 gates before C-008 |
 | RV-JC-038 | JC-T005 | Product Agent + Operator Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for draft submission packet | Local/live claims separated; strict readiness remains red on seven blockers | Prepare explicit-opt-in B2 smoke harness |
 | RV-JC-039 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for guarded B2 smoke harness | Abnormal put cleanup and cleanup recovery P1 findings closed; no network used | Prepare ObjectStorageSink-to-B2 harness |
+| RV-JC-040 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for offline Genblaze-B2 pipeline harness | First-run fixed-prefix P1 and partial cleanup findings closed; no network used | Threat-model preview deployment and judge access |

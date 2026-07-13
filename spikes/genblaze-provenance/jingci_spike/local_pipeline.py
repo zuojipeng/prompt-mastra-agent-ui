@@ -87,20 +87,25 @@ class InMemoryStorageBackend(StorageBackend):
         return parsed.path.lstrip("/")
 
 
-def execute_local_storage_pipeline(job: ShotProvenanceJob, media_bytes: bytes) -> dict[str, Any]:
+def execute_storage_pipeline(
+    job: ShotProvenanceJob,
+    media_bytes: bytes,
+    backend: StorageBackend,
+    *,
+    prefix: str,
+) -> tuple[Any, DeterministicVideoProvider]:
     if job.modality != "video":
         raise ValueError("local pipeline spike currently supports video only")
     if not media_bytes:
         raise ValueError("media_bytes must not be empty")
 
-    backend = InMemoryStorageBackend()
     with tempfile.TemporaryDirectory(prefix="jingci-genblaze-") as output_dir:
         output_path = Path(output_dir) / f"shot-{job.shot_id}.mp4"
         output_path.write_bytes(media_bytes)
         provider = DeterministicVideoProvider(output_path)
         sink = ObjectStorageSink(
             backend,
-            prefix="jingci-spike",
+            prefix=prefix,
             key_strategy=KeyStrategy.CONTENT_ADDRESSABLE,
             max_upload_workers=1,
         )
@@ -116,6 +121,12 @@ def execute_local_storage_pipeline(job: ShotProvenanceJob, media_bytes: bytes) -
             )
             .run(sink=sink, progress=False, raise_on_failure=True)
         )
+    return result, provider
+
+
+def execute_local_storage_pipeline(job: ShotProvenanceJob, media_bytes: bytes) -> dict[str, Any]:
+    backend = InMemoryStorageBackend()
+    result, provider = execute_storage_pipeline(job, media_bytes, backend, prefix="jingci-spike")
 
     manifest = result.manifest
     if not manifest.verify():
