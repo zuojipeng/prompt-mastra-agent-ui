@@ -25,6 +25,14 @@ NEXT_PUBLIC_PROVENANCE_API_URL=http://127.0.0.1:8788 npm run dev
 
 Without this variable the UI stays in its explicit deterministic Fixture mode. A configured adapter failure is shown as a failed run and never silently downgraded to fixture evidence.
 
+To run the browser-to-Python integration against both desktop and mobile Chromium:
+
+```bash
+PROVENANCE_PYTHON=.venv/bin/python npm run test:e2e:provenance:local
+```
+
+The dedicated Playwright configuration starts both loopback services, rejects occupied ports instead of reusing an unknown process, and verifies the HTTP response plus the rendered `memory://` evidence. Use a Node.js version supported by the frontend.
+
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
 
 ## Boundary

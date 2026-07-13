@@ -17,7 +17,7 @@ Status: in_progress
 | C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | done |
 | C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
 | C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | done |
-| C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | ready |
+| C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | done |
 
 ## Event Log
 
@@ -84,3 +84,16 @@ Evidence: 5 HTTP client tests, full frontend regression, TypeScript, lint, build
 Decision: CONTINUE
 Next owner: Test Agent + Engineering Agent
 Close condition: Run the browser against the real local Python adapter and verify memory evidence reaches the selected-shot panel.
+
+### 2026-07-14 00:18 C-E006
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: C-010
+Gate: Test / Ops
+Message: Browser-to-Python integration passed on desktop and mobile after correcting the local Node runtime; HTTP payload and rendered memory evidence were both verified.
+Evidence: 2 Playwright projects, real loopback POST response, desktop/mobile screenshots, TypeScript, scoped lint
+Decision: ESCALATE LIVE GATE
+Next owner: Human owner + DevOps Agent
+Close condition: Close registration/terms and credential authorization before live B2 upload/read-back verification.

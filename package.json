@@ -19,6 +19,7 @@
     "test:e2e:v2": "node scripts/e2e-director-kit-test.mjs",
     "test:e2e:browser:check": "node scripts/e2e-browser-readiness.mjs",
     "test:e2e:browser": "playwright test",
+    "test:e2e:provenance:local": "PLAYWRIGHT_LOCAL_PROVENANCE=1 playwright test tests/e2e/v2-director-kit.spec.ts --config=playwright.provenance-local.config.ts --grep=\"local loopback adapter\"",
     "demo:record": "node scripts/record-demo.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
     "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",

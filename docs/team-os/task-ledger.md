@@ -586,6 +586,19 @@ Decision: CONTINUE
 Next owner: Test Agent + Engineering Agent
 Close condition: Prove browser-to-Python CORS and verified memory evidence over real local HTTP.
 
+### 2026-07-14 00:18 T032
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Test / Ops
+Message: Passed real browser-to-Python loopback integration on desktop and mobile, including HTTP payload identity and rendered memory evidence.
+Evidence: E3 two Playwright projects, real POST response assertions, screenshots, TypeScript, scoped lint.
+Decision: ESCALATE
+Next owner: Human owner + DevOps Agent
+Close condition: Close the account/terms and B2 credential gates before attempting live storage verification.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -626,3 +639,4 @@ Close condition: Prove browser-to-Python CORS and verified memory evidence over 
 | RV-JC-034 | JC-T005 | UEAgent + Engineering Agent | Product Agent + Code Review Agent + Test Agent | PASS for fixture UI | Four P1 findings closed; fixture remains explicit and session-only | Add local Python HTTP boundary next |
 | RV-JC-035 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local HTTP adapter | JSON, exception redaction, and negative length P1 findings closed | Add opt-in frontend client next |
 | RV-JC-036 | JC-T005 | Engineering Agent | Code Review Agent + Test Agent | PASS for opt-in HTTP client | Identity, invalid config, and timeout P1 findings closed | Run cross-process browser E2E next |
+| RV-JC-037 | JC-T005 | Engineering Agent + Test Agent | Code Review Agent + DevOps Agent | PASS for local browser integration | Real HTTP payload and desktop/mobile UI verified; Node runtime failure recorded | Human owner closes live B2 gates before C-008 |

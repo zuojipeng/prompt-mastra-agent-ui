@@ -288,6 +288,47 @@ async function createDirectorKitResult(page: Page) {
 test.describe('V2 DirectorKit browser flow', () => {
   test.describe.configure({ timeout: 60_000 });
 
+  test('local loopback adapter returns verified memory evidence', async ({ page }, testInfo) => {
+    test.skip(
+      process.env.PLAYWRIGHT_LOCAL_PROVENANCE !== '1',
+      'Run through test:e2e:provenance:local with the Python adapter enabled',
+    );
+    const isMobile = testInfo.project.name === 'mobile-chrome';
+    await mockDirectorKit(page);
+    await createDirectorKitResult(page);
+
+    if (isMobile) {
+      await page.getByRole('button', { name: /Execute/ }).click();
+    }
+    const provenancePanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+    await expect(provenancePanel.getByText('Local adapter')).toBeVisible();
+    await expect(provenancePanel.getByText(/使用内存存储/)).toBeVisible();
+    await expect(provenancePanel.getByRole('button', { name: '验证失败恢复' })).toHaveCount(0);
+
+    const responsePromise = page.waitForResponse((response) => (
+      response.url().endsWith('/v1/provenance-runs') && response.request().method() === 'POST'
+    ));
+    await provenancePanel.getByRole('button', { name: '运行存证演示' }).click();
+    const response = await responsePromise;
+    expect(response.status()).toBe(200);
+    const payload = await response.json() as {
+      provider?: string;
+      result?: { asset?: { url?: string }; manifest?: { uri?: string; verified?: boolean } };
+    };
+    expect(payload.provider).toBe('jingci-local-video');
+    expect(payload.result?.asset?.url).toMatch(/^memory:\/\/jingci-spike\//);
+    expect(payload.result?.manifest?.uri).toMatch(/^memory:\/\/jingci-spike\//);
+    expect(payload.result?.manifest?.verified).toBe(true);
+
+    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
+    await expect(provenancePanel).toContainText('jingci-local-video / local-proof');
+    await expect(provenancePanel).toContainText('memory://jingci-spike/');
+    await expect(provenancePanel.getByText('Verified')).toBeVisible();
+    await provenancePanel.screenshot({
+      path: `output/playwright/provenance-local-${isMobile ? 'mobile' : 'desktop'}.png`,
+    });
+  });
+
   test('happy path reaches DirectorKit result', async ({ page }, testInfo) => {
     const isMobile = testInfo.project.name === 'mobile-chrome';
     await mockDirectorKit(page);
