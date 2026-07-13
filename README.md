@@ -4,6 +4,24 @@
 
 项目重点不是泛 prompt 生成，而是把 AI 视频创作中容易翻车的部分结构化：创意是否适合生成、风险在哪里、镜头怎么拆、用文生视频还是图生视频、平台怎么选、失败后怎么补救。
 
+## Backblaze Hackathon Candidate
+
+The `spike/backblaze-provenance` branch contains **Jingci Provenance Vault**, an in-progress entry for the [Backblaze Generative Media Hackathon](https://backblaze-generative-media.devpost.com/). It adds a selected-shot provenance workflow backed by Genblaze's pipeline and object-storage interfaces.
+
+Current evidence is deliberately separated:
+
+- **Verified locally:** strict provenance contracts, deterministic Genblaze execution, content-addressed asset and manifest writes through an in-memory backend, browser-to-Python HTTP, retry lineage, and desktop/mobile E2E.
+- **Not yet verified:** live AI media generation, Backblaze B2 upload/read-back, public deployment of this branch, and final Devpost submission.
+
+Reviewers can start with:
+
+- [Submission draft](docs/campaigns/backblaze-genmedia-2026/docs/submission-draft.md)
+- [Under-three-minute demo script](docs/campaigns/backblaze-genmedia-2026/docs/demo-video-script.md)
+- [Evidence index](docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md)
+- [Credential-free spike setup](spikes/genblaze-provenance/README.md)
+
+Run the draft readiness check with `npm run hackathon:check:draft`. The strict `npm run hackathon:check` command intentionally fails until every account-bound and public submission blocker is closed.
+
 ## 产品能力
 
 - 创意体检：评估可拍性、风险等级、关键风险和推荐改造方向。

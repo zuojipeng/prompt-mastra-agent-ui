@@ -18,6 +18,8 @@ Status: in_progress
 | C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
 | C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | done |
 | C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | done |
+| C-011 | Product Agent + Operator Agent | Claims Review Agent + Test Agent | Build the English draft submission packet and readiness gate | Official constraints, disclosure, demo path, evidence index, and strict blockers are reviewable | done |
+| C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | ready |
 
 ## Event Log
 
@@ -97,3 +99,16 @@ Evidence: 2 Playwright projects, real loopback POST response, desktop/mobile scr
 Decision: ESCALATE LIVE GATE
 Next owner: Human owner + DevOps Agent
 Close condition: Close registration/terms and credential authorization before live B2 upload/read-back verification.
+
+### 2026-07-14 00:34 C-E007
+
+Type: REVIEWED
+From: Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-011
+Gate: Product / Ops / Claims Review
+Message: The English submission draft, significant-update disclosure, under-three-minute demo path, and evidence index passed after machine-enforced blockers prevented local proof from being labeled ready.
+Evidence: Official Devpost overview/rules refresh, 2 readiness tests, draft check, expected strict failure, TypeScript, scoped lint
+Decision: CONTINUE
+Next owner: Architecture Agent + DevOps Agent
+Close condition: Prepare an explicit-opt-in B2 upload/read-back/delete smoke harness without using credentials.

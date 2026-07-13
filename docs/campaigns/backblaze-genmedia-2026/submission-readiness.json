@@ -1,0 +1,40 @@
+{
+  "schema_version": "jingci.hackathon-submission-readiness.v1",
+  "status": "draft",
+  "project_name": "Jingci Provenance Vault",
+  "deadline_utc": "2026-08-03T21:00:00Z",
+  "repository_url": "https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance",
+  "working_app_url": null,
+  "public_demo_video_url": null,
+  "submission_language": "English",
+  "claims": {
+    "genblaze_local_pipeline": true,
+    "browser_python_integration": true,
+    "live_ai_media_provider": false,
+    "live_b2_upload_readback": false,
+    "public_campaign_deployment": false,
+    "submitted": false
+  },
+  "providers": [
+    { "name": "DeepSeek", "model": "deepseek-chat", "role": "DirectorKit structured text generation" },
+    { "name": "OpenAI", "model": "gpt-4.1-mini", "role": "DirectorKit JSON fallback" },
+    { "name": "Jingci deterministic provider", "model": "local-proof", "role": "Credential-free Genblaze pipeline test; not an external AI media model" }
+  ],
+  "artifacts": [
+    "docs/campaigns/backblaze-genmedia-2026/docs/submission-draft.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/demo-video-script.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/rules-review.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/submission-checklist.md",
+    "spikes/genblaze-provenance/README.md"
+  ],
+  "blockers": [
+    "registration_terms",
+    "live_ai_media_provider",
+    "live_b2_upload_readback",
+    "public_campaign_deployment",
+    "public_demo_video",
+    "default_branch_or_reviewer_handoff",
+    "human_submission_approval"
+  ]
+}
