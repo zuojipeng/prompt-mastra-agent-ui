@@ -638,6 +638,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + DevOps Agent + Claims Review Agent
 Close condition: Threat-model preview deployment and define an executable judge smoke and rollback path.
 
+### 2026-07-14 07:23 T036
+
+Type: REVIEWED
+From: Architecture Agent + DevOps Agent + Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / DevOps / Claims Review / Test
+Message: Passed a fail-closed preview deployment design with 13 mandatory controls, eight preserved blockers, judge smoke, rollback, and machine enforcement; no deployment or credential action occurred.
+Evidence: E3 deployment validator, 3 focused tests, 118 frontend tests, TypeScript, lint, build; E1 public runtime and access remain blocked.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Harden the public service boundary under local tests before any runtime or access-layer authorization.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -682,3 +695,4 @@ Close condition: Threat-model preview deployment and define an executable judge 
 | RV-JC-038 | JC-T005 | Product Agent + Operator Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for draft submission packet | Local/live claims separated; strict readiness remains red on seven blockers | Prepare explicit-opt-in B2 smoke harness |
 | RV-JC-039 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for guarded B2 smoke harness | Abnormal put cleanup and cleanup recovery P1 findings closed; no network used | Prepare ObjectStorageSink-to-B2 harness |
 | RV-JC-040 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for offline Genblaze-B2 pipeline harness | First-run fixed-prefix P1 and partial cleanup findings closed; no network used | Threat-model preview deployment and judge access |
+| RV-JC-041 | JC-T005 | Architecture Agent + DevOps Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for deployment design only | Missing-blocker fail-open fixed; current adapter remains loopback-only; no public evidence claimed | Harden public service boundary locally |

@@ -1,0 +1,45 @@
+{
+  "schema_version": "jingci.hackathon-deployment-readiness.v1",
+  "status": "design",
+  "frontend": {
+    "runtime": "Cloudflare Pages static export",
+    "campaign_url": null,
+    "commit": null
+  },
+  "provenance_service": {
+    "runtime": null,
+    "public_url": null,
+    "current_mode": "loopback-only"
+  },
+  "access_model": "reviewer test account through an approved access layer",
+  "controls": {
+    "exact_origin_cors": "planned",
+    "reviewer_authentication": "planned",
+    "edge_rate_limit": "planned",
+    "request_schema_and_size_limit": "implemented-local",
+    "concurrency_and_timeout_limit": "planned",
+    "server_side_secrets": "implemented-local",
+    "bucket_scoped_credentials": "blocked-human",
+    "private_b2_objects": "planned",
+    "provider_and_url_allowlist": "planned",
+    "structured_redacted_logs": "planned",
+    "health_and_dependency_checks": "planned",
+    "rollback_feature_flag": "planned",
+    "retention_and_cleanup": "implemented-offline"
+  },
+  "artifacts": [
+    "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/judge-access-runbook.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md"
+  ],
+  "blockers": [
+    "public_service_runtime_decision",
+    "reviewer_access_account",
+    "public_service_hardening",
+    "bucket_scoped_credentials",
+    "live_provider_and_b2_evidence",
+    "campaign_preview_deployment",
+    "post_deploy_judge_smoke",
+    "human_release_approval"
+  ]
+}

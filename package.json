@@ -22,6 +22,8 @@
     "test:e2e:provenance:local": "PLAYWRIGHT_LOCAL_PROVENANCE=1 playwright test tests/e2e/v2-director-kit.spec.ts --config=playwright.provenance-local.config.ts --grep=\"local loopback adapter\"",
     "hackathon:check:draft": "node scripts/check-hackathon-submission.mjs",
     "hackathon:check": "node scripts/check-hackathon-submission.mjs --strict",
+    "hackathon:deploy:check:draft": "node scripts/check-hackathon-deployment.mjs",
+    "hackathon:deploy:check": "node scripts/check-hackathon-deployment.mjs --strict",
     "demo:record": "node scripts/record-demo.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
     "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",

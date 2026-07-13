@@ -21,7 +21,8 @@ Status: in_progress
 | C-011 | Product Agent + Operator Agent | Claims Review Agent + Test Agent | Build the English draft submission packet and readiness gate | Official constraints, disclosure, demo path, evidence index, and strict blockers are reviewable | done |
 | C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | done |
 | C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | done |
-| C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | ready |
+| C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | done |
+| C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | ready |
 
 ## Event Log
 
@@ -140,3 +141,16 @@ Evidence: 7 focused tests, 29-test Python regression, compileall, no-network pla
 Decision: CONTINUE
 Next owner: Architecture Agent + DevOps Agent + Claims Review Agent
 Close condition: Define a preview deployment threat model and executable judge-access runbook without deploying or using credentials.
+
+### 2026-07-14 07:23 C-E010
+
+Type: REVIEWED
+From: Architecture Agent + DevOps Agent + Claims Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-014
+Gate: Architecture / DevOps / Claims Review / Test
+Message: Preview deployment design passed after the validator was repaired to reject a missing blockers ledger; the current adapter remains loopback-only and the strict public gate remains red on eight explicit blockers.
+Evidence: Threat model, judge runbook, machine-readable readiness, 3 focused tests, 118-test frontend regression, TypeScript, lint, production build
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Implement and locally prove the public service security boundary without deploying or selecting paid infrastructure.
