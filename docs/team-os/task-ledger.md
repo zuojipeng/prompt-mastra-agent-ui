@@ -651,6 +651,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Harden the public service boundary under local tests before any runtime or access-layer authorization.
 
+### 2026-07-14 07:56 T037
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Code Review / Test
+Message: Passed guarded preview HTTP hardening locally with fail-closed bind config, exact CORS, upstream token, limits, redacted logs, health, and disablement; identity, edge, and deployment claims remain blocked.
+Evidence: E3 35 Python tests, compileall, preview and local real HTTP smokes; E1 runtime behavior remains unproven.
+Decision: CONTINUE
+Next owner: DevOps Agent + Claims Review Agent
+Close condition: Assemble deterministic release evidence and secret-scan outputs before any live gate.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -696,3 +709,4 @@ Close condition: Harden the public service boundary under local tests before any
 | RV-JC-039 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for guarded B2 smoke harness | Abnormal put cleanup and cleanup recovery P1 findings closed; no network used | Prepare ObjectStorageSink-to-B2 harness |
 | RV-JC-040 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS for offline Genblaze-B2 pipeline harness | First-run fixed-prefix P1 and partial cleanup findings closed; no network used | Threat-model preview deployment and judge access |
 | RV-JC-041 | JC-T005 | Architecture Agent + DevOps Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for deployment design only | Missing-blocker fail-open fixed; current adapter remains loopback-only; no public evidence claimed | Harden public service boundary locally |
+| RV-JC-042 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for local preview hardening only | Query-log leakage and health/gate ordering fixed; bearer is not identity; no public evidence claimed | Build redacted release-evidence bundle |

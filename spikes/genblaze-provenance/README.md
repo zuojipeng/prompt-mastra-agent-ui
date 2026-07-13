@@ -35,6 +35,27 @@ PROVENANCE_PYTHON=.venv/bin/python npm run test:e2e:provenance:local
 
 The dedicated Playwright configuration starts both loopback services, rejects occupied ports instead of reusing an unknown process, and verifies the HTTP response plus the rendered `memory://` evidence. Use a Node.js version supported by the frontend.
 
+## Guarded Preview Boundary
+
+The HTTP adapter refuses a non-loopback bind unless all preview safety configuration is explicit. This mode is for local security verification before a separate runtime and reviewer-access decision; it is not deployment authorization.
+
+```bash
+JINGCI_PUBLIC_PREVIEW_MODE=YES \
+JINGCI_PROVENANCE_ENABLED=YES \
+JINGCI_PREVIEW_ALLOWED_ORIGIN=https://approved-preview.example \
+JINGCI_PREVIEW_BEARER_TOKEN='<load-from-approved-secret-store>' \
+JINGCI_PREVIEW_MAX_CONCURRENCY=2 \
+PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --host 0.0.0.0 --port 8788
+```
+
+The bearer is an upstream service token for an approved access proxy to inject. It must never be placed in `NEXT_PUBLIC_*`, static JavaScript, browser storage, a URL, or a committed environment file. Preview mode enforces exact HTTPS-origin CORS, constant-time token comparison, a 64KB body cap, a 10-second request-read timeout, bounded generation concurrency, redacted metadata-only request logs, generic public validation errors, and a fail-closed disable switch. Edge rate limiting and reviewer identity remain required external controls.
+
+Run the credential-free loopback proof with:
+
+```bash
+PYTHONPATH=. .venv/bin/python tests/preview_http_service_smoke.py
+```
+
 ## Guarded Live B2 Smoke
 
 The default `--plan` command performs no network request and needs no credentials. Live mode is reserved for the separately approved account gate. It requires an exact `JINGCI_ALLOW_LIVE_B2_SMOKE=YES` confirmation plus `B2_BUCKET`, `B2_REGION`, `B2_KEY_ID`, and `B2_APP_KEY` in the process environment.

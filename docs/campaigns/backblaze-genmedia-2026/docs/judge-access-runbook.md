@@ -33,6 +33,17 @@ npm test -- --pool=threads
 npm run build
 ```
 
+Run both HTTP boundary smokes before any runtime decision:
+
+```bash
+cd spikes/genblaze-provenance
+PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -p 'test_*.py' -v
+PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
+PYTHONPATH=. .venv/bin/python tests/preview_http_service_smoke.py
+```
+
+The preview bearer is an access-layer-to-service secret. Do not put it in the static frontend, judge instructions, screenshots, URLs, or evidence output.
+
 Run the authorized B2 transport and Genblaze pipeline smokes from a secure environment without placing secrets on the command line:
 
 ```bash

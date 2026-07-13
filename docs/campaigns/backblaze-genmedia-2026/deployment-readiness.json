@@ -9,22 +9,22 @@
   "provenance_service": {
     "runtime": null,
     "public_url": null,
-    "current_mode": "loopback-only"
+    "current_mode": "loopback-default-with-guarded-preview"
   },
   "access_model": "reviewer test account through an approved access layer",
   "controls": {
-    "exact_origin_cors": "planned",
-    "reviewer_authentication": "planned",
+    "exact_origin_cors": "implemented-local-preview",
+    "reviewer_authentication": "implemented-local-upstream-token",
     "edge_rate_limit": "planned",
     "request_schema_and_size_limit": "implemented-local",
-    "concurrency_and_timeout_limit": "planned",
+    "concurrency_and_timeout_limit": "partial-local-concurrency-and-read-timeout",
     "server_side_secrets": "implemented-local",
     "bucket_scoped_credentials": "blocked-human",
     "private_b2_objects": "planned",
     "provider_and_url_allowlist": "planned",
-    "structured_redacted_logs": "planned",
-    "health_and_dependency_checks": "planned",
-    "rollback_feature_flag": "planned",
+    "structured_redacted_logs": "implemented-local-preview",
+    "health_and_dependency_checks": "partial-local-process-only",
+    "rollback_feature_flag": "implemented-local-preview",
     "retention_and_cleanup": "implemented-offline"
   },
   "artifacts": [
@@ -35,7 +35,7 @@
   "blockers": [
     "public_service_runtime_decision",
     "reviewer_access_account",
-    "public_service_hardening",
+    "edge_and_identity_integration",
     "bucket_scoped_credentials",
     "live_provider_and_b2_evidence",
     "campaign_preview_deployment",

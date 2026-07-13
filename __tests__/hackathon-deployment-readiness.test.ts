@@ -8,7 +8,7 @@ describe('hackathon deployment readiness', () => {
     const result = evaluateDeployment(deployment, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('public_service_hardening');
+    expect(result.blockers).toContain('edge_and_identity_integration');
     expect(result.blockers).toContain('human_release_approval');
   });
 
@@ -23,7 +23,7 @@ describe('hackathon deployment readiness', () => {
   });
 
   it('rejects a missing blockers ledger instead of treating it as clear', () => {
-    const { blockers: _blockers, ...withoutBlockers } = deployment;
+    const withoutBlockers = Object.fromEntries(Object.entries(deployment).filter(([key]) => key !== 'blockers'));
     const result = evaluateDeployment(withoutBlockers, () => true);
 
     expect(result.errors).toContain('blockers must be an array');

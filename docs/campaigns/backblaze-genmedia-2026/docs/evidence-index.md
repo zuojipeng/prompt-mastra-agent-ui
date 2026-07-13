@@ -13,6 +13,7 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | B2 upload/read-back/delete smoke is guarded and reproducible | LOCAL ONLY | `live_b2_smoke.py`, 8 focused tests | Harness only; live run not authorized |
 | Genblaze sink owns, verifies, and cleans asset plus manifest | LOCAL ONLY | `live_genblaze_b2_smoke.py`, 7 focused tests | B2-shaped backend; no network |
 | Preview deployment trust boundary and judge procedure are reviewable | LOCAL ONLY | `deployment-readiness.json`, deployment validator, threat model, judge runbook | Design only; strict gate remains red |
+| Guarded preview HTTP boundary rejects unsafe access | LOCAL ONLY | `http_service.py`, 11 focused tests, 35-test regression, preview HTTP smoke | Upstream token only; no reviewer identity, edge rate limit, or deployment |
 | B2 stores and serves the asset and manifest | BLOCKED | C-008 | Requires authorized account and E4 read-back smoke |
 | External AI media provider generates the asset | BLOCKED | Submission readiness gate | Deterministic local provider is not an AI model |
 | Public judge-accessible campaign app | BLOCKED | Submission checklist | Campaign branch not deployed/default |
@@ -25,6 +26,7 @@ npm run hackathon:check:draft
 npm run hackathon:deploy:check:draft
 npm test -- --pool=threads
 PROVENANCE_PYTHON=spikes/genblaze-provenance/.venv/bin/python npm run test:e2e:provenance:local
+PYTHONPATH=spikes/genblaze-provenance spikes/genblaze-provenance/.venv/bin/python spikes/genblaze-provenance/tests/preview_http_service_smoke.py
 npm run build
 ```
 

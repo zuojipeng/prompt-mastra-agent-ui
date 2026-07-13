@@ -22,7 +22,8 @@ Status: in_progress
 | C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | done |
 | C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | done |
 | C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | done |
-| C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | ready |
+| C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | done |
+| C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | ready |
 
 ## Event Log
 
@@ -154,3 +155,16 @@ Evidence: Threat model, judge runbook, machine-readable readiness, 3 focused tes
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Implement and locally prove the public service security boundary without deploying or selecting paid infrastructure.
+
+### 2026-07-14 07:56 C-E011
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-015
+Gate: Architecture / Engineering / Code Review / Test
+Message: Guarded preview mode passed locally after request-log query leakage and health/concurrency ordering findings were repaired; the service token is explicitly not reviewer identity and public release remains blocked.
+Evidence: 11 focused tests, 35 Python regression tests, compileall, real preview 401-to-200 smoke, local HTTP regression
+Decision: CONTINUE
+Next owner: DevOps Agent + Claims Review Agent
+Close condition: Produce one deterministic redacted release-evidence bundle without credentials, deployment, or public claims.
