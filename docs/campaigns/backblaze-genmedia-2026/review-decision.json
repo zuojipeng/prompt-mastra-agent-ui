@@ -1,0 +1,94 @@
+{
+  "schema_version": "team-os.opportunity-review.v1",
+  "opportunity_id": "devpost-30205",
+  "title": "Backblaze Generative Media Hackathon: Build with Genblaze on B2",
+  "official_url": "https://backblaze-generative-media.devpost.com/",
+  "reviewed_at": "2026-07-13T00:35:53Z",
+  "producer": "Opportunity Scout Agent",
+  "reviewer": "Operator Agent",
+  "recommendation": "conditional_go",
+  "field_decisions": {
+    "submission_deadline_utc": {
+      "status": "accepted",
+      "value": "2026-08-03T21:00:00Z",
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#1-dates-and-timing"
+      ],
+      "note": "Official rules state August 3, 2026 at 5:00 PM EDT."
+    },
+    "mode": {
+      "status": "accepted",
+      "value": "online",
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/"
+      ],
+      "note": "Official event metadata identifies online attendance."
+    },
+    "eligibility": {
+      "status": "unresolved",
+      "value": null,
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#3-eligibility"
+      ],
+      "note": "Human owner must confirm age, residence, conflict, and prize eligibility."
+    },
+    "allowed_preexisting_work": {
+      "status": "accepted",
+      "value": "partial",
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#4-how-to-enter"
+      ],
+      "note": "Existing projects may add B2 and Genblaze during the event with significant-update disclosure."
+    },
+    "required_technology": {
+      "status": "accepted",
+      "value": [
+        "Backblaze B2",
+        "Genblaze"
+      ],
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#4-how-to-enter"
+      ],
+      "note": "Both technologies are required and must be used meaningfully."
+    },
+    "deliverables": {
+      "status": "accepted",
+      "value": [
+        "working_app",
+        "repository",
+        "description",
+        "video"
+      ],
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/"
+      ],
+      "note": "Official overview lists the required submission artifacts."
+    },
+    "ip_and_license_summary": {
+      "status": "accepted",
+      "value": "Entrants retain IP and grant judging and promotional rights under the official rules.",
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#7-intellectual-property-rights"
+      ],
+      "note": "Human review remains required before accepting terms."
+    }
+  },
+  "authorization": {
+    "may_create_branch": true,
+    "may_create_public_repository": false,
+    "may_deploy_preview": true,
+    "may_deploy_production": false,
+    "may_use_paid_api": false,
+    "max_external_spend": 0,
+    "may_register_event": false,
+    "may_accept_terms": false,
+    "may_submit_entry": false,
+    "may_contact_people": false
+  },
+  "human_gates": {
+    "participation": "pending",
+    "registration_terms": "pending",
+    "submission": "pending"
+  },
+  "next_action": "Complete the zero-cost Jingci Genblaze and B2 architecture spike, then request participation approval."
+}

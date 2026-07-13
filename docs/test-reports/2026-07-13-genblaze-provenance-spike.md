@@ -9,7 +9,7 @@ Status: PASS FOR LOCAL SPIKE
 | Check | Command | Result |
 | --- | --- | --- |
 | Python syntax/imports | `PYTHONPATH=. /private/tmp/jingci-genblaze-venv/bin/python -m compileall -q jingci_spike tests` | PASS |
-| Spike contract, provider, and storage | `PYTHONPATH=. /private/tmp/jingci-genblaze-venv/bin/python -m unittest discover -s tests -v` | PASS, 6 tests |
+| Spike contract, provider, storage, and B2 config | `PYTHONPATH=. /private/tmp/jingci-genblaze-venv/bin/python -m unittest discover -s tests -v` | PASS, 9 tests |
 | Fixture CLI | `PYTHONPATH=. /private/tmp/jingci-genblaze-venv/bin/python -m jingci_spike.cli fixtures/shot-job.json` | PASS, `verified: true`, completed run, no unverified assets |
 | Existing Jingci tests | `PATH=/Users/edy/.nvm/versions/node/v22.21.1/bin:$PATH npm test -- --pool=threads` | PASS, 13 files / 92 tests |
 | Patch hygiene | `git diff --check` | PASS |
@@ -29,3 +29,7 @@ The first frontend test attempt used the shell's older Node runtime and failed b
 ## Loop 2 Evidence
 
 The local pipeline test proves one provider invocation, completed run, succeeded step, exact byte-derived SHA-256, content-addressable asset key, separate manifest key, two storage writes, and credential-free durable URLs. It uses no network and therefore does not close the Backblaze integration gate.
+
+## Loop 3 Evidence
+
+B2 tests prove missing configuration fails closed, credentials are redacted, and offline backend construction disables preflight and lifecycle mutation. Team OS generated six campaign artifacts in evaluation mode. No B2 network request was made.

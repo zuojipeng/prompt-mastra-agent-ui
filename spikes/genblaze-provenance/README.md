@@ -24,3 +24,7 @@ Use explicit imports from `genblaze_core`. A wildcard import loads optional comp
 - Next adapter: execute one provider pipeline and replace the fixture asset URL/digest.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.
+
+## B2 Gate
+
+`B2Config` requires `B2_BUCKET`, `B2_REGION`, `B2_KEY_ID`, and `B2_APP_KEY`, and only exposes a redacted summary. `build_offline_backblaze_backend` explicitly disables network preflight and lifecycle mutation. A real B2 smoke must use a separate authorization and must never print credentials.

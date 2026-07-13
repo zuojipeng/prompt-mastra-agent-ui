@@ -38,3 +38,14 @@ Decision: PASS FOR MOCKED STORAGE BOUNDARY
 - Tests independently recompute the fixture SHA-256 and reject persisted credential-bearing URL patterns.
 
 Residual risk is narrowed but unchanged at the network boundary: an in-memory backend does not prove B2 credentials, bucket permissions, region handling, CORS, public/private URL behavior, latency, or upload limits.
+
+## Loop 3 Review
+
+Decision: PASS FOR OFFLINE B2 READINESS
+
+- Configuration errors list missing variable names without secret values.
+- Credential summaries are redacted and covered by regression tests.
+- Offline backend construction cannot preflight the network or mutate lifecycle rules.
+- Team OS handoff produced evaluation mode because eligibility and participation approval remain unresolved.
+
+Real B2 credentials must be stored outside Git and must not be pasted into reports, commands that persist in shell history, browser code, or campaign artifacts.

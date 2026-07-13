@@ -1,0 +1,15 @@
+# Rules Review
+
+Producer: Opportunity Scout Agent
+Reviewer: Operator Agent
+Reviewed: 2026-07-13T00:35:53Z
+
+| Field | Decision | Note | Evidence |
+| --- | --- | --- | --- |
+| submission_deadline_utc | accepted | Official rules state August 3, 2026 at 5:00 PM EDT. | https://backblaze-generative-media.devpost.com/rules#1-dates-and-timing |
+| mode | accepted | Official event metadata identifies online attendance. | https://backblaze-generative-media.devpost.com/ |
+| eligibility | unresolved | Human owner must confirm age, residence, conflict, and prize eligibility. | https://backblaze-generative-media.devpost.com/rules#3-eligibility |
+| allowed_preexisting_work | accepted | Existing projects may add B2 and Genblaze during the event with significant-update disclosure. | https://backblaze-generative-media.devpost.com/rules#4-how-to-enter |
+| required_technology | accepted | Both technologies are required and must be used meaningfully. | https://backblaze-generative-media.devpost.com/rules#4-how-to-enter |
+| deliverables | accepted | Official overview lists the required submission artifacts. | https://backblaze-generative-media.devpost.com/ |
+| ip_and_license_summary | accepted | Human review remains required before accepting terms. | https://backblaze-generative-media.devpost.com/rules#7-intellectual-property-rights |

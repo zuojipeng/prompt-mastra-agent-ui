@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from jingci_spike.contract import ShotProvenanceJob
+from jingci_spike.b2_config import B2Config, build_offline_backblaze_backend
 from jingci_spike.manifest_adapter import build_verified_manifest
 from jingci_spike.local_pipeline import execute_local_storage_pipeline
 
@@ -70,6 +71,39 @@ class ManifestAdapterTest(unittest.TestCase):
         job = ShotProvenanceJob.from_dict(self.fixture())
         with self.assertRaisesRegex(ValueError, "must not be empty"):
             execute_local_storage_pipeline(job, b"")
+
+    def test_b2_config_fails_closed_without_naming_secret_values(self) -> None:
+        with self.assertRaisesRegex(ValueError, "B2_BUCKET, B2_REGION, B2_KEY_ID, B2_APP_KEY"):
+            B2Config.from_env({})
+
+    def test_b2_config_redacts_credentials(self) -> None:
+        config = B2Config.from_env(
+            {
+                "B2_BUCKET": "jingci-spike",
+                "B2_REGION": "us-west-004",
+                "B2_KEY_ID": "test-key-id-1234",
+                "B2_APP_KEY": "test-secret-value",
+            }
+        )
+        summary = config.redacted_summary()
+        self.assertEqual(summary["bucket"], "jingci-spike")
+        self.assertEqual(summary["key_id"], "te...34")
+        self.assertEqual(summary["app_key"], "[redacted]")
+        self.assertNotIn(config.app_key, json.dumps(summary))
+
+    def test_offline_b2_backend_disables_network_preflight_and_lifecycle(self) -> None:
+        config = B2Config("bucket", "us-west-004", "key-id", "app-key")
+        observed: dict = {}
+
+        def factory(bucket: str, **kwargs):
+            observed.update({"bucket": bucket, **kwargs})
+            return "offline-backend"
+
+        backend = build_offline_backblaze_backend(config, factory)
+        self.assertEqual(backend, "offline-backend")
+        self.assertEqual(observed["bucket"], "bucket")
+        self.assertFalse(observed["preflight"])
+        self.assertFalse(observed["auto_lifecycle"])
 
 
 if __name__ == "__main__":

@@ -54,3 +54,9 @@ The second slice uses Genblaze's official extension points without external call
 - `InMemoryStorageBackend` implements the same `StorageBackend` contract expected by B2/S3 while recording every write for tests.
 
 This proves the adapter seam and object layout, not Backblaze authentication or network behavior.
+
+## B2 Configuration Boundary
+
+The project consumes four server-side values only: `B2_BUCKET`, `B2_REGION`, `B2_KEY_ID`, and `B2_APP_KEY`. Missing values fail closed by variable name. Summaries redact both credential values. Offline construction sets `preflight=False` and `auto_lifecycle=False`; a later network smoke must explicitly opt into account-bound behavior under a new authorization.
+
+Team OS communicates through the generated `docs/campaigns/backblaze-genmedia-2026/review-decision.json` and `campaign.json` artifacts. Jingci does not import Team OS implementation code.
