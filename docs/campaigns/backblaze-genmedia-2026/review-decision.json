@@ -25,12 +25,17 @@
       "note": "Official event metadata identifies online attendance."
     },
     "eligibility": {
-      "status": "unresolved",
-      "value": null,
-      "evidence": [
-        "https://backblaze-generative-media.devpost.com/rules#3-eligibility"
+      "status": "accepted",
+      "value": [
+        "Age 29",
+        "Current residence: Beijing, China",
+        "No disclosed sponsor, administrator, judge, employer, household, or agent conflict"
       ],
-      "note": "Human owner must confirm age, residence, conflict, and prize eligibility."
+      "evidence": [
+        "https://backblaze-generative-media.devpost.com/rules#3-eligibility",
+        "https://gongbao.court.gov.cn/Details/51eb6750b8361f79be8f90d09bc202.html"
+      ],
+      "note": "Human owner confirmed age, current Beijing residence, and no listed role or relationship conflict on 2026-07-13. Final platform and prize checks remain subject to the terms accepted by the human owner."
     },
     "allowed_preexisting_work": {
       "status": "accepted",

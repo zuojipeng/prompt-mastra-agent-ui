@@ -10,4 +10,4 @@ Status: in_review
 | --- | --- | --- | --- | --- | --- |
 | C-001 | Product Agent | Hermes | Confirm judging thesis and acceptance criteria | Product Gate evidence exists | ready |
 | C-002 | Architecture Agent | Code Review Agent | Validate required technology boundary | Reproducible spike evidence exists | in_progress |
-| C-003 | Operator Agent | Human owner | Close unresolved eligibility and terms | Human decision recorded | blocked |
+| C-003 | Operator Agent | Human owner | Close participation and registration terms | Human Gate A and account-bound terms decisions recorded | blocked |
