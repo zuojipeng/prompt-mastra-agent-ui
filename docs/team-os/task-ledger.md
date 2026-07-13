@@ -495,6 +495,19 @@ Decision: REVIEW_REQUESTED
 Next owner: Code Review Agent + Hermes Orchestrator
 Close condition: Confirm evidence boundaries and decide whether a second provider/B2 spike remains inside the authorization envelope.
 
+### 2026-07-13 22:32 T025
+
+Type: EVIDENCE_ADDED
+From: Engineering Agent + Test Agent
+To: Code Review Agent + Hermes Orchestrator
+Task: JC-T005
+Gate: Engineering / Test
+Message: Executed a deterministic Genblaze SyncProvider through the official Pipeline and ObjectStorageSink against an in-memory StorageBackend, proving content-addressable asset and manifest writes without credentials or network access.
+Evidence: E3 6 Python tests, E3 92 existing Vitest tests, `spikes/genblaze-provenance/jingci_spike/local_pipeline.py`.
+Decision: CONTINUE
+Next owner: Code Review Agent + Hermes Orchestrator
+Close condition: Review confirms this closes only the local provider/storage boundary and leaves real B2 access behind a human gate.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -529,3 +542,4 @@ Close condition: Confirm evidence boundaries and decide whether a second provide
 | RV-JC-028 | JC-T004 | Product Agent | UEAgent + Architecture Agent + Test Agent | PASS for product evolution roadmap | Stage 1 completion is required before provider or collaboration expansion; market assumptions remain E2 | Start with handoff blocking reasons |
 | RV-JC-029 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff reasons | Local domain owns rules; dashboard only formats summary; old cloud summaries remain compatible | Add Projects API parity next |
 | RV-JC-030 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local spike | Fixed pending-run semantic mismatch and dedicated negative-prompt mapping; provider/B2 behavior remains unproven | Hermes reviews before expanding authorization |
+| RV-JC-031 | JC-T005 | Engineering Agent | Code Review Agent + Test Agent | PASS for mocked storage boundary | Official Pipeline and ObjectStorageSink exercised; durable URLs are credential-free; B2 network behavior remains unproven | Human owner decides whether to authorize account-bound B2 verification |

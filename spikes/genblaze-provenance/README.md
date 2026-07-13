@@ -4,6 +4,8 @@ This isolated spike verifies the smallest Jingci-to-Genblaze contract without pr
 
 It accepts one completed shot asset with a SHA-256 digest and builds a verified Genblaze provenance manifest. It does not claim that media generation or B2 upload has occurred.
 
+The second local slice also exercises Genblaze's real `SyncProvider -> Pipeline -> ObjectStorageSink -> StorageBackend` lifecycle with deterministic bytes and an in-memory storage fake. This validates content-addressed object keys and durable credential-free URLs, but it is still not a Backblaze network upload.
+
 ## Run
 
 ```bash
@@ -20,4 +22,5 @@ Use explicit imports from `genblaze_core`. A wildcard import loads optional comp
 - Input: one `jingci.shot-provenance.v1` JSON job.
 - Output: one verified Genblaze manifest envelope.
 - Next adapter: execute one provider pipeline and replace the fixture asset URL/digest.
+- Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.

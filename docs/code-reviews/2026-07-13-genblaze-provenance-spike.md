@@ -27,3 +27,14 @@ A cryptographically valid manifest could still overstate product readiness if ru
 ## Residual Risk
 
 Provider adapters, retry execution, B2 upload, authentication, deployment, and UI integration remain untested and must not be presented as shipped capability.
+
+## Loop 2 Review
+
+Decision: PASS FOR MOCKED STORAGE BOUNDARY
+
+- Provider code uses `SyncProvider` rather than Genblaze's pytest-dependent test helper.
+- The official sink owns file hashing, content-addressable key selection, durable URL rewriting, and manifest persistence.
+- Manifest identification uses recorded `application/json` write metadata instead of parsing byte prefixes.
+- Tests independently recompute the fixture SHA-256 and reject persisted credential-bearing URL patterns.
+
+Residual risk is narrowed but unchanged at the network boundary: an in-memory backend does not prove B2 credentials, bucket permissions, region handling, CORS, public/private URL behavior, latency, or upload limits.

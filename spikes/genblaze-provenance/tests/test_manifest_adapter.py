@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import unittest
 from pathlib import Path
 
 from jingci_spike.contract import ShotProvenanceJob
 from jingci_spike.manifest_adapter import build_verified_manifest
+from jingci_spike.local_pipeline import execute_local_storage_pipeline
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +48,28 @@ class ManifestAdapterTest(unittest.TestCase):
         payload["metadata"]["attempt"] = 1
         with self.assertRaisesRegex(ValueError, "metadata"):
             ShotProvenanceJob.from_dict(payload)
+
+    def test_executes_provider_and_content_addressed_storage_lifecycle(self) -> None:
+        job = ShotProvenanceJob.from_dict(self.fixture())
+        media_bytes = b"jingci deterministic local video fixture"
+        result = execute_local_storage_pipeline(job, media_bytes)
+
+        self.assertEqual(result["provider_call_count"], 1)
+        self.assertEqual(result["run_status"], "completed")
+        self.assertEqual(result["step_status"], "succeeded")
+        self.assertEqual(result["asset_size_bytes"], len(media_bytes))
+        self.assertEqual(result["asset_sha256"], hashlib.sha256(media_bytes).hexdigest())
+        self.assertTrue(result["asset_url"].startswith("memory://jingci-spike/jingci-spike/assets/"))
+        self.assertTrue(result["manifest_uri"].startswith("memory://jingci-spike/jingci-spike/manifests/"))
+        self.assertIn(result["manifest_key"], result["stored_keys"])
+        self.assertEqual(len(result["stored_keys"]), 2)
+        persisted_values = result["stored_keys"] + [result["asset_url"], result["manifest_uri"]]
+        self.assertFalse(any("X-Amz-" in value or "Credential" in value for value in persisted_values))
+
+    def test_local_pipeline_rejects_empty_media(self) -> None:
+        job = ShotProvenanceJob.from_dict(self.fixture())
+        with self.assertRaisesRegex(ValueError, "must not be empty"):
+            execute_local_storage_pipeline(job, b"")
 
 
 if __name__ == "__main__":

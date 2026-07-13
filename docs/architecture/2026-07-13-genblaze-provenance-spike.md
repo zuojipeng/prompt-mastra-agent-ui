@@ -43,3 +43,14 @@ The spike returns a Genblaze manifest envelope with run identity, canonical mani
 - one strict shot fixture produces `verified: true`
 - malformed contract and missing SHA-256 fail closed
 - no provider, B2, production, registration, or paid action occurs
+
+## Second Local Slice
+
+The second slice uses Genblaze's official extension points without external calls:
+
+- `DeterministicVideoProvider` implements `SyncProvider` and returns a local `file://` video fixture.
+- `Pipeline` executes the provider lifecycle and reports completed/succeeded states.
+- `ObjectStorageSink` reads the allowlisted temporary file, computes SHA-256, selects a content-addressable key, rewrites the asset to a durable URL, and writes the manifest.
+- `InMemoryStorageBackend` implements the same `StorageBackend` contract expected by B2/S3 while recording every write for tests.
+
+This proves the adapter seam and object layout, not Backblaze authentication or network behavior.
