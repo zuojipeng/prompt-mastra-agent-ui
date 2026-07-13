@@ -15,6 +15,7 @@ PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -v
 PYTHONPATH=. .venv/bin/python -m jingci_spike.cli fixtures/shot-job.json
 PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --port 8788
 PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --plan
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:
@@ -32,6 +33,18 @@ PROVENANCE_PYTHON=.venv/bin/python npm run test:e2e:provenance:local
 ```
 
 The dedicated Playwright configuration starts both loopback services, rejects occupied ports instead of reusing an unknown process, and verifies the HTTP response plus the rendered `memory://` evidence. Use a Node.js version supported by the frontend.
+
+## Guarded Live B2 Smoke
+
+The default `--plan` command performs no network request and needs no credentials. Live mode is reserved for the separately approved account gate. It requires an exact `JINGCI_ALLOW_LIVE_B2_SMOKE=YES` confirmation plus `B2_BUCKET`, `B2_REGION`, `B2_KEY_ID`, and `B2_APP_KEY` in the process environment.
+
+Do not place secrets on the command line, in `.env` files committed to Git, or in reports. Load them through an approved local secret mechanism, then run:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --live
+```
+
+The smoke writes one random key below `jingci-smoke/`, reads it back, verifies SHA-256, deletes it, and confirms absence. It does not change bucket lifecycle or visibility. A passing result is B2 transport evidence only; it does not prove an external AI media provider.
 
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
 

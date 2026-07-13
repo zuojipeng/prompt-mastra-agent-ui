@@ -19,7 +19,8 @@ Status: in_progress
 | C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | done |
 | C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | done |
 | C-011 | Product Agent + Operator Agent | Claims Review Agent + Test Agent | Build the English draft submission packet and readiness gate | Official constraints, disclosure, demo path, evidence index, and strict blockers are reviewable | done |
-| C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | ready |
+| C-012 | Architecture Agent + DevOps Agent | Code Review Agent + Test Agent | Prepare a fail-closed live B2 smoke harness | Dry validation passes without credentials; live mode requires explicit opt-in and proves upload/read-back/delete | done |
+| C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | ready |
 
 ## Event Log
 
@@ -112,3 +113,16 @@ Evidence: Official Devpost overview/rules refresh, 2 readiness tests, draft chec
 Decision: CONTINUE
 Next owner: Architecture Agent + DevOps Agent
 Close condition: Prepare an explicit-opt-in B2 upload/read-back/delete smoke harness without using credentials.
+
+### 2026-07-14 00:47 C-E008
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: C-012
+Gate: Architecture / Engineering / Code Review / Test
+Message: The guarded B2 smoke harness passed offline review after abnormal-put cleanup and manual-recovery findings were repaired; no credentials or network were used.
+Evidence: 22 Python tests, compileall, no-network JSON plan, expected denial of an unconfirmed live attempt
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Prepare the Genblaze ObjectStorageSink path to verify and clean both asset and manifest objects before any live authorization.

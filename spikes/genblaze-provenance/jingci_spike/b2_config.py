@@ -56,6 +56,22 @@ def build_offline_backblaze_backend(
     )
 
 
+def build_live_backblaze_backend(
+    config: B2Config,
+    backend_factory: BackendFactory = S3StorageBackend.for_backblaze,
+) -> Any:
+    """Construct a preflighted B2 backend without bucket-wide mutations."""
+
+    return backend_factory(
+        config.bucket,
+        region=config.region,
+        key_id=config.key_id,
+        app_key=config.app_key,
+        preflight=True,
+        auto_lifecycle=False,
+    )
+
+
 def _redact(value: str) -> str:
     if len(value) <= 4:
         return "[redacted]"
