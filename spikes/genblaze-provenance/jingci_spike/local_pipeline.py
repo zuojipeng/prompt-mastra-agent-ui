@@ -128,6 +128,7 @@ def execute_local_storage_pipeline(job: ShotProvenanceJob, media_bytes: bytes) -
         "job_id": job.job_id,
         "shot_id": job.shot_id,
         "provider_call_count": provider.call_count,
+        "provider_name": provider.name,
         "run_status": result.run.status.value,
         "step_status": result.run.steps[0].status.value,
         "asset_url": asset.url,

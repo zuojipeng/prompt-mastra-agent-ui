@@ -14,8 +14,9 @@ Status: in_progress
 | C-004 | Engineering Agent | Code Review Agent + Test Agent | Freeze the provenance run response boundary | Strict parser and regression tests pass | done |
 | C-005 | UEAgent | Product Agent + Test Agent | Design selected-shot provenance states | State matrix and implementation handoff exist | done |
 | C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | done |
-| C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | ready |
+| C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | done |
 | C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
+| C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | ready |
 
 ## Event Log
 
@@ -56,3 +57,16 @@ Evidence: `ue-handoff.md`, 108 Vitest tests, 9 Python tests, 6 desktop/mobile Pl
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Replace browser-only fixture orchestration with a local credential-free Python HTTP boundary while preserving the same wire contract.
+
+### 2026-07-13 23:55 C-E004
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-007
+Gate: Architecture / Engineering / Code Review / Test
+Message: Loopback-only Python HTTP adapter passes after JSON media-type, redacted 500, and negative Content-Length repairs.
+Evidence: 14 Python tests, compileall, real random-port HTTP smoke, `spikes/genblaze-provenance/jingci_spike/http_service.py`
+Decision: CONTINUE
+Next owner: Engineering Agent
+Close condition: Add a frontend opt-in client with timeout and fail-closed response normalization while fixture remains the default.

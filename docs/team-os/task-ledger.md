@@ -560,6 +560,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Add a credential-free local Python HTTP boundary without changing the wire contract or claiming live B2 behavior.
 
+### 2026-07-13 23:55 T030
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Code Review / Test
+Message: Passed a loopback-only standard-library HTTP adapter after JSON, redacted exception, and negative Content-Length repairs.
+Evidence: E3 14 Python tests, compileall, real ephemeral-port HTTP smoke, architecture/review/test artifacts.
+Decision: CONTINUE
+Next owner: Engineering Agent
+Close condition: Add an opt-in frontend client with timeout, strict normalization, and no silent fixture downgrade.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -598,3 +611,4 @@ Close condition: Add a credential-free local Python HTTP boundary without changi
 | RV-JC-032 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for offline B2 readiness | Secrets are redacted; preflight and lifecycle mutation disabled; workspace remains evaluation | Human owner closes eligibility and participation gate |
 | RV-JC-033 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for campaign contract slice | P1 malformed non-terminal evidence acceptance fixed; live transport, B2, and browser states remain unproven | UEAgent defines state handoff before UI work |
 | RV-JC-034 | JC-T005 | UEAgent + Engineering Agent | Product Agent + Code Review Agent + Test Agent | PASS for fixture UI | Four P1 findings closed; fixture remains explicit and session-only | Add local Python HTTP boundary next |
+| RV-JC-035 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local HTTP adapter | JSON, exception redaction, and negative length P1 findings closed | Add opt-in frontend client next |

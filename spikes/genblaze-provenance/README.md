@@ -13,6 +13,8 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -v
 PYTHONPATH=. .venv/bin/python -m jingci_spike.cli fixtures/shot-job.json
+PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --port 8788
+PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
 ```
 
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
@@ -23,6 +25,7 @@ Use explicit imports from `genblaze_core`. A wildcard import loads optional comp
 - Output: one verified Genblaze manifest envelope.
 - Next adapter: execute one provider pipeline and replace the fixture asset URL/digest.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
+- Local HTTP adapter: loopback-only `GET /health` and `POST /v1/provenance-runs`, with a 64KB body limit and local-origin CORS.
 - Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.
 
 ## B2 Gate
