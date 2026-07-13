@@ -12,8 +12,10 @@ Status: in_progress
 | C-002 | Architecture Agent | Code Review Agent + Test Agent | Validate required technology boundary | Contract, alternatives, and test implications exist | done |
 | C-003 | Operator Agent | Human owner | Close registration and terms gate | Account-bound decision recorded | blocked |
 | C-004 | Engineering Agent | Code Review Agent + Test Agent | Freeze the provenance run response boundary | Strict parser and regression tests pass | done |
-| C-005 | UEAgent | Product Agent + Test Agent | Design selected-shot provenance states | State matrix and implementation handoff exist | ready |
-| C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | blocked on C-005 |
+| C-005 | UEAgent | Product Agent + Test Agent | Design selected-shot provenance states | State matrix and implementation handoff exist | done |
+| C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | done |
+| C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | ready |
+| C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
 
 ## Event Log
 
@@ -41,3 +43,16 @@ Evidence: `product-brief.md`, `architecture-plan.md`, `lib/provenance-run-contra
 Decision: CONTINUE
 Next owner: UEAgent
 Close condition: State matrix and selected-shot provenance panel handoff are reviewable before UI implementation.
+
+### 2026-07-13 23:44 C-E003
+
+Type: REVIEWED
+From: Product Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-005 / C-006
+Gate: UE / Engineering / Code Review / Test
+Message: Selected-shot fixture UI passes after request lineage, evidence location, failure recovery, and mobile overlap repairs.
+Evidence: `ue-handoff.md`, 108 Vitest tests, 9 Python tests, 6 desktop/mobile Playwright tests, production build, provenance screenshots
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Replace browser-only fixture orchestration with a local credential-free Python HTTP boundary while preserving the same wire contract.

@@ -8,6 +8,6 @@
 - [ ] Repository access and README verified
 - [ ] Demo video under event limit
 - [ ] Provider/model disclosures complete
-- [ ] E2E and fallback demo evidence complete
+- [x] E2E and fallback demo evidence complete
 - [ ] Human Gate B final submission approval
 - [ ] Platform confirmation captured before status becomes SUBMITTED

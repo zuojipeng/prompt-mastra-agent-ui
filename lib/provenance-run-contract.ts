@@ -1,8 +1,22 @@
 export const PROVENANCE_RUN_SCHEMA_VERSION = 'jingci.provenance-run.v1' as const;
+export const PROVENANCE_RUN_REQUEST_SCHEMA_VERSION = 'jingci.provenance-run-request.v1' as const;
 
 export const PROVENANCE_RUN_STATUSES = ['queued', 'running', 'succeeded', 'failed'] as const;
 
 export type ProvenanceRunStatus = (typeof PROVENANCE_RUN_STATUSES)[number];
+
+export type ProvenanceRunRequest = {
+  schema_version: typeof PROVENANCE_RUN_REQUEST_SCHEMA_VERSION;
+  project_id: string;
+  shot_id: number;
+  parent_job_id: string | null;
+  attempt: number;
+  prompt: string;
+  negative_prompt: string;
+  provider: string;
+  model: string;
+  modality: 'video';
+};
 
 export type ProvenanceRunResult = {
   asset: {
@@ -49,6 +63,42 @@ function isSha256(value: unknown): value is string {
 
 function isIsoTimestamp(value: unknown): value is string {
   return isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
+}
+
+export function normalizeProvenanceRunRequest(value: unknown): ProvenanceRunRequest | null {
+  if (!isRecord(value)) return null;
+  if (
+    value.schema_version !== PROVENANCE_RUN_REQUEST_SCHEMA_VERSION
+    || !isNonEmptyString(value.project_id)
+    || typeof value.shot_id !== 'number'
+    || !Number.isInteger(value.shot_id)
+    || value.shot_id < 1
+    || !(value.parent_job_id === null || isNonEmptyString(value.parent_job_id))
+    || typeof value.attempt !== 'number'
+    || !Number.isInteger(value.attempt)
+    || value.attempt < 1
+    || (value.attempt === 1 && value.parent_job_id !== null)
+    || (value.attempt > 1 && !isNonEmptyString(value.parent_job_id))
+    || !isNonEmptyString(value.prompt)
+    || typeof value.negative_prompt !== 'string'
+    || !isNonEmptyString(value.provider)
+    || !isNonEmptyString(value.model)
+    || value.modality !== 'video'
+  ) {
+    return null;
+  }
+  return {
+    schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+    project_id: value.project_id,
+    shot_id: value.shot_id,
+    parent_job_id: value.parent_job_id,
+    attempt: value.attempt,
+    prompt: value.prompt.trim(),
+    negative_prompt: value.negative_prompt.trim(),
+    provider: value.provider.trim(),
+    model: value.model.trim(),
+    modality: 'video',
+  };
 }
 
 function normalizeResult(value: unknown): ProvenanceRunResult | null {

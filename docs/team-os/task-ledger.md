@@ -547,6 +547,19 @@ Decision: CONTINUE
 Next owner: UEAgent
 Close condition: Define the selected-shot state matrix and interaction handoff before fixture transport and UI implementation.
 
+### 2026-07-13 23:44 T029
+
+Type: REVIEWED
+From: Product Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: UE / Engineering / Code Review / Test
+Message: Passed the selected-shot provenance fixture UI after closing request lineage, evidence location, browser failure recovery, and mobile overlap findings.
+Evidence: E3 108 Vitest tests, 9 Python tests, 6 Playwright tests, TypeScript, scoped lint, production build, desktop/mobile screenshots.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Add a credential-free local Python HTTP boundary without changing the wire contract or claiming live B2 behavior.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -584,3 +597,4 @@ Close condition: Define the selected-shot state matrix and interaction handoff b
 | RV-JC-031 | JC-T005 | Engineering Agent | Code Review Agent + Test Agent | PASS for mocked storage boundary | Official Pipeline and ObjectStorageSink exercised; durable URLs are credential-free; B2 network behavior remains unproven | Human owner decides whether to authorize account-bound B2 verification |
 | RV-JC-032 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for offline B2 readiness | Secrets are redacted; preflight and lifecycle mutation disabled; workspace remains evaluation | Human owner closes eligibility and participation gate |
 | RV-JC-033 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for campaign contract slice | P1 malformed non-terminal evidence acceptance fixed; live transport, B2, and browser states remain unproven | UEAgent defines state handoff before UI work |
+| RV-JC-034 | JC-T005 | UEAgent + Engineering Agent | Product Agent + Code Review Agent + Test Agent | PASS for fixture UI | Four P1 findings closed; fixture remains explicit and session-only | Add local Python HTTP boundary next |

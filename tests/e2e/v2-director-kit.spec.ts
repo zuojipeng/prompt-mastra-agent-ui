@@ -338,6 +338,23 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('出片执行进度')).toBeVisible();
     await expect(page.getByText('0/1 个镜头已有执行结果')).toBeVisible();
     await expect(page.getByText('交接状态：需补证据')).toBeVisible();
+    const provenancePanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+    await expect(provenancePanel.getByText('Fixture')).toBeVisible();
+    await expect(provenancePanel.getByText(/未写入真实存储/)).toBeVisible();
+    await provenancePanel.getByRole('button', { name: '运行存证演示' }).click();
+    await expect(provenancePanel.getByRole('button', { name: '执行中...' })).toBeDisabled();
+    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
+    await expect(provenancePanel.getByText('Verified')).toBeVisible();
+    await expect(provenancePanel).toContainText('fixture.invalid/backblaze-b2/assets');
+    await provenancePanel.getByRole('button', { name: '验证失败恢复' }).click();
+    await expect(provenancePanel.getByRole('alert')).toContainText('Fixture provider timeout');
+    await provenancePanel.getByRole('button', { name: '重试并保留来源' }).click();
+    await expect(provenancePanel.getByText('fixture-shot-1-attempt-2')).toBeVisible();
+    await expect(provenancePanel).toContainText('Attempt');
+    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
+    await provenancePanel.screenshot({
+      path: `output/playwright/provenance-${isMobile ? 'mobile' : 'desktop'}.png`,
+    });
     await page.getByRole('button', { name: /Projects/ }).click();
     const blockedProjectDashboard = page.getByRole('region', { name: '项目仪表盘' });
     await expect(blockedProjectDashboard.getByText('需补：镜头 1 未执行')).toBeVisible();

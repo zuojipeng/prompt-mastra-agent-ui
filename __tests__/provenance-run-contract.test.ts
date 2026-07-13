@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  normalizeProvenanceRunRequest,
   normalizeProvenanceRun,
+  PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
   PROVENANCE_RUN_SCHEMA_VERSION,
   PROVENANCE_RUN_STATUSES,
 } from '@/lib/provenance-run-contract';
@@ -40,6 +42,45 @@ function run(overrides: Record<string, unknown> = {}) {
 }
 
 describe('provenance run contract', () => {
+  it('normalizes one versioned shot submission request', () => {
+    expect(normalizeProvenanceRunRequest({
+      schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+      project_id: 'project-1',
+      shot_id: 3,
+      parent_job_id: null,
+      attempt: 1,
+      prompt: '  cinematic tracking shot  ',
+      negative_prompt: '',
+      provider: ' genblaze-fixture ',
+      model: ' local-proof ',
+      modality: 'video',
+    })).toMatchObject({
+      prompt: 'cinematic tracking shot',
+      provider: 'genblaze-fixture',
+      attempt: 1,
+    });
+  });
+
+  it('rejects incomplete or contradictory shot submission requests', () => {
+    const base = {
+      schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+      project_id: 'project-1',
+      shot_id: 3,
+      parent_job_id: null,
+      attempt: 1,
+      prompt: 'cinematic tracking shot',
+      negative_prompt: '',
+      provider: 'genblaze-fixture',
+      model: 'local-proof',
+      modality: 'video',
+    };
+    expect(normalizeProvenanceRunRequest({ ...base, attempt: 0 })).toBeNull();
+    expect(normalizeProvenanceRunRequest({ ...base, prompt: ' ' })).toBeNull();
+    expect(normalizeProvenanceRunRequest({ ...base, parent_job_id: '' })).toBeNull();
+    expect(normalizeProvenanceRunRequest({ ...base, parent_job_id: 'unexpected-parent' })).toBeNull();
+    expect(normalizeProvenanceRunRequest({ ...base, attempt: 2, parent_job_id: null })).toBeNull();
+  });
+
   it('keeps the lifecycle small and explicit', () => {
     expect(PROVENANCE_RUN_STATUSES).toEqual(['queued', 'running', 'succeeded', 'failed']);
   });

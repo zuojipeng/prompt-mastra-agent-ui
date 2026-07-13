@@ -3,8 +3,10 @@
 import type { ReactNode } from 'react';
 import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
+import type { ProvenanceRun } from '@/lib/provenance-run-contract';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
+import { ShotProvenancePanel } from './ShotProvenancePanel';
 
 export function DirectorKitShotInspector({
   shot,
@@ -12,7 +14,10 @@ export function DirectorKitShotInspector({
   currentStatus,
   shotExecutionOptions,
   resultNote,
+  provenanceRun,
+  provenanceBusy,
   onCopyShotPrompt,
+  onRunProvenance,
   onStatusChange,
   onShotResultNoteChange,
   renderFeedback,
@@ -22,7 +27,10 @@ export function DirectorKitShotInspector({
   currentStatus: ShotExecutionStatus;
   shotExecutionOptions: ShotExecutionOption[];
   resultNote: string;
+  provenanceRun: ProvenanceRun | null;
+  provenanceBusy: boolean;
   onCopyShotPrompt: (card: ShotCard) => void;
+  onRunProvenance: (card: ShotCard, outcome?: 'succeeded' | 'failed') => void;
   onStatusChange: (shotId: number, status: ShotExecutionStatus) => void;
   onShotResultNoteChange: (shotId: number, value: string) => void;
   renderFeedback: (card: ShotCard) => ReactNode;
@@ -64,6 +72,14 @@ export function DirectorKitShotInspector({
       {copiedShotId === shot.shotId && (
         <p className="text-[11px] text-emerald-600 dark:text-emerald-300">当前镜头 Prompt 已复制</p>
       )}
+
+      <ShotProvenancePanel
+        shotId={shot.shotId}
+        run={provenanceRun}
+        busy={provenanceBusy}
+        embedded
+        onRun={(outcome) => onRunProvenance(shot, outcome)}
+      />
 
       <DirectorKitShotExecutionControls
         shotId={shot.shotId}

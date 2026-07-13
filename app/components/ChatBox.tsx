@@ -38,6 +38,11 @@ import {
   type ShotExecutionStatus,
 } from '@/lib/director-kit-export';
 import { resolvePlatformCapability } from '@/lib/platform-capabilities';
+import { runProvenanceFixture } from '@/lib/provenance-fixture-transport';
+import {
+  PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+  type ProvenanceRun,
+} from '@/lib/provenance-run-contract';
 import {
   appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
@@ -71,6 +76,7 @@ import { FeedbackInsightPanel } from './FeedbackInsightPanel';
 import { HistoryPanel } from './HistoryPanel';
 import { ProjectDashboardPanel } from './ProjectDashboardPanel';
 import { ProjectWorkbenchShell } from './ProjectWorkbenchShell';
+import { ShotProvenancePanel } from './ShotProvenancePanel';
 
 const ONBOARDING_KEY = 'jingci-onboarding-done';
 
@@ -242,6 +248,8 @@ export function ChatBox() {
   const [copiedHandoff, setCopiedHandoff] = useState(false);
   const [copiedPlatform, setCopiedPlatform] = useState<string | null>(null);
   const [calibrationSavedKey, setCalibrationSavedKey] = useState<string | null>(null);
+  const [provenanceRuns, setProvenanceRuns] = useState<Record<number, ProvenanceRun>>({});
+  const [provenanceBusyShotId, setProvenanceBusyShotId] = useState<number | null>(null);
 
   const shotCards = directorKit?.shotCards ?? [];
   const executionSummary = shotCards.reduce(
@@ -327,6 +335,8 @@ export function ChatBox() {
     setCopiedSnapshot(false);
     setCopiedPlatform(null);
     setSelectedIterationId(nextWorkspace.iterations?.[0]?.id ?? null);
+    setProvenanceRuns({});
+    setProvenanceBusyShotId(null);
     setV2Error('');
     setMobileTab('work');
   }, []);
@@ -697,6 +707,34 @@ export function ChatBox() {
     setTimeout(() => setCopiedShotId((current) => (current === card.shotId ? null : current)), 2000);
   };
 
+  const handleRunProvenance = async (card: ShotCard, outcome: 'succeeded' | 'failed' = 'succeeded') => {
+    if (provenanceBusyShotId !== null) return;
+    const previousRun = provenanceRuns[card.shotId] ?? null;
+    setProvenanceBusyShotId(card.shotId);
+    try {
+      await runProvenanceFixture({
+        request: {
+          schema_version: PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
+          project_id: workspace?.id ?? 'jingci-draft-project',
+          shot_id: card.shotId,
+          parent_job_id: previousRun?.job_id ?? null,
+          attempt: (previousRun?.attempt ?? 0) + 1,
+          prompt: buildShotPrompt(card),
+          negative_prompt: directorKit?.negativePrompt ?? '',
+          provider: 'genblaze-fixture',
+          model: 'local-proof',
+          modality: 'video',
+        },
+        onUpdate: (run) => {
+          setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
+        },
+        outcome,
+      });
+    } finally {
+      setProvenanceBusyShotId(null);
+    }
+  };
+
   const buildExecutionChecklist = () => {
     if (!directorKit) return '';
     return buildDirectorKitExecutionChecklist(directorKit, getDirectorKitExportContext());
@@ -765,6 +803,8 @@ export function ChatBox() {
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
     setCopiedPlatform(null);
+    setProvenanceRuns({});
+    setProvenanceBusyShotId(null);
     try {
       const kit = await createDirectorKit({
         message: input,
@@ -810,6 +850,8 @@ export function ChatBox() {
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
     setCopiedPlatform(null);
+    setProvenanceRuns({});
+    setProvenanceBusyShotId(null);
     setV2Error('');
     setInput('');
     setTargetDuration('30s');
@@ -851,6 +893,8 @@ export function ChatBox() {
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
     setCopiedPlatform(null);
+    setProvenanceRuns({});
+    setProvenanceBusyShotId(null);
     setV2Error('');
   };
 
@@ -1900,6 +1944,17 @@ export function ChatBox() {
             />
           </div>
 
+          {selectedShot && (
+            <div className="hidden lg:block">
+              <ShotProvenancePanel
+                shotId={selectedShot.shotId}
+                run={provenanceRuns[selectedShot.shotId] ?? null}
+                busy={provenanceBusyShotId === selectedShot.shotId}
+                onRun={(outcome) => handleRunProvenance(selectedShot, outcome)}
+              />
+            </div>
+          )}
+
           <div className={mobileTab === 'execute' ? 'block lg:hidden' : 'hidden'}>
             <DirectorKitShotInspector
               shot={selectedShot}
@@ -1907,7 +1962,10 @@ export function ChatBox() {
               currentStatus={selectedShot ? shotExecutionStatus[selectedShot.shotId] ?? 'pending' : 'pending'}
               shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
               resultNote={selectedShot ? shotResultNotes[selectedShot.shotId] ?? '' : ''}
+              provenanceRun={selectedShot ? provenanceRuns[selectedShot.shotId] ?? null : null}
+              provenanceBusy={selectedShot ? provenanceBusyShotId === selectedShot.shotId : false}
               onCopyShotPrompt={handleCopyShotPrompt}
+              onRunProvenance={handleRunProvenance}
               onStatusChange={handleShotExecutionStatusChange}
               onShotResultNoteChange={handleShotResultNoteChange}
               renderFeedback={(card) =>
