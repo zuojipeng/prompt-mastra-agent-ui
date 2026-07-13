@@ -1,0 +1,45 @@
+# Architecture Note: Genblaze Provenance Spike
+
+## Decision
+
+Keep Genblaze outside the Cloudflare Worker. Validate it as an isolated Python 3.11+ pipeline adapter behind a versioned shot job contract.
+
+## Why
+
+- Jingci's `ShotCard` already owns prompt, modality, risk, and execution identity.
+- Genblaze is a Python SDK; the current production backend is a TypeScript Cloudflare Worker.
+- A sidecar boundary avoids a runtime rewrite and keeps provider/storage credentials out of the browser.
+- The hackathon permits an existing project when B2 and Genblaze are added during the event and disclosed.
+
+## Contract
+
+`jingci.shot-provenance.v1` contains:
+
+- stable job and shot identity
+- prompt and optional negative prompt
+- provider, model, and modality
+- completed asset URL, media type, and SHA-256
+- string-only metadata for DirectorKit context
+
+The spike returns a Genblaze manifest envelope with run identity, canonical manifest hash, verification result, and the complete manifest.
+
+## Rejected Alternatives
+
+- Embed Python in the Worker: incompatible runtime and operationally unnecessary.
+- Add B2 directly to the browser: exposes storage credentials and weakens authorization boundaries.
+- Build a generic multi-provider service first: exceeds a trial slice and hides integration risk.
+- Treat a URL-only asset as verified: Genblaze requires a valid SHA-256 for manifest verification.
+
+## Risks
+
+- Provider execution, B2 upload, authentication, retries, and deployment remain unproven.
+- `genblaze` and its core packages currently publish different package versions; pin and test the umbrella package.
+- Wildcard imports trigger optional modules such as Parquet support and can fail without `pyarrow`; use explicit imports.
+- Manifest verification proves internal hash completeness, not that remote bytes still match the recorded digest.
+
+## Spike Exit
+
+- isolated install succeeds on Python 3.11+
+- one strict shot fixture produces `verified: true`
+- malformed contract and missing SHA-256 fail closed
+- no provider, B2, production, registration, or paid action occurs

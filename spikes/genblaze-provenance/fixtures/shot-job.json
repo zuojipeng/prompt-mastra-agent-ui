@@ -1,0 +1,19 @@
+{
+  "schema_version": "jingci.shot-provenance.v1",
+  "job_id": "spike-shot-001",
+  "shot_id": 1,
+  "prompt": "A slow push-in toward a lone traveler crossing a neon rain-soaked street.",
+  "negative_prompt": "flicker, distorted hands, unreadable signs",
+  "provider": "fixture",
+  "model": "local-proof",
+  "modality": "video",
+  "asset": {
+    "url": "file://artifacts/shot-001.mp4",
+    "media_type": "video/mp4",
+    "sha256": "2a97516c354b68848cdbd8f54a226a0a987e7f52f4c2ad9ce7578089c4454f95"
+  },
+  "metadata": {
+    "director_kit_version": "spike-v1",
+    "generation_mode": "text-to-video"
+  }
+}

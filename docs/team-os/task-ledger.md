@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-10
+Last Updated: 2026-07-13
 
 ## Active Tasks
 
@@ -13,6 +13,7 @@ Last Updated: 2026-07-10
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
+| JC-T005 | Backblaze hackathon Genblaze provenance spike | in_review | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Architecture / Engineering / Test | E3 isolated install, strict contract, verified manifest, regression tests | Review spike evidence before authorizing provider execution or B2 design |
 
 ## Backlog
 
@@ -481,6 +482,19 @@ Close condition: Projects API returns the same reason list and local/cloud summa
 | EV-JC-035 | JC-T004 | E2 | Jingci has a staged evolution roadmap with product metrics, architecture constraints, hackathon asset strategy, and three bounded next slices | `docs/product/2026-07-jingci-evolution-roadmap.md`, `docs/agent-runs/2026-07-10-product-evolution-roadmap.md`, `docs/test-reports/2026-07-10-product-evolution-roadmap.md`, `git diff --check` | Added, planning evidence passes | UEAgent + Architecture Agent + Test Agent |
 | EV-JC-036 | JC-T001 | E3 | Project Dashboard names why saved workspaces are blocked from handoff and preserves ready/blocked behavior on desktop/mobile | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `docs/test-reports/2026-07-11-dashboard-handoff-reasons.md` | Added, full validation and browser evidence pass after two recorded test repairs | Code Review Agent + Test Agent |
 
+### 2026-07-13 08:45 T024
+
+Type: EVIDENCE_ADDED
+From: Architecture Agent + Engineering Agent + Test Agent
+To: Code Review Agent + Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Test
+Message: Completed the authorized zero-cost Genblaze provenance spike with an isolated Python adapter, strict single-shot contract, verified manifest, and no provider, B2, credential, registration, payment, or production action.
+Evidence: E3 `docs/architecture/2026-07-13-genblaze-provenance-spike.md`, `spikes/genblaze-provenance/`, 4 Python tests, 92 existing Vitest tests.
+Decision: REVIEW_REQUESTED
+Next owner: Code Review Agent + Hermes Orchestrator
+Close condition: Confirm evidence boundaries and decide whether a second provider/B2 spike remains inside the authorization envelope.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -514,3 +528,4 @@ Close condition: Projects API returns the same reason list and local/cloud summa
 | RV-JC-027 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff filter | Dashboard-only state; reuses existing summary fields; E2E covers ready filter on desktop and mobile | Commit and push after validation |
 | RV-JC-028 | JC-T004 | Product Agent | UEAgent + Architecture Agent + Test Agent | PASS for product evolution roadmap | Stage 1 completion is required before provider or collaboration expansion; market assumptions remain E2 | Start with handoff blocking reasons |
 | RV-JC-029 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff reasons | Local domain owns rules; dashboard only formats summary; old cloud summaries remain compatible | Add Projects API parity next |
+| RV-JC-030 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS for local spike | Fixed pending-run semantic mismatch and dedicated negative-prompt mapping; provider/B2 behavior remains unproven | Hermes reviews before expanding authorization |
