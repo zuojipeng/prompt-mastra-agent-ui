@@ -28,7 +28,8 @@ Status: in_progress
 | C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | done |
 | C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | done |
 | C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | done |
-| C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | ready |
+| C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | done |
+| C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | ready |
 
 ## Event Log
 
@@ -238,3 +239,16 @@ Evidence: 11 focused composition tests, 81-test Python regression, compileall, i
 Decision: CONTINUE
 Next owner: DevOps Agent + Operator Agent
 Close condition: Prepare one human-operated live verification runbook with explicit authorization, evidence, cleanup, rollback, and stop conditions; do not execute it without the separate gates.
+
+### 2026-07-15 00:02 C-E017
+
+Type: REVIEWED
+From: DevOps Agent + Operator Agent + Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-021
+Gate: DevOps / Architecture / Security / Code Review / Test / Claims Review
+Message: The human-operated Runway-to-B2 verification plan passed as a machine-checked blocked artifact after closing fabricated authorization, command injection, incomplete claim inventory, provider-budget drift, credential-order ambiguity, and raw Runway-token scan findings. This validator is deliberately plan-only and can never authorize execution.
+Evidence: `live-verification-plan.json`, runbook, 16 focused tests, draft gate with eight explicit blockers; no credentials, network, generation, B2 mutation, spend, deployment, publication, or submission.
+Decision: CONTINUE
+Next owner: Engineering Agent + Claims Review Agent
+Close condition: Build and adversarially test the private result scanner and redacted attestation contract before implementing any combined live command.

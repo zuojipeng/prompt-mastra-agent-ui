@@ -28,6 +28,8 @@
     "hackathon:evidence:strict": "node scripts/collect-hackathon-evidence.mjs --strict",
     "hackathon:demo:check": "node scripts/check-hackathon-demo.mjs",
     "hackathon:demo:check:strict": "node scripts/check-hackathon-demo.mjs --strict",
+    "hackathon:live:check:draft": "node scripts/check-hackathon-live-verification.mjs",
+    "hackathon:live:check": "node scripts/check-hackathon-live-verification.mjs --strict",
     "demo:record": "node scripts/record-demo.mjs",
     "demo:record:hackathon": "node scripts/record-hackathon-rehearsal.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",

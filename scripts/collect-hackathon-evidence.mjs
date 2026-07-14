@@ -25,9 +25,10 @@ const SECRET_RULES = [
   ['github_token', /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g],
   ['cloudflare_token', /\bcfut_[A-Za-z0-9_-]{30,}\b/g],
   ['aws_access_key', /\bAKIA[0-9A-Z]{16}\b/g],
+  ['runway_token', /\bkey_[0-9a-fA-F]{128}\b/g],
   [
     'assigned_secret',
-    /\b(?:B2_APP_KEY|B2_KEY_ID|JINGCI_PREVIEW_BEARER_TOKEN|OPENAI_API_KEY|CLOUDFLARE_API_TOKEN)\s*=\s*["']?(?!<|\$\{)[A-Za-z0-9+/_=-]{20,}/g,
+    /\b(?:B2_APP_KEY|B2_KEY_ID|RUNWAYML_API_SECRET|JINGCI_PREVIEW_BEARER_TOKEN|OPENAI_API_KEY|CLOUDFLARE_API_TOKEN)\s*=\s*["']?(?!<|\$\{)[A-Za-z0-9+/_=-]{20,}/g,
   ],
 ];
 

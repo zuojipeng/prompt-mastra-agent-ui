@@ -1,0 +1,145 @@
+{
+  "schema_version": "jingci.hackathon-live-verification-plan.v1",
+  "status": "blocked",
+  "execution_allowed": false,
+  "implementation": {
+    "combined_module": null,
+    "combined_command": null,
+    "standalone_results_composable": false
+  },
+  "campaign_authorization": {
+    "may_use_paid_api": false,
+    "max_external_spend_usd": 0
+  },
+  "approval": {
+    "required_scopes": [
+      "registration_terms",
+      "b2_account_and_credentials",
+      "runway_one_attempt_spend",
+      "live_claims_promotion"
+    ],
+    "one_shot": true,
+    "reusable": false,
+    "consumed": false,
+    "binding_fields": [
+      "approval_id",
+      "human_actor",
+      "run_id",
+      "commit",
+      "approved_at",
+      "expires_at",
+      "maximum_attempts",
+      "maximum_estimated_cost_usd"
+    ]
+  },
+  "provider_budget": {
+    "provider": "runway",
+    "model": "gen4.5",
+    "api_version": "2024-11-06",
+    "duration_seconds": 5,
+    "ratio": "1280:720",
+    "maximum_attempts": 1,
+    "maximum_retries": 0,
+    "maximum_estimated_cost_usd": 0.6,
+    "confirmation": "RUNWAY gen4.5 5s ONE ATTEMPT MAX $0.60"
+  },
+  "gate_order": [
+    "combined_implementation_review",
+    "clean_pinned_source",
+    "registration_terms",
+    "b2_account_authorization",
+    "b2_scoped_preflight_smoke",
+    "runway_spend_authorization",
+    "one_provider_create",
+    "download_and_probe",
+    "genblaze_asset_manifest_upload",
+    "b2_readback_and_lineage_verification",
+    "explicit_key_cleanup",
+    "private_evidence_scan",
+    "live_claims_promotion_approval"
+  ],
+  "required_secret_names": [
+    "RUNWAYML_API_SECRET",
+    "B2_BUCKET",
+    "B2_REGION",
+    "B2_KEY_ID",
+    "B2_APP_KEY"
+  ],
+  "secret_policy": {
+    "values_in_plan": false,
+    "values_on_command_line": false,
+    "shell_trace_allowed": false,
+    "environment_dump_allowed": false,
+    "b2_load_after_b2_authorization": true,
+    "runway_load_after_spend_authorization": true
+  },
+  "plan_commands": [
+    "npm run hackathon:check:draft",
+    "npm run hackathon:deploy:check:draft",
+    "npm run hackathon:demo:check",
+    "npm run hackathon:live:check:draft",
+    "PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v",
+    "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan",
+    "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan"
+  ],
+  "cleanup_policy": {
+    "explicit_recorded_keys_only": true,
+    "wildcard_or_recursive_delete": false,
+    "delete_out_of_prefix_keys": false,
+    "confirm_absence": true,
+    "version_level_erasure_claim": false,
+    "local_media_after_readback": true,
+    "cleanup_failure_status": "cleanup_required"
+  },
+  "stop_conditions": [
+    "any_gate_failure_stops_forward_execution",
+    "ambiguous_runway_create_never_resubmits",
+    "active_task_cancel_is_attempted_once_not_claimed_confirmed",
+    "post_success_failure_preserves_provider_output",
+    "ambiguous_b2_commit_cleans_only_preregistered_keys",
+    "probe_or_readback_or_manifest_failure_blocks_claims",
+    "cleanup_or_backend_close_failure_requires_cleanup_required",
+    "interrupt_records_residual_keys_and_stops"
+  ],
+  "private_evidence": {
+    "mode": "0600",
+    "scan_before_attestation": true,
+    "signed_urls_allowed": false,
+    "secret_values_allowed": false,
+    "required_bindings": [
+      "run_id",
+      "clean_commit",
+      "approval_id",
+      "runway_task_id",
+      "owned_b2_prefix",
+      "asset_sha256",
+      "manifest_hash",
+      "cleanup_status"
+    ]
+  },
+  "claims": {
+    "combined_live_transaction": false,
+    "live_ai_media_provider": false,
+    "live_b2_upload_readback": false,
+    "public_serving": false,
+    "release_candidate": false,
+    "submitted": false
+  },
+  "artifacts": [
+    "docs/campaigns/backblaze-genmedia-2026/docs/live-verification-runbook.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
+    "spikes/genblaze-provenance/jingci_spike/live_runway_smoke.py",
+    "spikes/genblaze-provenance/jingci_spike/live_genblaze_b2_smoke.py"
+  ],
+  "blockers": [
+    "combined_live_harness_missing",
+    "registration_terms",
+    "b2_account_authorization",
+    "bucket_scoped_credentials",
+    "campaign_paid_api_authorization",
+    "runway_one_attempt_spend_authorization",
+    "live_output_hosts_unverified",
+    "private_live_evidence_scanner_missing"
+  ]
+}

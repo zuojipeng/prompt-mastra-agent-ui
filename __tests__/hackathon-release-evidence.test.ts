@@ -110,6 +110,33 @@ describe('hackathon release evidence', () => {
     expect(JSON.stringify(findings)).not.toContain(secret);
   });
 
+  it('detects an assigned Runway secret without retaining its value', () => {
+    const secret = `key_${'a'.repeat(128)}`;
+    const findings = scanSecrets([
+      { path: 'private-transcript.txt', content: `RUNWAYML_API_SECRET=${secret}\n` },
+    ]);
+
+    expect(findings).toEqual([
+      { path: 'private-transcript.txt', line: 1, rule: 'assigned_secret' },
+      { path: 'private-transcript.txt', line: 1, rule: 'runway_token' },
+    ]);
+    expect(JSON.stringify(findings)).not.toContain(secret);
+  });
+
+  it('detects raw Runway tokens in JSON and authorization headers', () => {
+    const secret = `key_${'b'.repeat(128)}`;
+    const findings = scanSecrets([
+      { path: 'private-result.json', content: `{"token":"${secret}"}\n` },
+      { path: 'request.txt', content: `Authorization: Bearer ${secret}\n` },
+    ]);
+
+    expect(findings).toEqual([
+      { path: 'private-result.json', line: 1, rule: 'runway_token' },
+      { path: 'request.txt', line: 1, rule: 'runway_token' },
+    ]);
+    expect(JSON.stringify(findings)).not.toContain(secret);
+  });
+
   it('keeps a dirty tree out of release-candidate state', () => {
     const root = fixtureRoot();
     const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
