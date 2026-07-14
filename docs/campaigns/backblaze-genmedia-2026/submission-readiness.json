@@ -18,7 +18,8 @@
   "providers": [
     { "name": "DeepSeek", "model": "deepseek-chat", "role": "DirectorKit structured text generation" },
     { "name": "OpenAI", "model": "gpt-4.1-mini", "role": "DirectorKit JSON fallback" },
-    { "name": "Jingci deterministic provider", "model": "local-proof", "role": "Credential-free Genblaze pipeline test; not an external AI media model" }
+    { "name": "Jingci deterministic provider", "model": "local-proof", "role": "Credential-free Genblaze pipeline test; not an external AI media model" },
+    { "name": "Runway", "model": "gen4.5", "role": "Selected 5-second text-to-video candidate; offline contract only, no live generation evidence" }
   ],
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-draft.md",

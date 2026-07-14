@@ -6,6 +6,8 @@ It accepts one completed shot asset with a SHA-256 digest and builds a verified 
 
 The second local slice also exercises Genblaze's real `SyncProvider -> Pipeline -> ObjectStorageSink -> StorageBackend` lifecycle with deterministic bytes and an in-memory storage fake. This validates content-addressed object keys and durable credential-free URLs, but it is still not a Backblaze network upload.
 
+The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter and a scripted no-network client; it intentionally contains no live HTTP transport and never reads provider credentials. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` for the decision, cost gate, and claims boundary.
+
 ## Run
 
 ```bash
@@ -83,6 +85,7 @@ Use explicit imports from `genblaze_core`. A wildcard import loads optional comp
 - Input: one `jingci.shot-provenance.v1` JSON job.
 - Output: one verified Genblaze manifest envelope.
 - Next adapter: execute one provider pipeline and replace the fixture asset URL/digest.
+- Selected live candidate: Runway `gen4.5`; only the offline adapter contract and fake are implemented.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Local HTTP adapter: loopback-only `GET /health` and `POST /v1/provenance-runs`, with a 64KB body limit and local-origin CORS.
 - Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.

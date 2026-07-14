@@ -16,8 +16,9 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | Guarded preview HTTP boundary rejects unsafe access | LOCAL ONLY | `http_service.py`, 11 focused tests, 35-test regression, preview HTTP smoke | Upstream token only; no reviewer identity, edge rate limit, or deployment |
 | Release evidence can be regenerated without reading credentials | LOCAL ONLY | `collect-hackathon-evidence.mjs`, 4 collector tests, release evidence runbook | Local snapshot; strict gate remains red |
 | Timed judge path and truthful local/fixture visuals are rehearsed | LOCAL ONLY | demo rehearsal manifest/report, 4 desktop/mobile E2E checks, local WebM | 10.48s silent visual reel; not final or public |
+| Runway provider choice and guarded Genblaze adapter contract | LOCAL ONLY | `provider-decision.md`, `runway_provider.py`, 14 focused tests | No HTTP client, credentials, generation, or spend |
 | B2 stores and serves the asset and manifest | BLOCKED | C-008 | Requires authorized account and E4 read-back smoke |
-| External AI media provider generates the asset | BLOCKED | Submission readiness gate | Deterministic local provider is not an AI model |
+| External AI media provider generates the asset | BLOCKED | Submission readiness gate | Runway `gen4.5` is selected, but only its no-network adapter contract is proven |
 | Public judge-accessible campaign app | BLOCKED | Submission checklist | Campaign branch not deployed/default |
 | Public under-three-minute demo | DRAFT | `demo-video-script.md` | Final recording waits for live path |
 

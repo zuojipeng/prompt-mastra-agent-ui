@@ -31,7 +31,7 @@ The planned live path stores content-addressed generated media and its provenanc
 - DeepSeek `deepseek-chat`: primary structured DirectorKit generation in the existing backend.
 - OpenAI `gpt-4.1-mini`: JSON text-generation fallback in the existing backend.
 - `jingci-local-video` / `local-proof`: deterministic Genblaze integration provider used only for credential-free pipeline testing; it is not an external AI media model.
-- Final video provider/model: **TBD before submission**.
+- Runway `gen4.5`: selected 5-second text-to-video candidate. Its adapter contract passes offline fake tests, but no live generation has run.
 
 ## Significant Update During The Submission Period
 
@@ -45,7 +45,7 @@ The relevant campaign work begins at commit `3e42c78` and is isolated on `spike/
 DirectorKit selected shot
   -> versioned provenance request
   -> Python Genblaze pipeline
-  -> AI media provider (live integration pending)
+  -> Runway gen4.5 (selected; live integration pending)
   -> Genblaze ObjectStorageSink
   -> Backblaze B2 asset + manifest (live verification pending)
   -> strict verified run record

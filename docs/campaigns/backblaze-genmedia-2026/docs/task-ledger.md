@@ -25,7 +25,8 @@ Status: in_progress
 | C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | done |
 | C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | done |
 | C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | done |
-| C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | ready |
+| C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | done |
+| C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | ready |
 
 ## Event Log
 
@@ -196,3 +197,16 @@ Evidence: 10.48s VP8 visual reel, 4 desktop/mobile E2E checks, 4 demo gate tests
 Decision: CONTINUE
 Next owner: Product Agent + Architecture Agent
 Close condition: Select one external AI media provider and freeze a guarded, testable adapter contract without credentials or network execution.
+
+### 2026-07-14 22:02 C-E014
+
+Type: REVIEWED
+From: Product Agent + Architecture Agent + Engineering Agent
+To: Hermes Orchestrator
+Task: C-018
+Gate: Product / Architecture / Claims Review / Test
+Message: Selected Runway gen4.5 for the prompt-only five-second slice and passed a no-network Genblaze adapter contract after correcting the cheaper image-required model, paid retry behavior, deadline propagation, task-ID path safety, URL validation, and MP4 boundary findings.
+Evidence: Official Runway decision record, 14 focused Python tests, real Pipeline-to-ObjectStorageSink fake run; no credentials, network, generation, spend, or live claims.
+Decision: CONTINUE
+Next owner: Engineering Agent + DevOps Agent
+Close condition: Build a fail-closed live transport and plan command with media probing and exact spend confirmation, but do not execute it before separate human authorization.

@@ -13,7 +13,7 @@ Last Updated: 2026-07-14
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | UEAgent defines selected-shot provenance states before fixture UI integration |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Build the guarded Runway live-transport harness in plan mode; keep spend and live execution blocked |
 
 ## Backlog
 
@@ -690,6 +690,19 @@ Decision: CONTINUE
 Next owner: Product Agent + Architecture Agent
 Close condition: Select and contract one live AI media provider without using credentials or making network generation calls.
 
+### 2026-07-14 22:02 T040
+
+Type: REVIEWED
+From: Product Agent + Architecture Agent + Engineering Agent + Claims Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Product / Architecture / Engineering / Claims Review / Test
+Message: Selected Runway gen4.5 for the prompt-only campaign slice and passed an offline Genblaze provider contract with bounded lifecycle, exact output-host validation, no automatic paid retry, and a no-network fake.
+Evidence: E2 official provider decision; E3 14 focused tests and Pipeline-to-ObjectStorageSink fake run; no credentials, network, generation, spend, or live claim.
+Decision: CONTINUE
+Next owner: Engineering Agent + DevOps Agent
+Close condition: Build the fail-closed live transport and plan-mode smoke with full media probing before requesting separate one-attempt spend authorization.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -738,3 +751,4 @@ Close condition: Select and contract one live AI media provider without using cr
 | RV-JC-042 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for local preview hardening only | Query-log leakage and health/gate ordering fixed; bearer is not identity; no public evidence claimed | Build redacted release-evidence bundle |
 | RV-JC-043 | JC-T005 | DevOps Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for local release evidence | Scan-count overstatement and blocker-free draft/design false-green fixed; generated snapshot stays ignored | Rehearse updated local-only judge demo |
 | RV-JC-044 | JC-T005 | Operator Agent + UEAgent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for local rehearsal only | Node runtime failure and captions-vs-audio gate fixed; Local/Fixture remain explicit | Select external AI media provider contract |
+| RV-JC-045 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for offline provider contract only | Corrected input-modality selection, paid retries, deadlines, path safety, output URL/media checks; live transport and probing remain blocked | Build guarded Runway transport in plan mode |
