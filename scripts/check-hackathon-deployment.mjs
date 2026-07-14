@@ -55,6 +55,10 @@ export function evaluateDeployment(payload, artifactExists = existsSync) {
   return { errors, blockers };
 }
 
+export function isDeploymentStrictReady(payload, result = evaluateDeployment(payload)) {
+  return result.errors.length === 0 && result.blockers.length === 0 && ['preview-ready', 'deployed'].includes(payload?.status);
+}
+
 function main() {
   const strict = process.argv.includes('--strict');
   const file = path.resolve('docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json');
@@ -68,6 +72,10 @@ function main() {
     console.log(`Deployment design is structurally valid with ${result.blockers.length} open blockers:`);
     for (const blocker of result.blockers) console.log(`- ${blocker}`);
     return strict ? 1 : 0;
+  }
+  if (strict && !isDeploymentStrictReady(payload, result)) {
+    console.error('Strict deployment readiness requires status preview-ready or deployed.');
+    return 1;
   }
   console.log(`Deployment readiness is valid with no open blockers (${payload.status}).`);
   return 0;

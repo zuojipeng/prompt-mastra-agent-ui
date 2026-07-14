@@ -23,7 +23,8 @@ Status: in_progress
 | C-013 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Prepare Genblaze ObjectStorageSink-to-B2 smoke | Mocked sink run owns asset and manifest keys, verifies both, and cleans both | done |
 | C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | done |
 | C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | done |
-| C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | ready |
+| C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | done |
+| C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | ready |
 
 ## Event Log
 
@@ -168,3 +169,16 @@ Evidence: 11 focused tests, 35 Python regression tests, compileall, real preview
 Decision: CONTINUE
 Next owner: DevOps Agent + Claims Review Agent
 Close condition: Produce one deterministic redacted release-evidence bundle without credentials, deployment, or public claims.
+
+### 2026-07-14 08:21 C-E012
+
+Type: REVIEWED
+From: DevOps Agent + Claims Review Agent + Engineering Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-016
+Gate: DevOps / Claims Review / Code Review / Test
+Message: Release evidence collector passed after scan-count overstatement and blocker-free draft/design false-green findings were repaired; the generated snapshot remains local and strict readiness remains red.
+Evidence: 11 focused tests, 124-test frontend regression, TypeScript, lint, build, 395-file scan with 0 findings and explicit exclusions
+Decision: CONTINUE
+Next owner: Operator Agent + UEAgent + Test Agent
+Close condition: Rehearse and capture the updated local-only judge path without presenting it as live B2 or public deployment.

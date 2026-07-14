@@ -24,6 +24,8 @@
     "hackathon:check": "node scripts/check-hackathon-submission.mjs --strict",
     "hackathon:deploy:check:draft": "node scripts/check-hackathon-deployment.mjs",
     "hackathon:deploy:check": "node scripts/check-hackathon-deployment.mjs --strict",
+    "hackathon:evidence": "node scripts/collect-hackathon-evidence.mjs",
+    "hackathon:evidence:strict": "node scripts/collect-hackathon-evidence.mjs --strict",
     "demo:record": "node scripts/record-demo.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
     "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import readiness from '../docs/campaigns/backblaze-genmedia-2026/submission-readiness.json';
-import { evaluateSubmission } from '../scripts/check-hackathon-submission.mjs';
+import { evaluateSubmission, isSubmissionStrictReady } from '../scripts/check-hackathon-submission.mjs';
 
 describe('hackathon submission readiness', () => {
   it('accepts the honest draft while retaining every open gate', () => {
@@ -20,5 +20,13 @@ describe('hackathon submission readiness', () => {
     expect(result.errors).toContain('ready submission requires claim live_ai_media_provider');
     expect(result.errors).toContain('ready submission requires claim live_b2_upload_readback');
     expect(result.errors).toContain('ready submission requires claim public_campaign_deployment');
+  });
+
+  it('does not treat a blocker-free draft label as strict readiness', () => {
+    const draft = { ...readiness, blockers: [] };
+    const result = evaluateSubmission(draft, () => true);
+
+    expect(result.errors).toEqual([]);
+    expect(isSubmissionStrictReady(draft, result)).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import deployment from '../docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json';
-import { evaluateDeployment } from '../scripts/check-hackathon-deployment.mjs';
+import { evaluateDeployment, isDeploymentStrictReady } from '../scripts/check-hackathon-deployment.mjs';
 
 describe('hackathon deployment readiness', () => {
   it('accepts the threat-model design while preserving deployment blockers', () => {
@@ -27,5 +27,13 @@ describe('hackathon deployment readiness', () => {
     const result = evaluateDeployment(withoutBlockers, () => true);
 
     expect(result.errors).toContain('blockers must be an array');
+  });
+
+  it('does not treat a blocker-free design label as strict readiness', () => {
+    const design = { ...deployment, blockers: [] };
+    const result = evaluateDeployment(design, () => true);
+
+    expect(result.errors).toEqual([]);
+    expect(isDeploymentStrictReady(design, result)).toBe(false);
   });
 });

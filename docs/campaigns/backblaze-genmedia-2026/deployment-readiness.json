@@ -30,6 +30,7 @@
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/judge-access-runbook.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/release-evidence-runbook.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md"
   ],
   "blockers": [

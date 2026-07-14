@@ -48,6 +48,10 @@ export function evaluateSubmission(payload, artifactExists = existsSync) {
   return { errors, blockers };
 }
 
+export function isSubmissionStrictReady(payload, result = evaluateSubmission(payload)) {
+  return result.errors.length === 0 && result.blockers.length === 0 && ['ready', 'submitted'].includes(payload?.status);
+}
+
 function main() {
   const strict = process.argv.includes('--strict');
   const file = path.resolve('docs/campaigns/backblaze-genmedia-2026/submission-readiness.json');
@@ -61,6 +65,10 @@ function main() {
     console.log(`Submission draft is structurally valid with ${result.blockers.length} open blockers:`);
     for (const blocker of result.blockers) console.log(`- ${blocker}`);
     return strict ? 1 : 0;
+  }
+  if (strict && !isSubmissionStrictReady(payload, result)) {
+    console.error('Strict submission readiness requires status ready or submitted.');
+    return 1;
   }
   console.log(`Submission readiness is valid with no open blockers (${payload.status}).`);
   return 0;

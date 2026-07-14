@@ -27,6 +27,7 @@ The final judge path must show `B2`/production evidence labeling. Fixture or Loc
 npm ci
 npm run hackathon:check
 npm run hackathon:deploy:check
+npm run hackathon:evidence:strict
 npx tsc --noEmit
 npm run lint
 npm test -- --pool=threads
