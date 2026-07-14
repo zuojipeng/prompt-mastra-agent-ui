@@ -18,6 +18,7 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | Timed judge path and truthful local/fixture visuals are rehearsed | LOCAL ONLY | demo rehearsal manifest/report, 4 desktop/mobile E2E checks, local WebM | 10.48s silent visual reel; not final or public |
 | Runway provider choice and guarded Genblaze adapter contract | LOCAL ONLY | `provider-decision.md`, `runway_provider.py`, 16 focused tests | Injected provider lifecycle; no live generation or spend |
 | Runway REST transport and one-attempt smoke are fail-closed | LOCAL ONLY | `runway_client.py`, `live_runway_smoke.py`, 19 transport tests | Injected transport/probe only; no Runway request or spend |
+| Fake Runway-to-Genblaze storage transaction composes end to end | LOCAL ONLY | `offline_runway_b2_transaction.py`, 11 focused tests | Scripted provider/probe and B2-shaped memory backend; no external I/O |
 | B2 stores and serves the asset and manifest | BLOCKED | C-008 | Requires authorized account and E4 read-back smoke |
 | External AI media provider generates the asset | BLOCKED | Submission readiness gate | Runway `gen4.5` is selected, but only its no-network adapter contract is proven |
 | Public judge-accessible campaign app | BLOCKED | Submission checklist | Campaign branch not deployed/default |

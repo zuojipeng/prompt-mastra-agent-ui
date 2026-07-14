@@ -8,6 +8,8 @@ The second local slice also exercises Genblaze's real `SyncProvider -> Pipeline 
 
 The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter; `runway_client.py` and `live_runway_smoke.py` implement the guarded REST and one-attempt harness. They have only run with injected offline transports and do not prove live generation. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` for the decision, cost gate, and claims boundary.
 
+`offline_runway_b2_transaction.py` composes the real Runway Genblaze adapter with a scripted fake client, an injected probe gate, `Pipeline`, `ObjectStorageSink`, and a B2-shaped in-memory backend. It verifies asset and manifest read-back plus compensating cleanup under one owner. This is no-network composition evidence only: it is not ffprobe, Runway, or Backblaze B2 live evidence.
+
 ## Run
 
 ```bash
@@ -20,6 +22,7 @@ PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
+PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:

@@ -112,7 +112,7 @@ class LiveGenblazeB2SmokeTest(unittest.TestCase):
                 payload=self.payload,
             )
 
-        self.assertEqual(len(backend.deleted), 1)
+        self.assertEqual(len(backend.deleted), 2)
         self.assertEqual(backend.objects, {})
         self.assertTrue(backend.closed)
 

@@ -18,6 +18,8 @@ Jingci turns one creative idea into a DirectorKit: a feasibility diagnosis, thre
 
 The Python adapter uses Genblaze's official `SyncProvider`, `Pipeline`, `ObjectStorageSink`, and `StorageBackend` extension points. The current credential-free proof executes a deterministic provider, stores exact media bytes and a separate canonical manifest through an in-memory backend, and returns a strict `jingci.provenance-run.v1` record to the browser.
 
+A second no-network integration test composes the production Runway Genblaze adapter with a scripted fake Runway client and a B2-shaped in-memory backend. Fixture media passes through an injected probe gate, Genblaze `Pipeline`, and `ObjectStorageSink`; the test reads back and verifies the content-addressed asset and canonical manifest, then removes its owned storage objects and temporary local media. It does not execute ffprobe, Runway, or Backblaze B2.
+
 Live provider execution is not yet proven and must not be inferred from the local deterministic provider.
 
 ## How It Uses Backblaze B2

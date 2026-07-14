@@ -27,7 +27,8 @@ Status: in_progress
 | C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | done |
 | C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | done |
 | C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | done |
-| C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | ready |
+| C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | done |
+| C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | ready |
 
 ## Event Log
 
@@ -224,3 +225,16 @@ Evidence: 19 transport/harness tests plus 16 provider tests, no-network plan, ex
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Compose the fake Runway output through the existing Genblaze ObjectStorageSink-to-B2 transaction and prove end-to-end cleanup before requesting any live account gate.
+
+### 2026-07-14 23:42 C-E016
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-020
+Gate: Architecture / Engineering / Code Review / Test / DevOps / Claims Review
+Message: Composed one scripted Runway provider lifecycle through an injected probe gate, Genblaze Pipeline and ObjectStorageSink, B2-shaped read-back, manifest verification, and compensating cleanup under one offline transaction owner. Closed caller-controlled sync/async paid retries, probe-failure persistence, ambiguous-commit ownership, false cleanup success, unsafe returned keys, and error-preservation findings.
+Evidence: 11 focused composition tests, 81-test Python regression, compileall, independent sync/async retry checks; no credentials, network, ffprobe, Runway generation, spend, or B2 operation.
+Decision: CONTINUE
+Next owner: DevOps Agent + Operator Agent
+Close condition: Prepare one human-operated live verification runbook with explicit authorization, evidence, cleanup, rollback, and stop conditions; do not execute it without the separate gates.

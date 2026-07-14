@@ -54,6 +54,14 @@ class DeferredCloseBackend(StorageBackend):
         metadata: dict[str, str] | None = None,
         extra_args: dict[str, Any] | None = None,
     ) -> str:
+        record: dict[str, str | None] = {
+            "key": key,
+            "stored_key": None,
+            "content_type": content_type,
+        }
+        # Register ownership before mutation so a commit-then-timeout can still
+        # be compensated by the smoke owner.
+        self.put_records.append(record)
         stored_key = self.delegate.put(
             key,
             data,
@@ -61,7 +69,7 @@ class DeferredCloseBackend(StorageBackend):
             metadata=metadata,
             extra_args=extra_args,
         )
-        self.put_records.append({"key": key, "stored_key": stored_key, "content_type": content_type})
+        record["stored_key"] = stored_key
         return stored_key
 
     def get(self, key: str) -> bytes:
@@ -100,6 +108,12 @@ def build_smoke_prefix(now: datetime | None = None, run_id: str | None = None) -
     return prefix
 
 
+def validate_smoke_prefix(prefix: str) -> str:
+    if not _SAFE_PREFIX.fullmatch(prefix):
+        raise ValueError("Genblaze smoke prefix is outside the allowed namespace")
+    return prefix
+
+
 def _build_job(payload: bytes) -> ShotProvenanceJob:
     return ShotProvenanceJob(
         schema_version=SCHEMA_VERSION,
@@ -123,8 +137,7 @@ def _cleanup(wrapper: DeferredCloseBackend, keys: list[str]) -> None:
     failed: list[str] = []
     for key in reversed(keys):
         try:
-            if wrapper.exists(key):
-                wrapper.delete(key)
+            wrapper.delete(key)
             if wrapper.exists(key):
                 failed.append(key)
         except Exception:
@@ -141,8 +154,7 @@ def run_genblaze_b2_smoke(
     payload: bytes | None = None,
 ) -> GenblazeB2SmokeResult:
     run_prefix = prefix or build_smoke_prefix()
-    if not _SAFE_PREFIX.fullmatch(run_prefix):
-        raise ValueError("Genblaze smoke prefix is outside the allowed namespace")
+    validate_smoke_prefix(run_prefix)
     media = payload or f"jingci-genblaze-b2-smoke:{uuid4().hex}".encode("ascii")
     wrapper = DeferredCloseBackend(backend_factory(config))
     owned_keys: list[str] = []

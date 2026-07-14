@@ -150,6 +150,21 @@ class RunwayVideoProvider(SyncProvider):
         self.monotonic = monotonic
         self.sleep = sleep
 
+    def invoke(self, step: Step, config: Any = None) -> Step:
+        # Genblaze lets invocation config override provider retry policy. A fresh
+        # Runway submission is billable, so callers cannot opt this provider into
+        # automatic step retries.
+        return super().invoke(step, self._single_attempt_config(config))
+
+    async def ainvoke(self, step: Step, config: Any = None) -> Step:
+        return await super().ainvoke(step, self._single_attempt_config(config))
+
+    @staticmethod
+    def _single_attempt_config(config: Any) -> dict[str, Any]:
+        normalized = dict(config or {})
+        normalized["max_retries"] = 0
+        return normalized
+
     def generate(self, step: Step, config: Any = None) -> Step:
         del config
         prompt = (step.prompt or "").strip()
