@@ -7,6 +7,7 @@ from pathlib import Path
 
 from genblaze_core import KeyStrategy, Modality, ObjectStorageSink, Pipeline, Step
 from genblaze_core.exceptions import PipelineError
+from genblaze_core.models.enums import ProviderErrorCode
 
 from jingci_spike.local_pipeline import InMemoryStorageBackend
 from jingci_spike.runway_provider import (
@@ -115,7 +116,7 @@ class RunwayProviderTest(unittest.TestCase):
         self.assertEqual(client.cancel_timeouts, [5.0])
         self.assertEqual(client.download_count, 0)
 
-    def test_late_download_is_rejected_and_canceled(self) -> None:
+    def test_late_download_is_rejected_without_deleting_succeeded_task(self) -> None:
         provider, client, clock = self.provider(
             ["SUCCEEDED"], config=self.config(timeout_seconds=10.0)
         )
@@ -131,11 +132,28 @@ class RunwayProviderTest(unittest.TestCase):
         with self.assertRaisesRegex(RunwayProviderError, "timeout"):
             provider.generate(self.step())
 
-        self.assertEqual(client.cancel_count, 1)
+        self.assertEqual(client.cancel_count, 0)
         self.assertEqual(list(self.output_dir.iterdir()), [])
 
+    def test_poll_transport_failure_preserves_type_and_cancels_once(self) -> None:
+        provider, client, _ = self.provider(["PENDING"])
+
+        def fail_poll(task_id: str, **kwargs: object) -> dict:
+            raise RunwayProviderError("http_429", ProviderErrorCode.RATE_LIMIT)
+
+        client.get_task = fail_poll  # type: ignore[method-assign]
+        with self.assertRaises(RunwayProviderError) as raised:
+            provider.generate(self.step())
+
+        self.assertEqual(raised.exception.error_code, ProviderErrorCode.RATE_LIMIT)
+        self.assertEqual(client.cancel_count, 1)
+
     def test_terminal_failures_never_download_or_create_asset(self) -> None:
-        for status, code in (("FAILED", "task_failed"), ("CANCELED", "task_canceled")):
+        for status, code in (
+            ("FAILED", "task_failed"),
+            ("CANCELED", "task_canceled"),
+            ("CANCELLED", "task_canceled"),
+        ):
             with self.subTest(status=status):
                 provider, client, _ = self.provider([status])
                 step = self.step()
@@ -148,6 +166,13 @@ class RunwayProviderTest(unittest.TestCase):
         provider, _, _ = self.provider(["PAUSED"])
         with self.assertRaisesRegex(RunwayProviderError, "unknown_task_status"):
             provider.generate(self.step())
+
+    def test_malformed_succeeded_output_does_not_delete_completed_task(self) -> None:
+        provider, client, _ = self.provider(["SUCCEEDED"])
+        client.get_task = lambda task_id, **kwargs: {"id": task_id, "status": "SUCCEEDED", "output": []}  # type: ignore[method-assign]
+        with self.assertRaisesRegex(RunwayProviderError, "malformed_output"):
+            provider.generate(self.step())
+        self.assertEqual(client.cancel_count, 0)
 
     def test_rejects_unallowlisted_and_deceptive_output_urls(self) -> None:
         bad_urls = (
@@ -213,6 +238,7 @@ class RunwayProviderTest(unittest.TestCase):
     def test_invalid_prompt_and_model_fail_before_client_call(self) -> None:
         for step in (
             self.step(prompt=" "),
+            self.step(prompt="x" * 1001),
             self.step(model="gen4_turbo"),
             self.step(modality=Modality.IMAGE),
             self.step(negative_prompt="text overlay"),

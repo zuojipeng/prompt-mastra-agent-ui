@@ -31,7 +31,7 @@ The planned live path stores content-addressed generated media and its provenanc
 - DeepSeek `deepseek-chat`: primary structured DirectorKit generation in the existing backend.
 - OpenAI `gpt-4.1-mini`: JSON text-generation fallback in the existing backend.
 - `jingci-local-video` / `local-proof`: deterministic Genblaze integration provider used only for credential-free pipeline testing; it is not an external AI media model.
-- Runway `gen4.5`: selected 5-second text-to-video candidate. Its adapter contract passes offline fake tests, but no live generation has run.
+- Runway `gen4.5`: selected 5-second text-to-video candidate. Its REST transport, adapter, media validation, and guarded one-attempt harness pass offline tests, but no live generation has run.
 
 ## Significant Update During The Submission Period
 

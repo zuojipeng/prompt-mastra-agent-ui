@@ -38,7 +38,7 @@ The existing DirectorKit Worker remains a separate service and repository. No B2
 | Anonymous generation abuse | Provider spend and denial of service | Reviewer authentication, edge rate limit, daily quota, concurrency cap | Local upstream token and concurrency cap; identity/rate limit missing |
 | Cross-origin invocation | Third-party sites consume quota | Exact HTTPS origin allowlist and denied credentialed wildcard CORS | Implemented in guarded preview mode |
 | Oversized or malformed requests | Memory/CPU exhaustion or contract bypass | 64KB body cap, JSON media type, strict request schema | Implemented locally |
-| Provider output SSRF or arbitrary URL fetch | Internal network access or data exfiltration | Provider and exact URL scheme/host allowlist; no arbitrary browser URL | Implemented in offline adapter; approved live output host and redirect transport pending |
+| Provider output SSRF or arbitrary URL fetch | Internal network access or data exfiltration | Provider and exact URL scheme/host allowlist; pre-fetch redirect validation; public-address check; deployment egress policy | Offline transport implemented; live host, DNS pinning/egress, and network evidence pending |
 | Forged verified response | False provenance claim | Strict response parser, asset digest, read-back manifest verification | Implemented locally/offline |
 | Cross-run object collision | Wrong deletion or lineage mix-up | Unique run prefix and content-addressed asset keys | Implemented offline |
 | Public B2 object exposure | Prompt/media leakage | Private bucket and short-lived signed reads only | Pending account setup |

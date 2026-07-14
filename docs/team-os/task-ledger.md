@@ -13,7 +13,7 @@ Last Updated: 2026-07-14
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Build the guarded Runway live-transport harness in plan mode; keep spend and live execution blocked |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Compose fake Runway output through Genblaze sink and B2-shaped read-back/cleanup transaction |
 
 ## Backlog
 
@@ -703,6 +703,19 @@ Decision: CONTINUE
 Next owner: Engineering Agent + DevOps Agent
 Close condition: Build the fail-closed live transport and plan-mode smoke with full media probing before requesting separate one-attempt spend authorization.
 
+### 2026-07-14 22:30 T041
+
+Type: REVIEWED
+From: Engineering Agent + DevOps Agent + Architecture Agent + Claims Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Code Review / Test / DevOps
+Message: Passed the guarded Runway REST transport and one-attempt smoke offline after current-endpoint, typed-error, redirect, active-task cancellation, bounded media, probe, cleanup, and spend-gate repairs.
+Evidence: E2 official REST review; E3 35 focused tests, no-network plan, expected pre-config denial; no credentials, generation, network, or spend.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Compose provider output through the existing Genblaze-to-B2 transaction under fakes before any live authorization.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -752,3 +765,4 @@ Close condition: Build the fail-closed live transport and plan-mode smoke with f
 | RV-JC-043 | JC-T005 | DevOps Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for local release evidence | Scan-count overstatement and blocker-free draft/design false-green fixed; generated snapshot stays ignored | Rehearse updated local-only judge demo |
 | RV-JC-044 | JC-T005 | Operator Agent + UEAgent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for local rehearsal only | Node runtime failure and captions-vs-audio gate fixed; Local/Fixture remain explicit | Select external AI media provider contract |
 | RV-JC-045 | JC-T005 | Product Agent + Architecture Agent + Engineering Agent | Claims Review Agent + Code Review Agent + Test Agent | PASS for offline provider contract only | Corrected input-modality selection, paid retries, deadlines, path safety, output URL/media checks; live transport and probing remain blocked | Build guarded Runway transport in plan mode |
+| RV-JC-046 | JC-T005 | Engineering Agent + DevOps Agent | Architecture Agent + Claims Review Agent + Code Review Agent + Test Agent | PASS for offline live harness only | Current REST endpoint, typed failures, redirects, cancellation, probe, and cleanup pass; DNS pinning and live host remain deployment blockers | Compose Runway-to-Genblaze-to-B2 transaction offline |

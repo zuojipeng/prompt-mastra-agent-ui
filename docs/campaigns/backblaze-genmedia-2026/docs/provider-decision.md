@@ -24,7 +24,7 @@ Official documentation was checked on 2026-07-14:
 
 | Constraint | Campaign interpretation | Official source |
 | --- | --- | --- |
-| Gen-4.5 text-to-video | Use the image-to-video API/SDK operation with `promptImage` omitted | https://docs.dev.runwayml.com/guides/using-the-api/ |
+| Gen-4.5 text-to-video | Current REST reference uses `POST /v1/text_to_video`; do not rely on the older SDK guide's image-operation omission behavior | https://docs.dev.runwayml.com/api/#tag/Start-generating/paths/~1v1~1text_to_video/post |
 | Model capability | `gen4.5` supports text-to-video; `gen4_turbo` is image-to-video | https://docs.dev.runwayml.com/guides/models/ |
 | Price | 12 credits/second; credits cost $0.01 | https://docs.dev.runwayml.com/guides/pricing/ |
 | Task lifecycle | Poll no more frequently than every 5 seconds; include `THROTTLED` as waiting | https://docs.dev.runwayml.com/api-details/sdks/ and https://docs.dev.runwayml.com/usage/tiers/ |
@@ -44,7 +44,7 @@ The first live smoke is limited to one generation. A retry would raise the maxim
 
 ## Adapter Contract
 
-`RunwayVideoProvider` is an official Genblaze `SyncProvider` with an injected `RunwayTaskClient`. The provider owns orchestration rules; a future HTTP/SDK transport owns authorization, redirect handling, bounded streaming, and retry/backoff.
+`RunwayVideoProvider` is an official Genblaze `SyncProvider` with an injected `RunwayTaskClient`. The provider owns orchestration rules; the guarded HTTP transport owns authorization, redirect handling, bounded streaming, and typed transport failures. Production DNS pinning and egress remain separate deployment controls.
 
 1. Reject empty prompts and any model other than `gen4.5` before task creation.
 2. Submit the fixed ratio and duration, then poll at intervals of at least five seconds.
@@ -56,7 +56,7 @@ The first live smoke is limited to one generation. A retry would raise the maxim
 8. Write verified bytes to a private local handoff file. Persist only a file URI, digest, size, task ID, API version, and output host into Genblaze; never persist the signed provider URL.
 9. Hand the file to Genblaze `ObjectStorageSink`; only a successful B2 read-back may become live campaign evidence.
 
-The current module intentionally provides no real HTTP client and does not read `RUNWAYML_API_SECRET`. `FakeRunwayTaskClient` scripts the lifecycle without a socket, credential, or billable action.
+The guarded HTTP client and live-smoke command now exist, but have only run against injected transports. `FakeRunwayTaskClient` scripts the lifecycle without a socket, credential, or billable action. No real Runway request has run.
 
 ## Failure Semantics
 

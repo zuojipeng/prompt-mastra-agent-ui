@@ -26,7 +26,8 @@ Status: in_progress
 | C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | done |
 | C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | done |
 | C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | done |
-| C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | ready |
+| C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | done |
+| C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | ready |
 
 ## Event Log
 
@@ -210,3 +211,16 @@ Evidence: Official Runway decision record, 14 focused Python tests, real Pipelin
 Decision: CONTINUE
 Next owner: Engineering Agent + DevOps Agent
 Close condition: Build a fail-closed live transport and plan command with media probing and exact spend confirmation, but do not execute it before separate human authorization.
+
+### 2026-07-14 22:30 C-E015
+
+Type: REVIEWED
+From: Engineering Agent + DevOps Agent + Architecture Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-019
+Gate: Architecture / Engineering / Code Review / Test / DevOps
+Message: Added the guarded Runway REST transport and one-attempt smoke after correcting the current endpoint to `/v1/text_to_video`, preserving typed HTTP failures, separating active-task cancellation from successful-output download failures, and bounding redirects, bytes, probe, cleanup, and spend authorization.
+Evidence: 19 transport/harness tests plus 16 provider tests, no-network plan, expected denial before configuration, official REST and cancellation review; no credentials, Runway request, generation, or spend.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Compose the fake Runway output through the existing Genblaze ObjectStorageSink-to-B2 transaction and prove end-to-end cleanup before requesting any live account gate.

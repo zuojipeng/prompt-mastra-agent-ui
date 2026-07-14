@@ -6,7 +6,7 @@ It accepts one completed shot asset with a SHA-256 digest and builds a verified 
 
 The second local slice also exercises Genblaze's real `SyncProvider -> Pipeline -> ObjectStorageSink -> StorageBackend` lifecycle with deterministic bytes and an in-memory storage fake. This validates content-addressed object keys and durable credential-free URLs, but it is still not a Backblaze network upload.
 
-The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter and a scripted no-network client; it intentionally contains no live HTTP transport and never reads provider credentials. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` for the decision, cost gate, and claims boundary.
+The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter; `runway_client.py` and `live_runway_smoke.py` implement the guarded REST and one-attempt harness. They have only run with injected offline transports and do not prove live generation. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` for the decision, cost gate, and claims boundary.
 
 ## Run
 
@@ -19,6 +19,7 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.http_service --port 8788
 PYTHONPATH=. .venv/bin/python tests/http_service_smoke.py
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:
@@ -80,12 +81,24 @@ After the same separate live authorization and secure environment setup, `--live
 
 Use explicit imports from `genblaze_core`. A wildcard import loads optional components and may fail when unrelated extras such as `pyarrow` are not installed.
 
+## Guarded Live Runway Smoke
+
+The Runway harness defaults to a deterministic plan that reads no environment values, opens no transport, runs no subprocess, and incurs no cost:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
+```
+
+The reviewed REST transport uses `POST /v1/text_to_video`, pins API version `2024-11-06`, performs one create request, manually validates up to three media redirects, strips API authorization from media downloads, bounds JSON/media bytes, and probes the temporary MP4 with `ffprobe`. Live mode requires the exact phrase printed by `--plan`, a well-formed `RUNWAYML_API_SECRET`, and reviewed exact `JINGCI_RUNWAY_OUTPUT_HOSTS`. Do not run it until a separate one-attempt, maximum-$0.60 spend authorization is recorded.
+
+The current stdlib transport rejects private DNS answers before every media request, but the resolver check and urllib connection use separate resolutions. A deployment must add egress enforcement or a TLS connector pinned to the validated address before this becomes a production SSRF claim.
+
 ## Boundary
 
 - Input: one `jingci.shot-provenance.v1` JSON job.
 - Output: one verified Genblaze manifest envelope.
 - Next adapter: execute one provider pipeline and replace the fixture asset URL/digest.
-- Selected live candidate: Runway `gen4.5`; only the offline adapter contract and fake are implemented.
+- Selected live candidate: Runway `gen4.5`; adapter and guarded REST harness are implemented but only offline fakes have executed.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Local HTTP adapter: loopback-only `GET /health` and `POST /v1/provenance-runs`, with a 64KB body limit and local-origin CORS.
 - Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.

@@ -21,7 +21,7 @@
     "server_side_secrets": "implemented-local",
     "bucket_scoped_credentials": "blocked-human",
     "private_b2_objects": "planned",
-    "provider_and_url_allowlist": "implemented-offline-contract-live-host-pending",
+    "provider_and_url_allowlist": "implemented-offline-transport-live-host-and-egress-pending",
     "structured_redacted_logs": "implemented-local-preview",
     "health_and_dependency_checks": "partial-local-process-only",
     "rollback_feature_flag": "implemented-local-preview",

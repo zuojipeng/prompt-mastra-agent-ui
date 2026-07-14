@@ -23,8 +23,11 @@ RUNWAY_ESTIMATED_COST_USD = 0.60
 RUNWAY_API_VERSION = "2024-11-06"
 
 _WAITING_STATUSES = frozenset({"PENDING", "THROTTLED", "RUNNING"})
-_TERMINAL_STATUSES = frozenset({"SUCCEEDED", "FAILED", "CANCELED"})
-_TASK_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+_TERMINAL_STATUSES = frozenset({"SUCCEEDED", "FAILED", "CANCELED", "CANCELLED"})
+_TASK_ID_PATTERN = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
 
 
 class RunwayProviderError(ProviderError):
@@ -37,6 +40,10 @@ class RunwayProviderError(ProviderError):
     ) -> None:
         self.code = code
         super().__init__(f"runway provider failed: {code}", error_code=error_code)
+
+
+class _SucceededOutputError(RunwayProviderError):
+    """A terminal success with unusable output; DELETE would remove the result."""
 
 
 @dataclass(frozen=True)
@@ -148,6 +155,8 @@ class RunwayVideoProvider(SyncProvider):
         prompt = (step.prompt or "").strip()
         if not prompt:
             raise RunwayProviderError("invalid_prompt", ProviderErrorCode.INVALID_INPUT)
+        if len(prompt.encode("utf-16-le")) // 2 > 1000:
+            raise RunwayProviderError("prompt_too_long", ProviderErrorCode.INVALID_INPUT)
         if step.model != RUNWAY_MODEL:
             raise RunwayProviderError("model_not_allowed", ProviderErrorCode.MODEL_ERROR)
         if step.modality != Modality.VIDEO:
@@ -172,6 +181,8 @@ class RunwayVideoProvider(SyncProvider):
                 api_version=RUNWAY_API_VERSION,
                 timeout_seconds=request_timeout,
             )
+        except RunwayProviderError:
+            raise
         except Exception as exc:
             raise RunwayProviderError("task_creation_failed") from exc
         if not isinstance(task_id, str) or not _TASK_ID_PATTERN.fullmatch(task_id.strip()):
@@ -180,12 +191,21 @@ class RunwayVideoProvider(SyncProvider):
         task_id = task_id.strip()
         step.metadata["upstream_id"] = task_id
         step.metadata["runway_api_version"] = RUNWAY_API_VERSION
-        output_url = self._wait_for_output(task_id, deadline)
+        try:
+            output_url = self._wait_for_output(task_id, deadline)
+        except RunwayProviderError as error:
+            if error.code not in {"task_failed", "task_canceled"} and not isinstance(
+                error, _SucceededOutputError
+            ):
+                self._cancel_once(task_id)
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            self._cancel_once(task_id)
+            raise
         self._validate_output_url(output_url)
 
         remaining = deadline - self.monotonic()
         if remaining <= 0:
-            self._cancel_once(task_id)
             raise RunwayProviderError("timeout", ProviderErrorCode.TIMEOUT)
         try:
             media = self.client.download_video(
@@ -200,7 +220,6 @@ class RunwayVideoProvider(SyncProvider):
             raise RunwayProviderError("download_failed") from exc
 
         if self.monotonic() >= deadline:
-            self._cancel_once(task_id)
             raise RunwayProviderError("timeout", ProviderErrorCode.TIMEOUT)
         if not isinstance(media, DownloadedVideo):
             raise RunwayProviderError("malformed_output")
@@ -239,7 +258,6 @@ class RunwayVideoProvider(SyncProvider):
     def _wait_for_output(self, task_id: str, deadline: float) -> str:
         while True:
             if self.monotonic() >= deadline:
-                self._cancel_once(task_id)
                 raise RunwayProviderError("timeout", ProviderErrorCode.TIMEOUT)
             request_timeout = self._remaining_request_timeout(deadline)
             try:
@@ -248,6 +266,8 @@ class RunwayVideoProvider(SyncProvider):
                     api_version=RUNWAY_API_VERSION,
                     timeout_seconds=request_timeout,
                 )
+            except RunwayProviderError:
+                raise
             except Exception as exc:
                 raise RunwayProviderError("task_poll_failed") from exc
             status = task.get("status")
@@ -259,13 +279,13 @@ class RunwayVideoProvider(SyncProvider):
             if status == "SUCCEEDED":
                 output = task.get("output")
                 if not isinstance(output, Sequence) or isinstance(output, (str, bytes)):
-                    raise RunwayProviderError("malformed_output")
+                    raise _SucceededOutputError("malformed_output")
                 if len(output) != 1 or not isinstance(output[0], str):
-                    raise RunwayProviderError("malformed_output")
+                    raise _SucceededOutputError("malformed_output")
                 return output[0]
             if status == "FAILED":
                 raise RunwayProviderError("task_failed")
-            if status == "CANCELED":
+            if status in {"CANCELED", "CANCELLED"}:
                 raise RunwayProviderError("task_canceled")
             remaining = deadline - self.monotonic()
             if remaining <= 0:
@@ -316,7 +336,7 @@ class FakeRunwayTaskClient:
         statuses: Sequence[str],
         media: DownloadedVideo,
         *,
-        task_id: str = "fake-task-001",
+        task_id: str = "17f20503-6c24-4c16-946b-35dbbce2af2f",
         output_url: str = "https://media.runway.test/output.mp4?signature=redacted",
         redirect_chain: Sequence[str] = (),
     ) -> None:
