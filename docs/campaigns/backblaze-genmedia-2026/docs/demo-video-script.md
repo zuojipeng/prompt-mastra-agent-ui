@@ -38,6 +38,10 @@ Screen: Select shot 1, run provenance, then show provider/model, B2 asset URI, S
 
 Rehearsal rule: while the UI says `Fixture` or `Local adapter`, say “local integration proof” and do not use the B2-backed voiceover.
 
+Voiceover for the current local rehearsal:
+
+> This is a local integration proof, not a live provider or Backblaze upload. The browser calls our Python Genblaze adapter, receives deterministic media from memory storage, and accepts the run only after the asset digest and provenance manifest verify.
+
 ## 1:48–2:10 — Failure And Retry Lineage
 
 Voiceover:
@@ -46,11 +50,17 @@ Voiceover:
 
 Screen: Show failure recovery, retry, parent run, and attempt 2.
 
+Rehearsal rule: this failure path uses the visibly labeled offline `Fixture`. State that it proves UI recovery and lineage semantics, not provider reliability.
+
 ## 2:10–2:28 — Production Path
 
 Voiceover:
 
 > This turns generated media from a disposable provider link into an auditable production asset. The same project keeps execution status, handoff evidence, and platform feedback together.
+
+Local rehearsal replacement:
+
+> The live design will turn temporary provider output into an auditable production asset. Today, the local proof verifies the contract and keeps its limitations visible.
 
 Screen: Show project readiness and feedback calibration briefly.
 

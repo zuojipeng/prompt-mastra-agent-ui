@@ -24,7 +24,8 @@ Status: in_progress
 | C-014 | Architecture Agent + DevOps Agent | Claims Review Agent + Test Agent | Threat-model preview deployment and judge access | Trust boundaries, config, abuse controls, observability, rollback, and judge smoke are explicit | done |
 | C-015 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Harden the public provenance service boundary without deployment | Exact CORS, auth boundary, request limits, concurrency, health, redacted logs, and feature disablement pass locally | done |
 | C-016 | DevOps Agent + Claims Review Agent | Code Review Agent + Test Agent | Build a deterministic release-evidence collector | Redacted config summary, artifact hashes, gate results, and secret scan produce one reviewable local bundle | done |
-| C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | ready |
+| C-017 | Operator Agent + UEAgent | Claims Review Agent + Test Agent | Rehearse the updated provenance judge demo | Timed narration, Local/Fixture labels, desktop/mobile evidence, and failure fallback are captured without live claims | done |
+| C-018 | Product Agent + Architecture Agent | Claims Review Agent + Test Agent | Select the live AI media provider and freeze its adapter contract | Official constraints, cost/human gate, output verification, timeout/failure semantics, and a no-network fake are reviewable | ready |
 
 ## Event Log
 
@@ -182,3 +183,16 @@ Evidence: 11 focused tests, 124-test frontend regression, TypeScript, lint, buil
 Decision: CONTINUE
 Next owner: Operator Agent + UEAgent + Test Agent
 Close condition: Rehearse and capture the updated local-only judge path without presenting it as live B2 or public deployment.
+
+### 2026-07-14 08:34 C-E013
+
+Type: REVIEWED
+From: Operator Agent + UEAgent + Engineering Agent + Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-017
+Gate: Operator / UE / Claims Review / Test
+Message: Local judge rehearsal passed after the recorder was rerun on Node 22 and the final gate was repaired to allow accurate captions; Local and Fixture evidence remain visibly separated from live claims.
+Evidence: 10.48s VP8 visual reel, 4 desktop/mobile E2E checks, 4 demo gate tests, 128 frontend tests, TypeScript, lint, build, visual inspection
+Decision: CONTINUE
+Next owner: Product Agent + Architecture Agent
+Close condition: Select one external AI media provider and freeze a guarded, testable adapter contract without credentials or network execution.

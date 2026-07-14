@@ -2,15 +2,16 @@ import { chromium } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { mkdir, readdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const port = Number(process.env.DEMO_PORT ?? 3300);
 const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = path.resolve('artifacts/demo');
 const videoDir = path.join(outputDir, 'raw');
 const finalVideo = path.join(outputDir, 'jingci-demo.webm');
-const creative = '废土小镇里，一个旧清洁机器人守护红裙人偶';
+export const creative = '废土小镇里，一个旧清洁机器人守护红裙人偶';
 
-const directorKitResponse = {
+export const directorKitResponse = {
   success: true,
   data: {
     diagnosis: {
@@ -141,7 +142,7 @@ const directorKitResponse = {
   },
 };
 
-const analyticsResponse = {
+export const analyticsResponse = {
   success: true,
   data: {
     windowDays: 30,
@@ -180,7 +181,7 @@ const analyticsResponse = {
   },
 };
 
-async function waitForServer(url) {
+export async function waitForServer(url) {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     try {
@@ -192,7 +193,7 @@ async function waitForServer(url) {
   throw new Error(`Timed out waiting for ${url}`);
 }
 
-async function pause(ms = 700) {
+export async function pause(ms = 700) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -282,7 +283,10 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isCli) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

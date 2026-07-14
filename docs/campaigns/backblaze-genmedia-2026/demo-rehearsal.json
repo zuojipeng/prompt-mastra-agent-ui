@@ -1,0 +1,44 @@
+{
+  "schema_version": "jingci.hackathon-demo-rehearsal.v1",
+  "status": "local-rehearsal",
+  "target_runtime_seconds": 155,
+  "visual_reel": {
+    "local_path": "artifacts/demo/jingci-backblaze-rehearsal.webm",
+    "duration_seconds": 10.48,
+    "width": 1440,
+    "height": 1000,
+    "audio": false,
+    "captions": false,
+    "public_url": null
+  },
+  "claims": {
+    "live_ai_media_provider": false,
+    "live_b2_storage": false,
+    "public_deployment": false,
+    "final_demo": false
+  },
+  "segments": [
+    { "start": 0, "end": 15, "name": "problem", "evidence_mode": "ui" },
+    { "start": 15, "end": 42, "name": "creative_diagnosis", "evidence_mode": "fixture" },
+    { "start": 42, "end": 68, "name": "director_kit", "evidence_mode": "fixture" },
+    { "start": 68, "end": 108, "name": "local_provenance_proof", "evidence_mode": "local" },
+    { "start": 108, "end": 130, "name": "failure_retry_lineage", "evidence_mode": "fixture" },
+    { "start": 130, "end": 148, "name": "production_path_design", "evidence_mode": "ui" },
+    { "start": 148, "end": 155, "name": "close", "evidence_mode": "ui" }
+  ],
+  "artifacts": [
+    "docs/campaigns/backblaze-genmedia-2026/docs/demo-video-script.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/demo-rehearsal-report.md",
+    "output/playwright/hackathon-rehearsal-local-desktop.png",
+    "output/playwright/hackathon-rehearsal-local-mobile.png",
+    "output/playwright/provenance-desktop.png",
+    "output/playwright/provenance-mobile.png"
+  ],
+  "blockers": [
+    "live_ai_media_provider",
+    "live_b2_evidence",
+    "final_voiceover_or_subtitles",
+    "public_demo_video",
+    "human_recording_approval"
+  ]
+}
