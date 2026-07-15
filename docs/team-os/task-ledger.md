@@ -768,6 +768,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Implement durable one-shot approval consumption and non-attestable failure/recovery evidence under local concurrency tests.
 
+### 2026-07-15 22:26 T046
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Security Agent + Code Review Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Security / Code Review / Test / Claims Review
+Message: Passed the immutable local approval and recovery contract after replacing shared mutable state with durable hard-link publication, binding each evidence stage to its actual predecessor, and making provider uncertainty independent from storage cleanup.
+Evidence: E3 Python 107/107, Node 156/156, production build, spawn/fork process races, filesystem attacks, secret-carrier attacks, and independent Architecture/Security PASS; all external effects remain disabled.
+Decision: ESCALATE HUMAN GATES
+Next owner: Human owner + Operator Agent
+Close condition: Approve the remaining account-bound gates before live composition or execution.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -822,3 +835,4 @@ Close condition: Implement durable one-shot approval consumption and non-attesta
 | RV-JC-048 | JC-T005 | DevOps Agent + Operator Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS for blocked live plan only | Fabricated authorization, unsafe command population, incomplete claims, provider drift, secret order, and raw Runway token leakage closed; validator cannot authorize execution | Build private result scanner and attestation contract |
 | RV-JC-049 | JC-T005 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | PASS for fixture-only evidence boundary | Duplicate-key leakage, post-run/unbound approval, dirty source, unsafe links, namespace traversal, invalid dates, and claim promotion closed; no live result exists | Implement combined plan-mode harness |
 | RV-JC-050 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for plan/fake transaction only | Attestable fake evidence, arbitrary live dependencies, reusable approval, early cleanup success, cleanup interruption, and raw storage-exception log leakage closed; fixture cannot support live claims | Add durable approval journal and failure record |
+| RV-JC-051 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS for local durable approval/recovery only | Append-log complexity, replay aliases, path redirection, FIFO hangs, forged predecessor paths, phase drift, false cancellation, cleanup absence, orphan recovery, time reversal, and provider uncertainty findings closed; remote exactly-once remains impossible | Human owner closes account and spend gates |

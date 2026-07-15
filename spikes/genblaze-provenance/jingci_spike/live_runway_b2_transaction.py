@@ -9,7 +9,7 @@ import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Protocol
 
 APPROVAL_SCHEMA = "jingci.hackathon-live-approval.v1"
 FIXTURE_RESULT_SCHEMA = "jingci.combined-runway-b2-fixture-result.v1"
@@ -42,6 +42,8 @@ class InMemoryApprovalConsumer:
         self._consumed: set[str] = set()
 
     def consume(self, approval: LiveApproval, at: datetime) -> None:
+        if at.tzinfo is None:
+            raise ValueError("approval clock must be timezone-aware")
         instant = at.astimezone(timezone.utc)
         with self._lock:
             if approval.document_sha256 in self._consumed:
@@ -49,6 +51,10 @@ class InMemoryApprovalConsumer:
             if not approval.approved_at <= instant < approval.expires_at:
                 raise PermissionError("one-shot approval is not active")
             self._consumed.add(approval.document_sha256)
+
+
+class ApprovalConsumer(Protocol):
+    def consume(self, approval: LiveApproval, at: datetime) -> None: ...
 
 
 def _utc(value: str) -> datetime:
@@ -131,7 +137,7 @@ class _ApprovalBoundClient:
         self,
         delegate: Any,
         approval: LiveApproval,
-        consumer: InMemoryApprovalConsumer,
+        consumer: ApprovalConsumer,
         *,
         clock: Callable[[], datetime],
     ) -> None:
@@ -178,7 +184,7 @@ def run_combined_transaction_fixture(
     prefix: str,
     output_host: str,
     clock: Callable[[], datetime],
-    approval_consumer: InMemoryApprovalConsumer,
+    approval_consumer: ApprovalConsumer,
 ) -> dict[str, Any]:
     from .local_pipeline import InMemoryStorageBackend
     from .offline_runway_b2_transaction import _run_runway_b2_transaction

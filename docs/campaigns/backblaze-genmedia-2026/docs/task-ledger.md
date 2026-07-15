@@ -31,7 +31,7 @@ Status: in_progress
 | C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | done |
 | C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | done |
 | C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command defines guarded Runway, ffprobe, Genblaze, B2, approval, evidence, and cleanup boundaries; fake-only execution proves the transaction with an explicitly non-attestable result | done |
-| C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | ready |
+| C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | done |
 
 ## Event Log
 
@@ -280,3 +280,16 @@ Evidence: 89-test Python regression, compileall, 155-test Node regression, produ
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Add durable local one-shot consumption and a separate non-attestable failure/recovery record before any live composition root can be considered.
+
+### 2026-07-15 22:26 C-E020
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Security Agent + Code Review Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-024
+Gate: Architecture / Engineering / Security / Code Review / Test / Claims Review
+Message: Durable local approval markers and immutable failure/recovery evidence passed after replacing the append-log draft, rejecting every symlinked path component and FIFO, binding failure to the configured journal and recovery to the actual failure file, requiring exact phase/provider/cancellation states and positive per-key absence, and preventing ambiguous provider work from appearing recovered.
+Evidence: 107-test Python regression, 156-test Node regression, production build, 16-process spawn race with one provider-call winner, independent 32-process fork race, two adversarial review loops; no credentials, network, provider request, B2 mutation, spend, deployment, publication, or submission.
+Decision: ESCALATE HUMAN GATES
+Next owner: Human owner + Operator Agent
+Close condition: Close registration/terms, account, credential, one-attempt spend, output-host, and claims gates before a combined live composition root is implemented or executed.

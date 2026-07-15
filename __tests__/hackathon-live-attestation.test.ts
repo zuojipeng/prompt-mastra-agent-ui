@@ -153,4 +153,20 @@ describe('hackathon private live result attestation', () => {
     };
     expect(validatePrivateLiveResult(fixture, { expectedCommit: commit })).toEqual(['result_shape_invalid']);
   });
+
+  it('rejects failure and recovery evidence regardless of status wording', () => {
+    for (const schema_version of [
+      'jingci.combined-transaction-failure.v1',
+      'jingci.combined-transaction-recovery.v1',
+    ]) {
+      const nonAttestable = {
+        ...privateLiveResult(),
+        schema_version,
+        evidence_mode: 'non_attestable',
+        status: schema_version.includes('recovery') ? 'recovered' : 'failed',
+      };
+      expect(validatePrivateLiveResult(nonAttestable, { expectedCommit: commit }))
+        .toEqual(['result_shape_invalid']);
+    }
+  });
 });

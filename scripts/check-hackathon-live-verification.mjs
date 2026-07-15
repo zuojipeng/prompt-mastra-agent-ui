@@ -67,6 +67,7 @@ const PLAN_COMMANDS = [
   'npm run hackathon:demo:check',
   'npm run hackathon:live:check:draft',
   'PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v',
+  'PYTHONPATH=. .venv/bin/python -m unittest tests.test_approval_journal tests.test_transaction_failure_evidence -v',
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan',
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan',
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan',
@@ -105,7 +106,10 @@ export function evaluateLiveVerification(plan, campaign, artifactExists = exists
   if (!sameArray(plan.required_secret_names, SECRET_NAMES)) errors.push('secret_inventory_invalid');
   if (!sameArray(plan.approval?.required_scopes, APPROVAL_SCOPES)) errors.push('approval_scope_invalid');
   if (!sameArray(plan.approval?.binding_fields, APPROVAL_BINDINGS)) errors.push('approval_unbound');
-  if (plan.approval?.one_shot !== true || plan.approval?.reusable !== false) errors.push('approval_not_one_shot');
+  if (plan.approval?.one_shot !== true || plan.approval?.reusable !== false ||
+      plan.approval?.durable_local_marker !== true || plan.approval?.marker_identity !== 'campaign_id+approval_id' ||
+      plan.approval?.publication !== 'fsync_link_unlink_directory_fsync' ||
+      plan.approval?.corrupt_marker_reusable !== false) errors.push('approval_not_one_shot');
   if (plan.provider_budget?.maximum_attempts !== 1 || plan.provider_budget?.maximum_retries !== 0) errors.push('paid_retry_enabled');
   if (plan.provider_budget?.maximum_estimated_cost_usd !== 0.6) errors.push('spend_cap_invalid');
   if (plan.provider_budget?.confirmation !== 'RUNWAY gen4.5 5s ONE ATTEMPT MAX $0.60') errors.push('confirmation_drift');

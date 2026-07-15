@@ -23,6 +23,10 @@
     "one_shot": true,
     "reusable": false,
     "consumed": false,
+    "durable_local_marker": true,
+    "marker_identity": "campaign_id+approval_id",
+    "publication": "fsync_link_unlink_directory_fsync",
+    "corrupt_marker_reusable": false,
     "binding_fields": [
       "approval_id",
       "human_actor",
@@ -81,6 +85,7 @@
     "npm run hackathon:demo:check",
     "npm run hackathon:live:check:draft",
     "PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v",
+    "PYTHONPATH=. .venv/bin/python -m unittest tests.test_approval_journal tests.test_transaction_failure_evidence -v",
     "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan",
     "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan",
     "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan"
@@ -131,11 +136,14 @@
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/live-verification-runbook.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/live-evidence-contract.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/durable-approval-recovery-contract.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
     "spikes/genblaze-provenance/jingci_spike/live_runway_smoke.py",
     "spikes/genblaze-provenance/jingci_spike/live_genblaze_b2_smoke.py",
-    "spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py"
+    "spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py",
+    "spikes/genblaze-provenance/jingci_spike/approval_journal.py",
+    "spikes/genblaze-provenance/jingci_spike/transaction_failure_evidence.py"
   ],
   "blockers": [
     "combined_live_execution_missing",

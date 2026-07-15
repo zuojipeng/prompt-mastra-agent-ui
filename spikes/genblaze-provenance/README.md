@@ -12,6 +12,8 @@ The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text
 
 `live_runway_b2_transaction.py` is the combined transaction plan root. Its CLI exposes only `--plan` and imports no provider, transport, storage, or credential code on that path. Its test-only runner accepts only `FakeRunwayTaskClient` and `InMemoryStorageBackend`, consumes a canonical approval digest atomically, and emits `jingci.combined-runway-b2-fixture-result.v1`. That fixture schema is deliberately rejected by the live attester and can never support live claims.
 
+`approval_journal.py` and `private_file_store.py` add a local POSIX at-most-once boundary using owner-only immutable approval markers published by durable hard link before provider create. `transaction_failure_evidence.py` binds non-attestable failure records to the actual marker and recovery records to the actual failure file. Recovery requires positive absence evidence for every owned key and can never authorize another create or become live success evidence. See `durable-approval-recovery-contract.md`; no live composition root uses these modules yet.
+
 ## Run
 
 ```bash
@@ -26,6 +28,7 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
 PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan
+PYTHONPATH=. .venv/bin/python -m unittest tests.test_approval_journal tests.test_transaction_failure_evidence -v
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:
