@@ -21,6 +21,7 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | Fake Runway-to-Genblaze storage transaction composes end to end | LOCAL ONLY | `offline_runway_b2_transaction.py`, 11 focused tests | Scripted provider/probe and B2-shaped memory backend; no external I/O |
 | Human live-verification order is machine checked and fail-closed | LOCAL ONLY | `live-verification-plan.json`, `live-verification-runbook.md`, 16 focused tests | Plan-only validator always rejects execution; eight account, spend, host, harness, and evidence blockers remain |
 | Private live result can be validated and reduced to a redacted attestation | LOCAL ONLY | `live-evidence-contract.md`, `attest-hackathon-live-result.mjs`, 30 focused tests | Fixture-only contract; no live result, claims approval, or release eligibility |
+| Combined Runway-to-B2 transaction is planned and fake-composed under one approval boundary | LOCAL ONLY | `live_runway_b2_transaction.py`, 88 Python tests, Node rejection test | CLI is plan-only; fixture schema is non-attestable and no external service ran |
 | B2 stores and serves the asset and manifest | BLOCKED | C-008 | Requires authorized account and E4 read-back smoke |
 | External AI media provider generates the asset | BLOCKED | Submission readiness gate | Runway `gen4.5` is selected, but only its no-network adapter contract is proven |
 | Public judge-accessible campaign app | BLOCKED | Submission checklist | Campaign branch not deployed/default |

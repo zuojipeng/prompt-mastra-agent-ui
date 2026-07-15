@@ -62,40 +62,64 @@ class DeferredCloseBackend(StorageBackend):
         # Register ownership before mutation so a commit-then-timeout can still
         # be compensated by the smoke owner.
         self.put_records.append(record)
-        stored_key = self.delegate.put(
-            key,
-            data,
-            content_type=content_type,
-            metadata=metadata,
-            extra_args=extra_args,
-        )
+        try:
+            stored_key = self.delegate.put(
+                key,
+                data,
+                content_type=content_type,
+                metadata=metadata,
+                extra_args=extra_args,
+            )
+        except Exception:
+            raise RuntimeError("storage backend put failed") from None
         record["stored_key"] = stored_key
         return stored_key
 
     def get(self, key: str) -> bytes:
-        return self.delegate.get(key)
+        try:
+            return self.delegate.get(key)
+        except Exception:
+            raise RuntimeError("storage backend get failed") from None
 
     def exists(self, key: str) -> bool:
-        return self.delegate.exists(key)
+        try:
+            return self.delegate.exists(key)
+        except Exception:
+            raise RuntimeError("storage backend exists failed") from None
 
     def delete(self, key: str) -> None:
-        self.delegate.delete(key)
+        try:
+            self.delegate.delete(key)
+        except Exception:
+            raise RuntimeError("storage backend delete failed") from None
 
     def get_url(self, key: str, *, expires_in: int = 3600) -> str:
-        return self.delegate.get_url(key, expires_in=expires_in)
+        try:
+            return self.delegate.get_url(key, expires_in=expires_in)
+        except Exception:
+            raise RuntimeError("storage backend temporary URL lookup failed") from None
 
     def get_durable_url(self, key: str) -> str:
-        return self.delegate.get_durable_url(key)
+        try:
+            return self.delegate.get_durable_url(key)
+        except Exception:
+            raise RuntimeError("storage backend durable URL lookup failed") from None
 
     def key_from_url(self, url: str) -> str | None:
-        return self.delegate.key_from_url(url)
+        try:
+            return self.delegate.key_from_url(url)
+        except Exception:
+            raise RuntimeError("storage backend URL key lookup failed") from None
 
     def close(self) -> None:
         self.close_requested = True
 
     def close_delegate(self) -> None:
         if not self.delegate_closed:
-            self.delegate.close()
+            try:
+                self.delegate.close()
+            except Exception:
+                raise RuntimeError("storage backend close failed") from None
             self.delegate_closed = True
 
 

@@ -3,6 +3,8 @@
   "status": "blocked",
   "execution_allowed": false,
   "implementation": {
+    "plan_module": "spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py",
+    "plan_command": "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan",
     "combined_module": null,
     "combined_command": null,
     "standalone_results_composable": false
@@ -79,6 +81,7 @@
     "npm run hackathon:demo:check",
     "npm run hackathon:live:check:draft",
     "PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v",
+    "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan",
     "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan",
     "PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan"
   ],
@@ -131,10 +134,11 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
     "spikes/genblaze-provenance/jingci_spike/live_runway_smoke.py",
-    "spikes/genblaze-provenance/jingci_spike/live_genblaze_b2_smoke.py"
+    "spikes/genblaze-provenance/jingci_spike/live_genblaze_b2_smoke.py",
+    "spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py"
   ],
   "blockers": [
-    "combined_live_harness_missing",
+    "combined_live_execution_missing",
     "registration_terms",
     "b2_account_authorization",
     "bucket_scoped_credentials",

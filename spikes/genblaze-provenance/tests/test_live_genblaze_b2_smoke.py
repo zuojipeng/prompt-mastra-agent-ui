@@ -104,7 +104,7 @@ class LiveGenblazeB2SmokeTest(unittest.TestCase):
     def test_partial_pipeline_upload_cleans_the_first_object(self) -> None:
         backend = SmokeStorageBackend(fail_put_number=2)
 
-        with self.assertRaisesRegex(Exception, "injected put failure"):
+        with self.assertRaisesRegex(Exception, "storage backend put failed"):
             run_genblaze_b2_smoke(
                 self.config,
                 backend_factory=lambda _: backend,

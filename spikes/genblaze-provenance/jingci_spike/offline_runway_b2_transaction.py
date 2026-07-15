@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import unquote, urlparse
@@ -42,6 +42,7 @@ class OfflineRunwayB2Result:
     asset_key: str
     manifest_key: str
     asset_sha256: str
+    asset_size_bytes: int
     manifest_hash: str
     probe: VideoProbe
     provider_create_count: int
@@ -133,40 +134,47 @@ def _owned_key_inventory(
     return keys, tuple(sorted(unsafe_observed))
 
 
-def _cleanup_owned(wrapper: DeferredCloseBackend, keys: list[str]) -> tuple[str, ...]:
+def _cleanup_owned(
+    wrapper: DeferredCloseBackend, keys: list[str]
+) -> tuple[tuple[str, ...], BaseException | None]:
     residual: list[str] = []
+    interrupted: BaseException | None = None
     for key in reversed(keys):
         try:
             wrapper.delete(key)
-            if key in wrapper.delegate.objects:
+            objects = getattr(wrapper.delegate, "objects", None)
+            if (isinstance(objects, dict) and key in objects) or (
+                objects is None and wrapper.exists(key)
+            ):
                 residual.append(key)
-        except Exception:
+        except BaseException as exc:
             residual.append(key)
-    return tuple(sorted(set(residual)))
+            if interrupted is None and not isinstance(exc, Exception):
+                interrupted = exc
+    return tuple(sorted(set(residual))), interrupted
 
 
-def run_offline_runway_b2_transaction(
+def _run_runway_b2_transaction(
     *,
     client: RunwayTaskClient,
     backend: StorageBackend,
     probe: Callable[[Path], VideoProbe],
     prefix: str | None = None,
     output_host: str = "media.runway.test",
+    network: bool,
+    schema_version: str,
 ) -> OfflineRunwayB2Result:
     run_prefix = validate_smoke_prefix(prefix or build_smoke_prefix())
-    if not isinstance(client, FakeRunwayTaskClient):
-        raise ValueError("offline transaction requires the scripted fake Runway client")
-    if not isinstance(backend, InMemoryStorageBackend):
-        raise ValueError("offline transaction requires the B2-shaped in-memory backend")
     wrapper = DeferredCloseBackend(backend)
     primary_error: BaseException | None = None
     result: OfflineRunwayB2Result | None = None
     residual_keys: tuple[str, ...] = ()
     close_failed = False
+    cleanup_interrupted: BaseException | None = None
     output_root: Path | None = None
 
     try:
-        with tempfile.TemporaryDirectory(prefix="jingci-runway-b2-offline-") as directory:
+        with tempfile.TemporaryDirectory(prefix="jingci-runway-b2-transaction-") as directory:
             output_root = Path(directory)
             provider = RunwayVideoProvider(
                 client,
@@ -245,25 +253,27 @@ def run_offline_runway_b2_transaction(
             if create_count != 1 or not task_id:
                 raise OfflineRunwayB2Error("provider_lifecycle_unexpected")
             result = OfflineRunwayB2Result(
-                schema_version="jingci.offline-runway-b2-transaction.v1",
+                schema_version=schema_version,
                 status="passed",
                 prefix=run_prefix,
                 task_id=task_id,
                 asset_key=asset_key,
                 manifest_key=manifest_key,
                 asset_sha256=digest,
+                asset_size_bytes=len(stored_bytes),
                 manifest_hash=persisted_manifest.canonical_hash,
                 probe=probed_provider.probe_result,
                 provider_create_count=create_count,
-                storage_cleanup=True,
-                local_cleanup=True,
-                network=False,
+                storage_cleanup=False,
+                local_cleanup=False,
+                network=network,
             )
     except BaseException as exc:
         primary_error = exc
     finally:
         owned_keys, unsafe_observed = _owned_key_inventory(wrapper, run_prefix)
-        residual_keys = tuple(sorted(set(_cleanup_owned(wrapper, owned_keys) + unsafe_observed)))
+        cleaned_residual, cleanup_interrupted = _cleanup_owned(wrapper, owned_keys)
+        residual_keys = tuple(sorted(set(cleaned_residual + unsafe_observed)))
         try:
             wrapper.close_delegate()
         except Exception:
@@ -274,6 +284,8 @@ def run_offline_runway_b2_transaction(
             code = "primary_and_cleanup_failed" if residual_keys else "primary_and_close_failed"
             raise OfflineRunwayB2Error(code, residual_keys=residual_keys) from primary_error
         raise primary_error
+    if cleanup_interrupted is not None:
+        raise OfflineRunwayB2Error("storage_cleanup_interrupted", residual_keys=residual_keys) from cleanup_interrupted
     if residual_keys:
         raise OfflineRunwayB2Error("storage_cleanup_failed", residual_keys=residual_keys)
     if close_failed:
@@ -282,7 +294,30 @@ def run_offline_runway_b2_transaction(
         raise OfflineRunwayB2Error("result_missing")
     if output_root.exists():
         raise OfflineRunwayB2Error("local_cleanup_failed")
-    return result
+    return replace(result, storage_cleanup=True, local_cleanup=True)
+
+
+def run_offline_runway_b2_transaction(
+    *,
+    client: RunwayTaskClient,
+    backend: StorageBackend,
+    probe: Callable[[Path], VideoProbe],
+    prefix: str | None = None,
+    output_host: str = "media.runway.test",
+) -> OfflineRunwayB2Result:
+    if not isinstance(client, FakeRunwayTaskClient):
+        raise ValueError("offline transaction requires the scripted fake Runway client")
+    if not isinstance(backend, InMemoryStorageBackend):
+        raise ValueError("offline transaction requires the B2-shaped in-memory backend")
+    return _run_runway_b2_transaction(
+        client=client,
+        backend=backend,
+        probe=probe,
+        prefix=prefix,
+        output_host=output_host,
+        network=False,
+        schema_version="jingci.offline-runway-b2-transaction.v1",
+    )
 
 
 def build_offline_plan() -> dict[str, Any]:

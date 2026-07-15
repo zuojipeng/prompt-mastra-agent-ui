@@ -8,7 +8,7 @@ This runbook does not authorize registration, terms, credentials, paid generatio
 
 Every stage is fail-closed. A failed, missing, expired, or ambiguous stage stops all later stages.
 
-1. Implement and independently review one combined `live_runway_b2_transaction` command.
+1. Promote the reviewed plan-only `live_runway_b2_transaction` module into a separately authorized live command; its fixture result is explicitly non-attestable.
 2. Pin a clean reviewed commit and reproduce all offline tests and plan commands.
 3. A human accepts registration and terms through the event account.
 4. A human authorizes the B2 account and bucket-scoped credentials for explicit keys below one unique `jingci-smoke/` run prefix.
@@ -57,11 +57,12 @@ npm run hackathon:live:check:draft
 
 cd spikes/genblaze-provenance
 PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 ```
 
-The future combined command is intentionally absent until implementation and independent review close the first blocker.
+The plan-only combined module is implemented. A live combined command is intentionally absent until durable one-shot approval consumption, failure evidence, implementation review, and every human gate are closed.
 
 ## Stop Conditions
 

@@ -67,11 +67,12 @@ const PLAN_COMMANDS = [
   'npm run hackathon:demo:check',
   'npm run hackathon:live:check:draft',
   'PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v',
+  'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan',
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan',
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan',
 ];
 const CURRENT_BLOCKERS = [
-  'combined_live_harness_missing',
+  'combined_live_execution_missing',
   'registration_terms',
   'b2_account_authorization',
   'bucket_scoped_credentials',
@@ -142,7 +143,10 @@ export function evaluateLiveVerification(plan, campaign, artifactExists = exists
   if (plan.status !== 'blocked' || plan.execution_allowed !== false) errors.push('live_execution_not_supported');
   if (SECRET_LITERAL.test(JSON.stringify(plan))) errors.push('secret_literal_in_plan');
   const implementationMissing = !plan.implementation?.combined_module || !plan.implementation?.combined_command;
-  if (implementationMissing && !blockers.includes('combined_live_harness_missing')) errors.push('combined_harness_blocker_missing');
+  if (implementationMissing && !blockers.includes('combined_live_execution_missing')) errors.push('combined_harness_blocker_missing');
+  if (plan.implementation?.plan_module !== 'spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py' ||
+      plan.implementation?.plan_command !== 'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan' ||
+      !artifactExists(path.resolve(plan.implementation.plan_module))) errors.push('combined_plan_harness_invalid');
   if (plan.implementation?.combined_module && !artifactExists(path.resolve(plan.implementation.combined_module))) {
     errors.push('combined_harness_missing');
   }

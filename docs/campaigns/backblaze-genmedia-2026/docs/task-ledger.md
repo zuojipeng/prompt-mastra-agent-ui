@@ -30,7 +30,8 @@ Status: in_progress
 | C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | done |
 | C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | done |
 | C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | done |
-| C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command composes guarded Runway, ffprobe, Genblaze, B2, private canonical result, and cleanup under an approval-document boundary; fakes prove every stop path | ready |
+| C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command defines guarded Runway, ffprobe, Genblaze, B2, approval, evidence, and cleanup boundaries; fake-only execution proves the transaction with an explicitly non-attestable result | done |
+| C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | ready |
 
 ## Event Log
 
@@ -266,3 +267,16 @@ Evidence: `live-evidence-contract.md`, 30 focused tests, full Node regression an
 Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Implement one combined plan-mode harness that emits the exact private contract under fakes and remains impossible to execute without separate approvals.
+
+### 2026-07-15 08:34 C-E019
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: C-023
+Gate: Architecture / Engineering / Security / Code Review / Test / DevOps / Claims Review
+Message: The combined plan root and fake-only transaction passed after the original attestable-fixture design was rejected. The plan CLI is stdlib-only, accepts only `--plan`, loads no environment or live dependencies, while the fixture enforces fake provider/memory storage, atomic in-memory approval consumption, one create, probe/read-back/cleanup, fixed storage-error redaction before Genblaze logging, and a schema that C-022 refuses as live evidence.
+Evidence: 89-test Python regression, compileall, 155-test Node regression, production build, focused process-output secret attack, deterministic no-network plan; no credentials, Runway/B2 call, ffprobe process, spend, deployment, publication, or submission.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Add durable local one-shot consumption and a separate non-attestable failure/recovery record before any live composition root can be considered.

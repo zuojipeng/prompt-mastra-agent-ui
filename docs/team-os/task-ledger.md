@@ -755,6 +755,19 @@ Decision: CONTINUE
 Next owner: Architecture Agent + Engineering Agent
 Close condition: Build the combined live transaction in plan mode and prove result emission under fakes before requesting any live approval.
 
+### 2026-07-15 08:34 T045
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Architecture / Engineering / Security / Code Review / Test / DevOps / Claims Review
+Message: Passed the stdlib-only combined plan root and fake-only approval-bound transaction after preventing fixture evidence from satisfying the live attester and moving cleanup success after deletion, close, and local removal.
+Evidence: E3 Python 89/89, compileall, Node 155/155, production build, and independent Architecture/Security red teams including a closed raw-storage-exception log attack; external effects remain disabled.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Implement durable one-shot approval consumption and non-attestable failure/recovery evidence under local concurrency tests.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -808,3 +821,4 @@ Close condition: Build the combined live transaction in plan mode and prove resu
 | RV-JC-047 | JC-T005 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for offline composed transaction only | Sync/async paid retry bypass, probe-failure persistence, ambiguous commits, false cleanup success, unsafe returned keys, and error preservation closed; no external I/O | Prepare the gated human live-verification runbook |
 | RV-JC-048 | JC-T005 | DevOps Agent + Operator Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS for blocked live plan only | Fabricated authorization, unsafe command population, incomplete claims, provider drift, secret order, and raw Runway token leakage closed; validator cannot authorize execution | Build private result scanner and attestation contract |
 | RV-JC-049 | JC-T005 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | PASS for fixture-only evidence boundary | Duplicate-key leakage, post-run/unbound approval, dirty source, unsafe links, namespace traversal, invalid dates, and claim promotion closed; no live result exists | Implement combined plan-mode harness |
+| RV-JC-050 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for plan/fake transaction only | Attestable fake evidence, arbitrary live dependencies, reusable approval, early cleanup success, cleanup interruption, and raw storage-exception log leakage closed; fixture cannot support live claims | Add durable approval journal and failure record |

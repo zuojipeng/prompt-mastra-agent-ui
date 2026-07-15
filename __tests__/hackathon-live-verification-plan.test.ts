@@ -16,7 +16,7 @@ describe('hackathon live verification plan', () => {
   it('accepts the blocked plan without making it executable', () => {
     const result = evaluate();
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('combined_live_harness_missing');
+    expect(result.blockers).toContain('combined_live_execution_missing');
     expect(result.blockers).toContain('runway_one_attempt_spend_authorization');
     expect(isLiveVerificationExecutable(plan, result)).toBe(false);
   });
@@ -122,7 +122,7 @@ describe('hackathon live verification plan', () => {
   });
 
   it('rejects campaign authorization drift and missing implementation blocker', () => {
-    const result = evaluate({ blockers: plan.blockers.filter((value) => value !== 'combined_live_harness_missing') });
+    const result = evaluate({ blockers: plan.blockers.filter((value) => value !== 'combined_live_execution_missing') });
     expect(result.errors).toContain('combined_harness_blocker_missing');
     expect(result.errors).toContain('blocked_gate_inventory_invalid');
     const drift = evaluate({}, { authorization: { ...campaign.authorization, may_use_paid_api: true } });

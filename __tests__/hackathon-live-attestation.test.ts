@@ -144,4 +144,13 @@ describe('hackathon private live result attestation', () => {
     const evaluated = evaluateRedactedLiveAttestation(tampered, { expectedCommit: commit });
     expect(evaluated.errors).toContain('claims_promotion_not_supported');
   });
+
+  it('rejects the combined fixture schema as live evidence', () => {
+    const fixture = {
+      ...privateLiveResult(),
+      schema_version: 'jingci.combined-runway-b2-fixture-result.v1',
+      evidence_mode: 'fixture_non_attestable',
+    };
+    expect(validatePrivateLiveResult(fixture, { expectedCommit: commit })).toEqual(['result_shape_invalid']);
+  });
 });

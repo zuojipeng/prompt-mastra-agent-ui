@@ -10,6 +10,8 @@ The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text
 
 `offline_runway_b2_transaction.py` composes the real Runway Genblaze adapter with a scripted fake client, an injected probe gate, `Pipeline`, `ObjectStorageSink`, and a B2-shaped in-memory backend. It verifies asset and manifest read-back plus compensating cleanup under one owner. This is no-network composition evidence only: it is not ffprobe, Runway, or Backblaze B2 live evidence.
 
+`live_runway_b2_transaction.py` is the combined transaction plan root. Its CLI exposes only `--plan` and imports no provider, transport, storage, or credential code on that path. Its test-only runner accepts only `FakeRunwayTaskClient` and `InMemoryStorageBackend`, consumes a canonical approval digest atomically, and emits `jingci.combined-runway-b2-fixture-result.v1`. That fixture schema is deliberately rejected by the live attester and can never support live claims.
+
 ## Run
 
 ```bash
@@ -23,6 +25,7 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
 PYTHONPATH=. .venv/bin/python -m unittest tests.test_offline_runway_b2_transaction -v
+PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan
 ```
 
 To opt the frontend into this loopback adapter, start Next.js with:
