@@ -127,6 +127,7 @@
   },
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/live-verification-runbook.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/live-evidence-contract.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",
     "spikes/genblaze-provenance/jingci_spike/live_runway_smoke.py",
@@ -140,6 +141,6 @@
     "campaign_paid_api_authorization",
     "runway_one_attempt_spend_authorization",
     "live_output_hosts_unverified",
-    "private_live_evidence_scanner_missing"
+    "private_live_attestation_absent"
   ]
 }

@@ -26,8 +26,9 @@ artifacts/hackathon/backblaze-genmedia-2026/release-evidence.json
 - Sorted SHA-256 and byte size for every declared evidence artifact.
 - Secret-scan metadata for Git-tracked text files.
 - Explicit binary, oversized, or symlink exclusions without file contents.
+- Optional redacted live-attestation hash and validation state; private source evidence is never copied into release evidence.
 
-The collector never reads process environment variables. Secret findings contain only path, line, and rule; matched values are never copied into the output.
+The collector never reads process environment variables. Secret findings contain only path, line, and rule; matched values are never copied into the output. A live attestation must be owner-owned, single-link, non-symlink, mode `0600`, commit-bound, and structurally valid.
 
 ## Interpret
 
@@ -38,6 +39,9 @@ The collector never reads process environment variables. Secret findings contain
 3. Deployment status `preview-ready` or `deployed`, structural validity, and zero blockers.
 4. Zero secret findings.
 5. No unscanned symlink or oversized tracked file. Declared binary exclusions are listed and allowed.
+6. A separately approved claims-promotion contract bound to a valid redacted live attestation.
+
+Condition 6 is intentionally not implemented yet, so `release_candidate` remains false even when a fixture-valid attestation is present. Editing readiness JSON cannot bypass this boundary.
 
 Use the strict command for a release-candidate rehearsal:
 

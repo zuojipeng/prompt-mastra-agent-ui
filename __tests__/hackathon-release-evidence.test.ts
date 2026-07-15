@@ -1,11 +1,13 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { collectReleaseEvidence, scanSecrets } from '../scripts/collect-hackathon-evidence.mjs';
+import { buildRedactedLiveAttestation } from '../scripts/attest-hackathon-live-result.mjs';
+import { privateLiveResult } from './fixtures/hackathon-live-result';
 
 const roots: string[] = [];
 
@@ -91,6 +93,12 @@ describe('hackathon release evidence', () => {
     expect(evidence.release_candidate).toBe(false);
     expect(evidence.gates.submission.blockers).toEqual(['live_b2_upload_readback']);
     expect(evidence.gates.deployment.blockers).toEqual(['deployment']);
+    expect(evidence.gates.live_evidence).toMatchObject({
+      status: 'absent',
+      structurally_valid: true,
+      strict_ready: false,
+      blockers: ['redacted_live_attestation_missing'],
+    });
     expect(evidence.artifacts).toEqual([
       {
         path: proofPath,
@@ -161,5 +169,99 @@ describe('hackathon release evidence', () => {
     expect(evidence.gates.submission.strict_ready).toBe(false);
     expect(evidence.gates.deployment.strict_ready).toBe(false);
     expect(evidence.release_candidate).toBe(false);
+  });
+
+  it('incorporates a valid redacted attestation without promoting claims', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const absolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    const result = privateLiveResult();
+    const built = buildRedactedLiveAttestation(result, Buffer.from(`${JSON.stringify(result, null, 2)}\n`), { expectedCommit: 'a'.repeat(40) });
+    writeFileSync(absolute, `${JSON.stringify(built.attestation, null, 2)}\n`, { mode: 0o600 });
+
+    const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
+    expect(evidence.gates.live_evidence).toMatchObject({
+      status: 'validated',
+      structurally_valid: true,
+      strict_ready: false,
+      blockers: ['live_claims_promotion_approval_missing'],
+      attestation: { source_commit: 'a'.repeat(40), claims_eligible: false },
+    });
+    expect(evidence.release_candidate).toBe(false);
+  });
+
+  it('fails closed when readiness asserts live claims without an attestation', () => {
+    const root = fixtureRoot();
+    const readinessPath = path.join(root, 'docs/campaigns/backblaze-genmedia-2026/submission-readiness.json');
+    const readiness = JSON.parse(readFileSync(readinessPath, 'utf8'));
+    readiness.claims.live_ai_media_provider = true;
+    writeFileSync(readinessPath, JSON.stringify(readiness));
+
+    const evidence = collectReleaseEvidence({
+      root,
+      git: fakeGit(['docs/campaigns/backblaze-genmedia-2026/docs/proof.md']),
+    });
+    expect(evidence.gates.live_evidence.errors).toContain('asserted_live_claims_require_attestation');
+    expect(evidence.release_candidate).toBe(false);
+  });
+
+  it('does not let a valid attestation promote asserted live claims', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const campaign = path.join(root, 'docs/campaigns/backblaze-genmedia-2026');
+    const readinessPath = path.join(campaign, 'submission-readiness.json');
+    const readiness = JSON.parse(readFileSync(readinessPath, 'utf8'));
+    readiness.claims.live_ai_media_provider = true;
+    readiness.claims.live_b2_upload_readback = true;
+    writeFileSync(readinessPath, JSON.stringify(readiness));
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const absolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    const result = privateLiveResult();
+    const built = buildRedactedLiveAttestation(result, Buffer.from(`${JSON.stringify(result, null, 2)}\n`), { expectedCommit: 'a'.repeat(40) });
+    writeFileSync(absolute, `${JSON.stringify(built.attestation, null, 2)}\n`, { mode: 0o600 });
+
+    const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
+    expect(evidence.gates.live_evidence.errors).toContain('asserted_live_claims_require_promotion_approval');
+    expect(evidence.release_candidate).toBe(false);
+  });
+
+  it('rejects unsafe attestation permissions', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const absolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    writeFileSync(absolute, '{}', { mode: 0o600 });
+    chmodSync(absolute, 0o644);
+
+    const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
+    expect(evidence.gates.live_evidence.errors).toContain('live_attestation_file_unsafe');
+  });
+
+  it('scans canonical attestation bytes before duplicate keys can hide a token', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const absolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    const result = privateLiveResult();
+    const built = buildRedactedLiveAttestation(result, Buffer.from(`${JSON.stringify(result, null, 2)}\n`), { expectedCommit: 'a'.repeat(40) });
+    const secret = `key_${'e'.repeat(128)}`;
+    const canonical = JSON.stringify(built.attestation, null, 2);
+    const malicious = canonical.replace(
+      '"status": "validated"',
+      `"status": "${secret}",\n  "status": "validated"`,
+    );
+    writeFileSync(absolute, `${malicious}\n`, { mode: 0o600 });
+
+    const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
+    expect(evidence.gates.live_evidence.errors).toEqual(expect.arrayContaining([
+      'live_attestation_not_canonical',
+      'live_attestation_secret_material',
+    ]));
+    expect(JSON.stringify(evidence)).not.toContain(secret);
   });
 });

@@ -29,7 +29,8 @@ Status: in_progress
 | C-019 | Engineering Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Build the guarded Runway live-transport harness without executing it | Plan mode is credential-free; live mode has exact spend confirmation, pinned API version, bounded HTTP/redirect/media probing, cleanup, and no automatic paid retry | done |
 | C-020 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Compose the Runway provider and Genblaze-to-B2 transaction offline | One fake provider output flows through probe, sink, asset/manifest read-back, and cleanup under one owner without credentials or network | done |
 | C-021 | DevOps Agent + Operator Agent | Architecture Agent + Claims Review Agent + Test Agent | Prepare the human-operated combined live verification runbook | Exact authorization order, one-attempt Runway-to-B2 execution, evidence capture, compensating cleanup, rollback, and stop conditions are reproducible without executing live services | done |
-| C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | ready |
+| C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | done |
+| C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command composes guarded Runway, ffprobe, Genblaze, B2, private canonical result, and cleanup under an approval-document boundary; fakes prove every stop path | ready |
 
 ## Event Log
 
@@ -252,3 +253,16 @@ Evidence: `live-verification-plan.json`, runbook, 16 focused tests, draft gate w
 Decision: CONTINUE
 Next owner: Engineering Agent + Claims Review Agent
 Close condition: Build and adversarially test the private result scanner and redacted attestation contract before implementing any combined live command.
+
+### 2026-07-15 08:12 C-E018
+
+Type: REVIEWED
+From: Engineering Agent + Claims Review Agent + Security Agent + Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: C-022
+Gate: Architecture / Engineering / Security / Code Review / Test / Claims Review
+Message: The private-result scanner, exact evidence contract, redacted attestation, and release-evidence integration passed after closing raw-byte duplicate-key leakage, post-run or unbound approval, dirty-source attestation, unsafe file links/permissions, namespace traversal, non-content-addressed keys, invalid calendar timestamps, and automatic claim promotion.
+Evidence: `live-evidence-contract.md`, 30 focused tests, full Node regression and production build, draft release evidence with one live-evidence blocker; fixture-only, no credentials, network, generation, B2 operation, spend, deployment, publication, or submission.
+Decision: CONTINUE
+Next owner: Architecture Agent + Engineering Agent
+Close condition: Implement one combined plan-mode harness that emits the exact private contract under fakes and remains impossible to execute without separate approvals.

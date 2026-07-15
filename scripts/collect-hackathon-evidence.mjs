@@ -13,24 +13,14 @@ import { fileURLToPath } from 'node:url';
 
 import { evaluateDeployment, isDeploymentStrictReady } from './check-hackathon-deployment.mjs';
 import { evaluateSubmission, isSubmissionStrictReady } from './check-hackathon-submission.mjs';
+import { evaluateRedactedLiveAttestation } from './attest-hackathon-live-result.mjs';
+import { MAX_SCAN_BYTES, scanSecrets } from './hackathon-secret-scan.mjs';
 
-const SCHEMA_VERSION = 'jingci.hackathon-release-evidence.v1';
+const SCHEMA_VERSION = 'jingci.hackathon-release-evidence.v2';
 const SUBMISSION_FILE = 'docs/campaigns/backblaze-genmedia-2026/submission-readiness.json';
 const DEPLOYMENT_FILE = 'docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json';
 const DEFAULT_OUTPUT = 'artifacts/hackathon/backblaze-genmedia-2026/release-evidence.json';
-const MAX_SCAN_BYTES = 1_000_000;
-const SECRET_RULES = [
-  ['private_key', /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g],
-  ['openai_token', /\bsk-[A-Za-z0-9_-]{24,}\b/g],
-  ['github_token', /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g],
-  ['cloudflare_token', /\bcfut_[A-Za-z0-9_-]{30,}\b/g],
-  ['aws_access_key', /\bAKIA[0-9A-Z]{16}\b/g],
-  ['runway_token', /\bkey_[0-9a-fA-F]{128}\b/g],
-  [
-    'assigned_secret',
-    /\b(?:B2_APP_KEY|B2_KEY_ID|RUNWAYML_API_SECRET|JINGCI_PREVIEW_BEARER_TOKEN|OPENAI_API_KEY|CLOUDFLARE_API_TOKEN)\s*=\s*["']?(?!<|\$\{)[A-Za-z0-9+/_=-]{20,}/g,
-  ],
-];
+const LIVE_ATTESTATION_FILE = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
 
 function defaultGit(root, args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -53,29 +43,9 @@ function sha256(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
-export function scanSecrets(files) {
-  const findings = [];
-  for (const file of [...files].sort((left, right) => left.path.localeCompare(right.path))) {
-    const buffer = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content);
-    if (buffer.length > MAX_SCAN_BYTES || buffer.includes(0)) continue;
-    const content = buffer.toString('utf8');
-    for (const [rule, expression] of SECRET_RULES) {
-      expression.lastIndex = 0;
-      for (const match of content.matchAll(expression)) {
-        findings.push({
-          path: file.path,
-          line: content.slice(0, match.index).split('\n').length,
-          rule,
-        });
-      }
-    }
-  }
-  return findings.sort((left, right) =>
-    left.path.localeCompare(right.path) || left.line - right.line || left.rule.localeCompare(right.rule),
-  );
-}
+export { scanSecrets } from './hackathon-secret-scan.mjs';
 
-export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit } = {}) {
+export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit, liveAttestationFile = LIVE_ATTESTATION_FILE } = {}) {
   const repositoryRoot = realpathSync(root);
   const submission = readJson(repositoryRoot, SUBMISSION_FILE);
   const deployment = readJson(repositoryRoot, DEPLOYMENT_FILE);
@@ -128,6 +98,53 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit 
   };
   if (!/^[0-9a-f]{40}$/.test(source.commit)) throw new Error('git commit must be a 40-character SHA');
 
+  let liveAttestation = null;
+  let liveAttestationGate = { errors: [], blockers: ['redacted_live_attestation_missing'] };
+  let liveAttestationSummary = null;
+  const liveAttestationAbsolute = resolveInside(repositoryRoot, liveAttestationFile);
+  if (existsSync(liveAttestationAbsolute)) {
+    const stat = lstatSync(liveAttestationAbsolute);
+    const realAttestationPath = realpathSync(liveAttestationAbsolute);
+    const realRelative = path.relative(repositoryRoot, realAttestationPath);
+    if (!realRelative || realRelative.startsWith('..') || path.isAbsolute(realRelative) ||
+        !stat.isFile() || stat.isSymbolicLink() || (stat.mode & 0o777) !== 0o600 || stat.nlink !== 1 ||
+        (typeof process.getuid === 'function' && stat.uid !== process.getuid()) || stat.size <= 0 || stat.size > 256_000) {
+      liveAttestationGate = { errors: ['live_attestation_file_unsafe'], blockers: [] };
+    } else {
+      try {
+        const raw = readFileSync(liveAttestationAbsolute);
+        const decoded = new TextDecoder('utf-8', { fatal: true }).decode(raw);
+        liveAttestation = JSON.parse(decoded);
+        liveAttestationGate = evaluateRedactedLiveAttestation(liveAttestation, { expectedCommit: source.commit });
+        if (!raw.equals(Buffer.from(`${JSON.stringify(liveAttestation, null, 2)}\n`))) {
+          liveAttestationGate.errors.push('live_attestation_not_canonical');
+        }
+        if (scanSecrets([{ path: liveAttestationFile, content: raw }]).length > 0) {
+          liveAttestationGate.errors.push('live_attestation_secret_material');
+        }
+        if (liveAttestationGate.errors.length === 0) {
+          liveAttestationSummary = {
+            path: liveAttestationFile,
+            bytes: raw.length,
+            sha256: sha256(raw),
+            source_commit: liveAttestation.source_commit,
+            result_sha256: liveAttestation.result_sha256,
+            claims_eligible: false,
+          };
+        }
+      } catch {
+        liveAttestationGate = { errors: ['live_attestation_parse_failed'], blockers: [] };
+      }
+    }
+  }
+  const assertedLiveClaims = ['live_ai_media_provider', 'live_b2_upload_readback']
+    .filter((claim) => submission.claims?.[claim] === true);
+  if (assertedLiveClaims.length > 0 && !liveAttestation) {
+    liveAttestationGate.errors.push('asserted_live_claims_require_attestation');
+  } else if (assertedLiveClaims.length > 0 && liveAttestationGate.errors.length === 0) {
+    liveAttestationGate.errors.push('asserted_live_claims_require_promotion_approval');
+  }
+
   const submissionStrictReady = isSubmissionStrictReady(submission, submissionGate);
   const deploymentStrictReady = isDeploymentStrictReady(deployment, deploymentGate);
   const blockingScanExclusions = scanExclusions.filter((item) => item.reason !== 'binary');
@@ -137,12 +154,14 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit 
     blockingScanExclusions.length === 0 &&
     submissionStrictReady &&
     deploymentStrictReady;
+  const liveEvidenceStrictReady = false;
+  const releaseCandidateWithLiveEvidence = releaseCandidate && liveEvidenceStrictReady;
 
   return {
     schema_version: SCHEMA_VERSION,
     project: submission.project_name,
     source,
-    release_candidate: releaseCandidate,
+    release_candidate: releaseCandidateWithLiveEvidence,
     gates: {
       submission: {
         status: submission.status,
@@ -157,6 +176,14 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit 
         strict_ready: deploymentStrictReady,
         errors: deploymentGate.errors,
         blockers: deploymentGate.blockers,
+      },
+      live_evidence: {
+        status: liveAttestation ? liveAttestation.status : 'absent',
+        structurally_valid: liveAttestationGate.errors.length === 0,
+        strict_ready: liveEvidenceStrictReady,
+        errors: liveAttestationGate.errors,
+        blockers: liveAttestationGate.blockers,
+        attestation: liveAttestationSummary,
       },
     },
     redacted_config: {
@@ -194,10 +221,12 @@ function main() {
     `tracked_files_total=${evidence.secret_scan.tracked_files_total} text_files_scanned=${evidence.secret_scan.text_files_scanned} exclusions=${evidence.secret_scan.exclusions.length} secret_findings=${evidence.secret_scan.findings.length}`,
   );
   console.log(`submission_blockers=${evidence.gates.submission.blockers.length} deployment_blockers=${evidence.gates.deployment.blockers.length}`);
+  console.log(`live_evidence_blockers=${evidence.gates.live_evidence.blockers.length}`);
 
   const invalid =
     !evidence.gates.submission.structurally_valid ||
     !evidence.gates.deployment.structurally_valid ||
+    !evidence.gates.live_evidence.structurally_valid ||
     evidence.secret_scan.findings.length > 0 ||
     evidence.secret_scan.exclusions.some((item) => item.reason !== 'binary');
   if (invalid || (strict && !evidence.release_candidate)) return 1;

@@ -85,4 +85,6 @@ Rollback disables the live feature, removes confirmations, unloads or revokes te
 
 A private result must bind run ID, clean commit, approval ID, one Runway task ID, unique B2 prefix, timestamps, asset digest, manifest hash, probe result, cleanup state, and residual keys. It must contain no credentials or signed URLs.
 
+The exact private file and redacted output contracts are defined in `live-evidence-contract.md`. The attester is implemented and fixture-tested, but no live private result or attestation exists.
+
 Only a machine-validated `passed` result with complete cleanup can support narrow claims that one provider generation and one private B2 upload/read-back occurred. It cannot prove public serving, durable retention, deployment, release readiness, judging access, or submission.
