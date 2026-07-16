@@ -6,7 +6,7 @@
   "source_bindings": {
     "campaign": {
       "file": "docs/campaigns/backblaze-genmedia-2026/campaign.json",
-      "sha256": "0ea1f8a25fa68bf8fa47b43cb2bef8f346e83c1259aa7f961f38f53ccc28be32"
+      "sha256": "964ae7fcb90c5a8516a86d28605b596867c0aae0403b1af030729228049166bc"
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
@@ -22,7 +22,7 @@
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
-      "sha256": "98632320a4137ea819e68d2f9976b1dcacb430fb20745cf3a2577cfd36e77f30"
+      "sha256": "61632515b1dbc8f4bda11bd2acac9a5d702d6c8aef0fa5da26bae8e210b71110"
     }
   },
   "stage_order": [
@@ -76,7 +76,7 @@
     "submission": 6,
     "deployment": 8,
     "demo": 5,
-    "live": 7
+    "live": 5
   },
   "plan_only_commands": [
     "npm run hackathon:handoff",

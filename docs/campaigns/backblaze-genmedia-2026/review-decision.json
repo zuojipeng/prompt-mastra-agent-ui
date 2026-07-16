@@ -83,6 +83,9 @@
     "may_create_public_repository": false,
     "may_deploy_preview": true,
     "may_deploy_production": false,
+    "may_use_b2_smoke": true,
+    "b2_smoke_max_attempts": 1,
+    "b2_smoke_consumed": true,
     "may_use_paid_api": false,
     "max_external_spend": 0,
     "may_register_event": false,
@@ -95,5 +98,5 @@
     "registration_terms": "approved",
     "submission": "pending"
   },
-  "next_action": "Authorize the existing Backblaze account boundary, create bucket-scoped credentials outside the repository, and separately approve at most one Runway gen4.5 attempt capped at USD 0.60."
+  "next_action": "Separately approve at most one Runway gen4.5 five-second attempt capped at USD 0.60, then compose the generated asset and canonical manifest through Genblaze into the already verified B2 transport boundary."
 }

@@ -74,8 +74,6 @@ const PLAN_COMMANDS = [
 ];
 const CURRENT_BLOCKERS = [
   'combined_live_execution_missing',
-  'b2_account_authorization',
-  'bucket_scoped_credentials',
   'campaign_paid_api_authorization',
   'runway_one_attempt_spend_authorization',
   'live_output_hosts_unverified',

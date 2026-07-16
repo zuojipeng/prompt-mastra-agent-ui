@@ -26,7 +26,7 @@ Live provider execution is not yet proven and must not be inferred from the loca
 
 The planned live path stores content-addressed generated media and its provenance manifest in a restricted B2 bucket through Genblaze's S3-compatible storage adapter. Configuration is server-side, fails closed when any required value is missing, redacts credentials, and disables accidental network preflight in offline tests.
 
-**Live B2 upload and read-back have not yet run. This section remains a design and offline-readiness claim until C-008 passes.**
+On July 16, 2026, one authorized live B2 transport smoke uploaded a small object below the restricted `jingci-smoke/` prefix, read it back with an identical SHA-256, deleted it, and confirmed absence. This proves scoped B2 transport only. The combined Genblaze asset and manifest transaction has not yet run and must not be inferred from the probe.
 
 ## AI Providers And Models
 

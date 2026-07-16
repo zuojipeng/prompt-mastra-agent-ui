@@ -15,7 +15,7 @@ Status: in_progress
 | C-005 | UEAgent | Product Agent + Test Agent | Design selected-shot provenance states | State matrix and implementation handoff exist | done |
 | C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | done |
 | C-007 | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Expose the deterministic Python adapter through a local HTTP boundary | Contract and local integration tests pass without credentials | done |
-| C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | blocked |
+| C-008 | DevOps Agent | Test Agent + Human owner | Verify live B2 upload and read-back | Approved account gate and E4 smoke evidence | done |
 | C-009 | Engineering Agent | Code Review Agent + Test Agent | Add an opt-in frontend client for the local adapter | Mocked client tests and fixture-default regression pass | done |
 | C-010 | Test Agent + Engineering Agent | Code Review Agent | Run browser E2E against the real loopback adapter | Browser receives verified memory evidence over HTTP | done |
 | C-011 | Product Agent + Operator Agent | Claims Review Agent + Test Agent | Build the English draft submission packet and readiness gate | Official constraints, disclosure, demo path, evidence index, and strict blockers are reviewable | done |
@@ -320,3 +320,16 @@ Evidence: Human-confirmed browser screenshots in the active task; no account ema
 Decision: CONTINUE TO ACCOUNT GATE
 Next owner: Human owner + DevOps Agent
 Close condition: Approve the B2 account boundary and bucket-scoped credentials, then separately approve one Runway gen4.5 attempt capped at USD 0.60.
+
+### 2026-07-16 15:18 C-E023
+
+Type: PRODUCTION_EVIDENCE_ADDED
+From: Human owner + DevOps Agent
+To: Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-008 / C-025
+Gate: B2 Account / Credentials / Live Transport
+Message: One explicitly authorized B2 smoke uploaded a small object below `jingci-smoke/`, read it back with an identical SHA-256, deleted it, and confirmed absence. The one-attempt authorization is consumed.
+Evidence: E5 `docs/test-reports/2026-07-16-live-b2-smoke.md`; underlying Python result `status=passed`, `cleanup_deleted=true`. The shell wrapper returned 1 only after completion because zsh reserves the variable name `status`; no retry was executed.
+Decision: CONTINUE TO RUNWAY SPEND GATE
+Next owner: Human owner + DevOps Agent
+Close condition: Separately authorize one Runway gen4.5 five-second attempt capped at USD 0.60; B2 transport proof does not promote the combined asset/manifest claim.

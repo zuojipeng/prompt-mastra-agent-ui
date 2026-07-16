@@ -13,7 +13,7 @@ Last Updated: 2026-07-16
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Close the B2 account/bucket credential gate and separately authorize one capped Runway attempt |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Separately authorize one capped Runway attempt; scoped B2 transport smoke is complete |
 
 ## Backlog
 
@@ -807,6 +807,19 @@ Decision: CONTINUE TO ACCOUNT GATE
 Next owner: Human owner + DevOps Agent
 Close condition: Record explicit B2 account/credential authorization and separate one-attempt Runway spend authorization without retaining secrets in git.
 
+### 2026-07-16 15:18 T049
+
+Type: PRODUCTION_EVIDENCE_ADDED
+From: Human owner + DevOps Agent
+To: Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: JC-T005
+Gate: B2 Live Transport
+Message: The single approved B2 probe completed upload, read-back digest verification, deletion, and absence confirmation under the restricted campaign prefix. No second live write was used to mask a post-result shell wrapper error.
+Evidence: E5 live smoke result, E3 eight focused tests, clean source, secrets retained only in ignored mode-0600 local storage.
+Decision: CONTINUE TO RUNWAY SPEND GATE
+Next owner: Human owner + DevOps Agent
+Close condition: Approve at most one Runway gen4.5 five-second attempt capped at USD 0.60 before composing the live asset/manifest transaction.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -863,3 +876,4 @@ Close condition: Record explicit B2 account/credential authorization and separat
 | RV-JC-050 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for plan/fake transaction only | Attestable fake evidence, arbitrary live dependencies, reusable approval, early cleanup success, cleanup interruption, and raw storage-exception log leakage closed; fixture cannot support live claims | Add durable approval journal and failure record |
 | RV-JC-051 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS for local durable approval/recovery only | Append-log complexity, replay aliases, path redirection, FIFO hangs, forged predecessor paths, phase drift, false cancellation, cleanup absence, orphan recovery, time reversal, and provider uncertainty findings closed; remote exactly-once remains impossible | Human owner closes account and spend gates |
 | RV-JC-052 | JC-T005 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | PASS for derived operator handoff only | Source hashes, exact gate states, prefix ordering, account blocker closure, disabled execution, and secret/live-command denial pass; the artifact grants no authorization | Human owner closes registration and terms |
+| RV-JC-053 | JC-T005 | DevOps Agent | Test Agent + Claims Review Agent | PASS for scoped B2 transport only | One probe hash matched and cleanup was confirmed; wrapper exit occurred after the successful Python result and was not retried; combined Genblaze evidence remains blocked | Human owner closes one-attempt Runway spend gate |
