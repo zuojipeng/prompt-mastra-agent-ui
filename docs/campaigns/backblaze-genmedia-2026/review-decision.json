@@ -92,8 +92,8 @@
   },
   "human_gates": {
     "participation": "approved",
-    "registration_terms": "pending",
+    "registration_terms": "approved",
     "submission": "pending"
   },
-  "next_action": "Build the approved Jingci Provenance Vault vertical slice while registration, terms, spend, publication, and submission remain separately gated."
+  "next_action": "Authorize the existing Backblaze account boundary, create bucket-scoped credentials outside the repository, and separately approve at most one Runway gen4.5 attempt capped at USD 0.60."
 }

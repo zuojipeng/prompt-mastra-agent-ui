@@ -37,7 +37,7 @@ describe('hackathon operator handoff', () => {
   it('accepts the repository handoff and keeps registration as the only current stage', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('registration_terms');
+    expect(handoff.current_stage).toBe('account_and_spend_authorization');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });

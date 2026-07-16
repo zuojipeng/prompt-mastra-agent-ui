@@ -10,7 +10,7 @@ Status: in_progress
 | --- | --- | --- | --- | --- | --- |
 | C-001 | Product Agent | Hermes + Test Agent | Confirm judging thesis and acceptance criteria | Product Gate evidence exists | done |
 | C-002 | Architecture Agent | Code Review Agent + Test Agent | Validate required technology boundary | Contract, alternatives, and test implications exist | done |
-| C-003 | Operator Agent | Human owner | Close registration and terms gate | Account-bound decision recorded | blocked |
+| C-003 | Operator Agent | Human owner | Close registration and terms gate | Account-bound decision recorded | done |
 | C-004 | Engineering Agent | Code Review Agent + Test Agent | Freeze the provenance run response boundary | Strict parser and regression tests pass | done |
 | C-005 | UEAgent | Product Agent + Test Agent | Design selected-shot provenance states | State matrix and implementation handoff exist | done |
 | C-006 | Engineering Agent | Code Review Agent + Test Agent | Add deterministic fixture transport and provenance panel | Unit, browser, and fallback evidence pass | done |
@@ -307,3 +307,16 @@ Evidence: `operator-handoff.json`, source SHA-256 bindings, 3 focused tests, dra
 Decision: ESCALATE CURRENT HUMAN GATE
 Next owner: Human owner
 Close condition: Complete Devpost registration and review/accept the event terms; do not place account identifiers, credentials, or terms evidence containing private data in the repository.
+
+### 2026-07-16 14:40 C-E022
+
+Type: HUMAN_GATE_CLOSED
+From: Human owner
+To: Hermes Orchestrator + Operator Agent
+Task: C-003 / C-025
+Gate: Registration / Terms
+Message: Human owner completed Devpost registration, accepted the eligibility requirements, Official Rules, and Devpost Terms of Service, and reached the campaign My Projects draft page.
+Evidence: Human-confirmed browser screenshots in the active task; no account email, credentials, or private terms artifact retained in the repository.
+Decision: CONTINUE TO ACCOUNT GATE
+Next owner: Human owner + DevOps Agent
+Close condition: Approve the B2 account boundary and bucket-scoped credentials, then separately approve one Runway gen4.5 attempt capped at USD 0.60.

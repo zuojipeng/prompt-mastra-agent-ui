@@ -13,7 +13,7 @@ Last Updated: 2026-07-16
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Human owner closes the current registration and terms gate shown by the source-bound operator handoff |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Close the B2 account/bucket credential gate and separately authorize one capped Runway attempt |
 
 ## Backlog
 
@@ -793,6 +793,19 @@ Evidence: E3 `operator-handoff.json`, handoff validator, 3 focused tests, source
 Decision: ESCALATE CURRENT HUMAN GATE
 Next owner: Human owner
 Close condition: Complete registration and terms before account/spend authorization can become current.
+
+### 2026-07-16 14:40 T048
+
+Type: HUMAN_GATE_CLOSED
+From: Human owner
+To: Hermes Orchestrator + Operator Agent + DevOps Agent
+Task: JC-T005
+Gate: Registration / Terms
+Message: Devpost registration and terms are complete. The source-bound handoff advances exactly one stage to account and spend authorization; live execution remains disabled.
+Evidence: E3 human-confirmed campaign page, updated campaign/submission/live state, regenerated operator handoff.
+Decision: CONTINUE TO ACCOUNT GATE
+Next owner: Human owner + DevOps Agent
+Close condition: Record explicit B2 account/credential authorization and separate one-attempt Runway spend authorization without retaining secrets in git.
 
 ## Review Index
 

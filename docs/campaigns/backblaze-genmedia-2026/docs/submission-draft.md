@@ -66,4 +66,4 @@ Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's
 
 ## Current Blockers
 
-Registration and terms, live B2 evidence, a real AI media provider, public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. See `submission-readiness.json` for the machine-checked gate state.
+Live B2 evidence, a real AI media provider, public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026. See `submission-readiness.json` for the machine-checked gate state.

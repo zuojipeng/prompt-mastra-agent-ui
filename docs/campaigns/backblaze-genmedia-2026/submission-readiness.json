@@ -33,7 +33,6 @@
     "spikes/genblaze-provenance/README.md"
   ],
   "blockers": [
-    "registration_terms",
     "live_ai_media_provider",
     "live_b2_upload_readback",
     "public_campaign_deployment",

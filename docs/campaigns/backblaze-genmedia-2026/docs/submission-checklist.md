@@ -1,7 +1,7 @@
 # Submission Checklist
 
 - [x] Human Gate A participation approval
-- [ ] Registration and terms completed by authorized human
+- [x] Registration and terms completed by authorized human
 - [x] Rules snapshot refreshed on 2026-07-14
 - [x] Pre-existing work disclosure drafted from repository history
 - [ ] Working application URL verified
