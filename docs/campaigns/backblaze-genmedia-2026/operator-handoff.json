@@ -1,0 +1,94 @@
+{
+  "schema_version": "jingci.hackathon-operator-handoff.v1",
+  "status": "blocked",
+  "campaign_id": "devpost-30205",
+  "deadline_utc": "2026-08-03T21:00:00Z",
+  "source_bindings": {
+    "campaign": {
+      "file": "docs/campaigns/backblaze-genmedia-2026/campaign.json",
+      "sha256": "bc3cb83fef80da90708942b612f20d8428b325ea6dc9301a38afe32d9ca008ca"
+    },
+    "submission": {
+      "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
+      "sha256": "228e3051d6df70b6a477caf0f83c5f9570a6e60d1962771f269c20006ec3272e"
+    },
+    "deployment": {
+      "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
+      "sha256": "0433e52e370c259e63608665fc90bccf37ecc57aac2a30ee5f9e8496587f33f3"
+    },
+    "demo": {
+      "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
+      "sha256": "9fb7a01bc019a2ad49ea34bff38e8c13a8057cb0e44a890ee41407c7e30c1644"
+    },
+    "live": {
+      "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
+      "sha256": "d00e1d2e3668a076bcbfc070d5a975bc8b8adf56b633115158a7df042ebbbb76"
+    }
+  },
+  "stage_order": [
+    "registration_terms",
+    "account_and_spend_authorization",
+    "combined_live_verification",
+    "preview_deployment",
+    "final_demo",
+    "final_submission"
+  ],
+  "current_stage": "registration_terms",
+  "stages": [
+    {
+      "id": "registration_terms",
+      "status": "current_human_gate",
+      "owner": "Human owner",
+      "required_evidence": "Devpost registration and accepted terms recorded without credentials"
+    },
+    {
+      "id": "account_and_spend_authorization",
+      "status": "waiting",
+      "owner": "Human owner",
+      "required_evidence": "B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60"
+    },
+    {
+      "id": "combined_live_verification",
+      "status": "waiting",
+      "owner": "Operator Agent + DevOps Agent",
+      "required_evidence": "Private attestation for one Runway-to-B2 transaction and cleanup"
+    },
+    {
+      "id": "preview_deployment",
+      "status": "waiting",
+      "owner": "Human owner + DevOps Agent",
+      "required_evidence": "Judge-accessible preview URL, access control, smoke, and rollback evidence"
+    },
+    {
+      "id": "final_demo",
+      "status": "waiting",
+      "owner": "Human owner + Operator Agent",
+      "required_evidence": "Public under-three-minute video with truthful live claims"
+    },
+    {
+      "id": "final_submission",
+      "status": "waiting",
+      "owner": "Human owner",
+      "required_evidence": "Final approval and Devpost submission confirmation"
+    }
+  ],
+  "source_gate_counts": {
+    "submission": 7,
+    "deployment": 8,
+    "demo": 5,
+    "live": 8
+  },
+  "plan_only_commands": [
+    "npm run hackathon:handoff",
+    "npm run hackathon:check:draft",
+    "npm run hackathon:deploy:check:draft",
+    "npm run hackathon:demo:check",
+    "npm run hackathon:live:check:draft"
+  ],
+  "execution_allowed": false,
+  "notes": [
+    "This handoff is derived status, not an authorization artifact.",
+    "Do not put account identifiers, credentials, tokens, signed URLs, or approval payloads in this file.",
+    "After a human gate changes, rebuild and review this file before moving to the next stage."
+  ]
+}

@@ -14,4 +14,6 @@
 
 Automated draft check: `npm run hackathon:check:draft`
 
+Current human/Agent stage check: `npm run hackathon:handoff`
+
 Strict readiness gate: `npm run hackathon:check`

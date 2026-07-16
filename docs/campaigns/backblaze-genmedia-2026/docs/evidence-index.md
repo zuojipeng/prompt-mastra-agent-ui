@@ -23,6 +23,7 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | Private live result can be validated and reduced to a redacted attestation | LOCAL ONLY | `live-evidence-contract.md`, `attest-hackathon-live-result.mjs`, 30 focused tests | Fixture-only contract; no live result, claims approval, or release eligibility |
 | Combined Runway-to-B2 transaction is planned and fake-composed under one approval boundary | LOCAL ONLY | `live_runway_b2_transaction.py`, 107 Python tests, Node rejection test | CLI is plan-only; fixture schema is non-attestable and no external service ran |
 | One-shot approval and failure/recovery evidence survive local process races | LOCAL ONLY | `approval_journal.py`, `transaction_failure_evidence.py`, durable contract, 18 focused tests | POSIX local at-most-once only; no exactly-once remote claim or live composition root |
+| Human and Agent gates have one source-bound ordered handoff | LOCAL ONLY | `operator-handoff.json`, handoff validator, 3 focused tests | Derived status only; cannot accept terms, authorize spend, execute live services, deploy, publish, or submit |
 | B2 stores and serves the asset and manifest | BLOCKED | C-008 | Requires authorized account and E4 read-back smoke |
 | External AI media provider generates the asset | BLOCKED | Submission readiness gate | Runway `gen4.5` is selected, but only its no-network adapter contract is proven |
 | Public judge-accessible campaign app | BLOCKED | Submission checklist | Campaign branch not deployed/default |
@@ -36,6 +37,7 @@ npm run hackathon:deploy:check:draft
 npm run hackathon:evidence
 npm run hackathon:demo:check
 npm run hackathon:live:check:draft
+npm run hackathon:handoff
 npm test -- --pool=threads
 PROVENANCE_PYTHON=spikes/genblaze-provenance/.venv/bin/python npm run test:e2e:provenance:local
 PYTHONPATH=spikes/genblaze-provenance spikes/genblaze-provenance/.venv/bin/python spikes/genblaze-provenance/tests/preview_http_service_smoke.py

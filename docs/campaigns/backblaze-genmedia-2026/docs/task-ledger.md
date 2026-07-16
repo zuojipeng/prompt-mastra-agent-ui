@@ -32,6 +32,7 @@ Status: in_progress
 | C-022 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Build the private live-result scanner and redacted attestation contract | A mode-0600 fixture result is schema-validated, scanned without echoing secrets, bound to source/approval/output/cleanup evidence, and incorporated into release evidence without promoting claims before a separate human gate | done |
 | C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command defines guarded Runway, ffprobe, Genblaze, B2, approval, evidence, and cleanup boundaries; fake-only execution proves the transaction with an explicitly non-attestable result | done |
 | C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | done |
+| C-025 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | Build a source-bound human/Agent gate handoff | One deterministic status file identifies exactly one current stage, rejects source drift and skipped gates, and never enables execution | done |
 
 ## Event Log
 
@@ -293,3 +294,16 @@ Evidence: 107-test Python regression, 156-test Node regression, production build
 Decision: ESCALATE HUMAN GATES
 Next owner: Human owner + Operator Agent
 Close condition: Close registration/terms, account, credential, one-attempt spend, output-host, and claims gates before a combined live composition root is implemented or executed.
+
+### 2026-07-16 08:45 C-E021
+
+Type: REVIEWED
+From: Operator Agent + Engineering Agent + Architecture Agent + Claims Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-025
+Gate: Operator / Architecture / Engineering / Code Review / Test / Claims Review
+Message: The source-bound operator handoff passed after account authorization was strengthened to require B2, scoped credential, campaign paid-API, and one-attempt spend blockers to clear, and stage completion was made prefix-ordered so later evidence cannot skip an earlier human gate.
+Evidence: `operator-handoff.json`, source SHA-256 bindings, 3 focused tests, draft gate validators; execution remains disabled and the only current stage is registration and terms.
+Decision: ESCALATE CURRENT HUMAN GATE
+Next owner: Human owner
+Close condition: Complete Devpost registration and review/accept the event terms; do not place account identifiers, credentials, or terms evidence containing private data in the repository.

@@ -6,4 +6,6 @@ Official event: https://backblaze-generative-media.devpost.com/
 
 Participation was approved. Every account-bound or public action must still follow the recorded authorization envelope and remaining human gates.
 
-Next action: Build the approved Jingci Provenance Vault vertical slice while registration, terms, spend, publication, and submission remain separately gated.
+Current operator handoff: `operator-handoff.json`
+
+Validate the handoff with `npm run hackathon:handoff`. The current stage is registration and terms; the file is derived status only and cannot authorize live execution.

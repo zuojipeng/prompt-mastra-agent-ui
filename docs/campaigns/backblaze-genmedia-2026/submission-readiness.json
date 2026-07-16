@@ -29,6 +29,7 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/rules-review.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-checklist.md",
+    "docs/campaigns/backblaze-genmedia-2026/operator-handoff.json",
     "spikes/genblaze-provenance/README.md"
   ],
   "blockers": [

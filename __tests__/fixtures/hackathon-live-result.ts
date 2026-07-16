@@ -47,7 +47,7 @@ export function privateLiveResult() {
       status: 'complete',
       deleted_keys: [`${prefix}/manifests/${'c'.repeat(64)}.json`, `${prefix}/assets/${digest}.mp4`],
       absence_confirmed: true,
-      residual_keys: [],
+      residual_keys: [] as string[],
       backend_closed: true,
       local_media_removed: true,
       completed_at: '2026-07-15T00:02:00Z',

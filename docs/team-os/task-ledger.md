@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-14
+Last Updated: 2026-07-16
 
 ## Active Tasks
 
@@ -13,7 +13,7 @@ Last Updated: 2026-07-14
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Compose fake Runway output through Genblaze sink and B2-shaped read-back/cleanup transaction |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Human owner closes the current registration and terms gate shown by the source-bound operator handoff |
 
 ## Backlog
 
@@ -781,6 +781,19 @@ Decision: ESCALATE HUMAN GATES
 Next owner: Human owner + Operator Agent
 Close condition: Approve the remaining account-bound gates before live composition or execution.
 
+### 2026-07-16 08:45 T047
+
+Type: REVIEWED
+From: Operator Agent + Engineering Agent
+To: Architecture Agent + Claims Review Agent + Test Agent + Hermes Orchestrator
+Task: JC-T005
+Gate: Operator / Architecture / Engineering / Test / Claims Review
+Message: Added a deterministic operator handoff that binds campaign, submission, deployment, demo, and live state by hash and exposes exactly one ordered current gate without authorizing execution.
+Evidence: E3 `operator-handoff.json`, handoff validator, 3 focused tests, source-drift and skipped-stage attacks rejected.
+Decision: ESCALATE CURRENT HUMAN GATE
+Next owner: Human owner
+Close condition: Complete registration and terms before account/spend authorization can become current.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -836,3 +849,4 @@ Close condition: Approve the remaining account-bound gates before live compositi
 | RV-JC-049 | JC-T005 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | PASS for fixture-only evidence boundary | Duplicate-key leakage, post-run/unbound approval, dirty source, unsafe links, namespace traversal, invalid dates, and claim promotion closed; no live result exists | Implement combined plan-mode harness |
 | RV-JC-050 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | PASS for plan/fake transaction only | Attestable fake evidence, arbitrary live dependencies, reusable approval, early cleanup success, cleanup interruption, and raw storage-exception log leakage closed; fixture cannot support live claims | Add durable approval journal and failure record |
 | RV-JC-051 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS for local durable approval/recovery only | Append-log complexity, replay aliases, path redirection, FIFO hangs, forged predecessor paths, phase drift, false cancellation, cleanup absence, orphan recovery, time reversal, and provider uncertainty findings closed; remote exactly-once remains impossible | Human owner closes account and spend gates |
+| RV-JC-052 | JC-T005 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | PASS for derived operator handoff only | Source hashes, exact gate states, prefix ordering, account blocker closure, disabled execution, and secret/live-command denial pass; the artifact grants no authorization | Human owner closes registration and terms |
