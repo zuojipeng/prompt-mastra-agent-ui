@@ -21,3 +21,7 @@ Engineering separated live runtime policy from fixture policy: live execution no
 The next approved attempt completed at Runway and consumed exactly 60 credits. Download was blocked only because the local transparent proxy maps the exact reviewed CloudFront host to `198.18.0.0/15`, which the original SSRF guard treated as an ordinary non-public address. Request history proved one create, successful polling, and no cancellation.
 
 Engineering limited the exception to exact trusted output hosts resolving solely into the benchmark fake-IP range while retaining HTTPS, certificate, redirect, byte, and hostname validation. The existing succeeded output was downloaded without another create, passed ffprobe, and was passed through a dedicated recovery provider with `provider_create_count=0`. Genblaze asset and manifest read-back succeeded against B2, exact-key cleanup completed, and the local MP4 remains private for demo review.
+
+## Recovery Attestation Loop
+
+Claims Review rejected reusing the atomic live-result schema because the recovered result cannot prove one atomic Runway-to-B2 transaction or reconstruct the provider create count from private recovery evidence alone. Engineering added a distinct recovered-result attestation that binds the private task and B2 identifiers by hash, reports zero creates only inside the recovery phase, and supports only succeeded-output recovery plus B2 upload/read-back/cleanup. Security and Test review kept claims promotion, public serving, deployment, release, judging access, and submission false.

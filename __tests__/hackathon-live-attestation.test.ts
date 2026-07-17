@@ -6,8 +6,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   attestPrivateLiveResultFile,
+  buildRedactedRecoveredAttestation,
   buildRedactedLiveAttestation,
+  evaluateRedactedRecoveredAttestation,
   evaluateRedactedLiveAttestation,
+  validatePrivateRecoveredResult,
   validatePrivateLiveResult,
 } from '../scripts/attest-hackathon-live-result.mjs';
 import { liveResultCommit as commit, privateLiveResult } from './fixtures/hackathon-live-result';
@@ -16,6 +19,29 @@ const roots: string[] = [];
 
 function canonical(value: unknown) {
   return Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+}
+
+function privateRecoveredResult() {
+  const prefix = `jingci-smoke/20260717T133334Z/${'1'.repeat(32)}`;
+  const asset = 'a'.repeat(64);
+  const manifest = 'b'.repeat(64);
+  return {
+    schema_version: 'jingci.recovered-runway-b2-result.v1',
+    status: 'passed',
+    source: 'existing_succeeded_runway_task',
+    prefix,
+    task_id: '17f20503-6c24-4c16-946b-35dbbce2af2f',
+    output_host: 'media.runway.test',
+    asset_key: `${prefix}/assets/${asset.slice(0, 2)}/${asset.slice(2, 4)}/${asset}.mp4`,
+    manifest_key: `${prefix}/manifests/54af6230-29dd-4ce7-987d-73d11e7ce4b7.json`,
+    asset_sha256: asset,
+    asset_size_bytes: 1_044_064,
+    manifest_hash: manifest,
+    probe: { codec: 'h264', width: 1280, height: 720, duration_seconds: 5.041667 },
+    provider_create_count: 0,
+    storage_cleanup: true,
+    local_media_preserved: true,
+  };
 }
 
 afterEach(() => {
@@ -41,6 +67,82 @@ describe('hackathon private live result attestation', () => {
     expect(JSON.stringify(first.attestation)).not.toContain('approval-001');
     expect(JSON.stringify(first.attestation)).not.toContain('task-001');
     expect(JSON.stringify(first.attestation)).not.toContain('jingci-smoke/run-001');
+  });
+
+  it('attests a recovered succeeded task without claiming an atomic transaction or create count', () => {
+    const result = privateRecoveredResult();
+    const first = buildRedactedRecoveredAttestation(result, canonical(result), { expectedCommit: commit });
+    const second = buildRedactedRecoveredAttestation(result, canonical(result), { expectedCommit: commit });
+
+    expect(first.errors).toEqual([]);
+    expect(first.attestation).toEqual(second.attestation);
+    expect(first.attestation).toMatchObject({
+      schema_version: 'jingci.hackathon-recovered-live-attestation.v1',
+      status: 'validated_recovery',
+      source_commit: commit,
+      provider: { provider_create_count_in_recovery: 0 },
+      corroborated_claims: {
+        recovered_succeeded_runway_output: true,
+        live_b2_upload_readback_cleanup: true,
+      },
+      unsupported_claims: {
+        atomic_runway_to_b2_transaction: false,
+        provider_create_attempt_count: false,
+        public_serving: false,
+      },
+      claims_promotion_approval: false,
+      claims_eligible: false,
+    });
+    const serialized = JSON.stringify(first.attestation);
+    expect(serialized).not.toContain(result.task_id);
+    expect(serialized).not.toContain(result.output_host);
+    expect(serialized).not.toContain(result.prefix);
+    expect(serialized).not.toContain(result.asset_key);
+  });
+
+  it('rejects recovery creates, key drift, digest drift, and incomplete cleanup', () => {
+    const result = privateRecoveredResult();
+    result.provider_create_count = 1;
+    result.asset_key = `${result.prefix}/assets/${'c'.repeat(64)}.mp4`;
+    result.probe.width = 1920;
+    result.storage_cleanup = false;
+
+    expect(validatePrivateRecoveredResult(result)).toEqual(expect.arrayContaining([
+      'recovery_provider_create_forbidden',
+      'recovered_storage_key_invalid',
+      'recovered_probe_invalid',
+      'recovered_cleanup_or_media_invalid',
+    ]));
+  });
+
+  it('rejects recovery attestation tampering and claim promotion', () => {
+    const result = privateRecoveredResult();
+    const { attestation } = buildRedactedRecoveredAttestation(result, canonical(result), { expectedCommit: commit });
+    const tampered = {
+      ...attestation,
+      claims_promotion_approval: true,
+      claims_eligible: true,
+      provider: { ...attestation?.provider, provider_create_count_in_recovery: 1 },
+    };
+    const evaluated = evaluateRedactedRecoveredAttestation(tampered, { expectedCommit: commit });
+    expect(evaluated.errors).toEqual(expect.arrayContaining([
+      'claims_promotion_not_supported',
+      'attestation_provider_invalid',
+    ]));
+    expect(evaluateRedactedLiveAttestation(tampered, { expectedCommit: commit }).errors)
+      .toEqual(expect.arrayContaining(['claims_promotion_not_supported', 'attestation_provider_invalid']));
+  });
+
+  it('writes a recovered attestation through the same hardened file boundary', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'jingci-private-recovery-attestation-'));
+    roots.push(root);
+    const input = path.join(root, 'result.json');
+    const output = path.join(root, 'attestation.json');
+    writeFileSync(input, canonical(privateRecoveredResult()), { mode: 0o600 });
+
+    const attestation = attestPrivateLiveResultFile({ inputPath: input, outputPath: output, expectedCommit: commit });
+    expect(attestation.schema_version).toBe('jingci.hackathon-recovered-live-attestation.v1');
+    expect(lstatSync(output).mode & 0o777).toBe(0o600);
   });
 
   it('rejects wrong commits, approval drift, retries, digest mismatch, and partial cleanup', () => {

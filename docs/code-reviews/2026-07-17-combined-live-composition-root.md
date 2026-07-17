@@ -31,3 +31,9 @@ Repair: live policy is now explicit at the live boundary: 600-second deadline, 1
 Finding: macOS transparent proxy DNS returns `198.18.0.43` for the exact Runway CloudFront host. The address is intentionally non-global, so the generic SSRF guard rejected a valid completed output before download.
 
 Repair: benchmark fake-IP acceptance is opt-in per exact trusted hostname and does not accept loopback, RFC1918, link-local, literal-IP hosts, untrusted hosts, non-HTTPS URLs, userinfo, or uncontrolled redirects. TLS certificate verification remains mandatory. Recovery consumes only an existing `SUCCEEDED` task record and local verified MP4; its Genblaze provider reports zero creates and marks lineage as recovered. B2 object keys remain prefix-owned, content-addressed, read back, and explicitly deleted.
+
+## Recovery Attestation Review
+
+Strongest rejection reason: treating the recovery record as the existing atomic live result would falsely imply source-bound approval timing, exactly one provider create, and an uninterrupted Runway-to-B2 transaction.
+
+Repair: a distinct schema validates the real recovery shape, keeps task ID, output host, prefix, and object keys out of the output, and explicitly lists atomic transaction and provider attempt count as unsupported. Adversarial testing rejected nonzero recovery creates, key/digest drift, malformed probes, incomplete cleanup, claim promotion, widened permissions, and noncanonical files. Residual risk is limited to the private evidence chain; public serving and release remain separate gates.

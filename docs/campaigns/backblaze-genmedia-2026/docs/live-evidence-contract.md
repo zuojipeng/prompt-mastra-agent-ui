@@ -1,8 +1,8 @@
 # Private Live Evidence Contract
 
-Status: **IMPLEMENTED WITH FIXTURES, NO LIVE RESULT**
+Status: **IMPLEMENTED FOR ATOMIC AND RECOVERED RESULTS; CLAIMS UNPROMOTED**
 
-This contract converts one private Runway-to-B2 result into a redacted attestation. It does not authorize external calls, prove that a live run occurred, approve claims, or make the campaign releasable.
+This contract converts either one atomic private Runway-to-B2 result or one narrowly validated succeeded-output recovery result into a redacted attestation. It does not authorize external calls, approve public claims, or make the campaign releasable.
 
 ## Trust Boundary
 
@@ -28,6 +28,21 @@ The result binds:
 
 Any failed, ambiguous, retried, unclean, expired, corrupt, out-of-prefix, partially cleaned, or unscanned result is rejected.
 
+## Recovered Result Evidence
+
+Schema: `jingci.recovered-runway-b2-result.v1`
+
+This schema is separate from the atomic result above. It accepts only an existing Runway task already validated as `SUCCEEDED`, a bounded H.264 MP4 probe, the exact Genblaze content-addressed asset key and UUID manifest key under one owned prefix, matching media and manifest digests, `provider_create_count=0`, complete B2 cleanup, and preserved local media. The private task ID, output host, prefix, and object keys contribute only to an irreversible binding hash.
+
+For this recovery schema, `source_commit` binds the clean reviewed attester and recovery implementation used to evaluate the evidence. It does not claim that the provider task itself was created from that commit; provider creation chronology remains explicitly unsupported.
+
+Its redacted schema is `jingci.hackathon-recovered-live-attestation.v1`. It may corroborate only:
+
+- an existing succeeded Runway output was recovered and media-validated;
+- Genblaze uploaded, read back, verified, and cleaned the B2 asset and manifest.
+
+It cannot prove an atomic Runway-to-B2 transaction, the number of provider creates before recovery, public serving, durable retention, deployment, release readiness, judging access, or submission. `claims_promotion_approval=false` and `claims_eligible=false` remain mandatory.
+
 ## Redacted Attestation
 
 Schema: `jingci.hackathon-live-attestation.v1`
@@ -43,7 +58,7 @@ It explicitly does not support public serving, durable retention, deployment, re
 
 ## Local Command
 
-Do not run this command until a combined harness has produced the private canonical result through separately approved live gates.
+Do not run this command until an approved live path has produced either supported private canonical result.
 
 ```bash
 mkdir -p artifacts/hackathon/backblaze-genmedia-2026/private

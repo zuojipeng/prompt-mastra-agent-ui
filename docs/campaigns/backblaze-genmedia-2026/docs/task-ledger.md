@@ -34,9 +34,22 @@ Status: in_progress
 | C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | done |
 | C-025 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | Build a source-bound human/Agent gate handoff | One deterministic status file identifies exactly one current stage, rejects source drift and skipped gates, and never enables execution | done |
 | C-026 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Promote the combined Runway-to-B2 plan into a guarded live composition root | Clean pinned source, canonical one-shot approval, durable consumption, one provider create, B2 read-back/cleanup, private result, and conservative failure evidence pass without live execution | done |
-| C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | in_progress |
+| C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | done |
 
 ## Event Log
+
+### 2026-07-17 14:22 C-E033
+
+Type: PRIVATE_EVIDENCE_CONTRACT_ACCEPTED
+From: Engineering Agent + Claims Review Agent + Security Agent + Test Agent
+To: Hermes Orchestrator + Operator Agent
+Task: C-027
+Gate: Recovery Attestation / Claims Red Team
+Message: Added a separate recovered-result attestation path instead of weakening the atomic live-result contract. The exact-key validator follows Genblaze's digest-sharded asset key and UUID manifest key, requires zero provider creates during recovery, hashes all private task/storage identifiers, and keeps atomic transaction, provider attempt count, public serving, deployment, release, and submission unsupported.
+Evidence: 27 focused Vitest checks passed; the builder and independent evaluator accepted the real mode-0600 private recovery result with zero errors while returning only the recovery schema and `claims_eligible=false`. Formal output is generated only from a clean pinned commit and remains Git-ignored mode 0600.
+Decision: PASS C-027; CONTINUE TO CLEAN-COMMIT ATTESTATION AND RELEASE-EVIDENCE COLLECTION
+Next owner: DevOps Agent + Claims Review Agent
+Close condition: Generate the canonical ignored attestation from the clean pushed commit, run the independent release collector, and retain claims promotion as a separate human gate.
 
 ### 2026-07-17 13:45 C-E032
 

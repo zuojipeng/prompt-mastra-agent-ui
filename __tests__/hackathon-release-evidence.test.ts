@@ -6,7 +6,10 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { collectReleaseEvidence, scanSecrets } from '../scripts/collect-hackathon-evidence.mjs';
-import { buildRedactedLiveAttestation } from '../scripts/attest-hackathon-live-result.mjs';
+import {
+  buildRedactedLiveAttestation,
+  buildRedactedRecoveredAttestation,
+} from '../scripts/attest-hackathon-live-result.mjs';
 import { privateLiveResult } from './fixtures/hackathon-live-result';
 
 const roots: string[] = [];
@@ -75,6 +78,29 @@ function fakeGit(trackedFiles: string[], dirty = false) {
     if (command === 'rev-parse HEAD') return `${'a'.repeat(40)}\n`;
     if (command === 'status --porcelain') return dirty ? ' M proof.md\n' : '';
     throw new Error(`unexpected git command: ${command}`);
+  };
+}
+
+function privateRecoveredResult() {
+  const prefix = `jingci-smoke/20260717T133334Z/${'1'.repeat(32)}`;
+  const asset = 'a'.repeat(64);
+  const manifest = 'b'.repeat(64);
+  return {
+    schema_version: 'jingci.recovered-runway-b2-result.v1',
+    status: 'passed',
+    source: 'existing_succeeded_runway_task',
+    prefix,
+    task_id: '17f20503-6c24-4c16-946b-35dbbce2af2f',
+    output_host: 'media.runway.test',
+    asset_key: `${prefix}/assets/${asset.slice(0, 2)}/${asset.slice(2, 4)}/${asset}.mp4`,
+    manifest_key: `${prefix}/manifests/54af6230-29dd-4ce7-987d-73d11e7ce4b7.json`,
+    asset_sha256: asset,
+    asset_size_bytes: 1_044_064,
+    manifest_hash: manifest,
+    probe: { codec: 'h264', width: 1280, height: 720, duration_seconds: 5.041667 },
+    provider_create_count: 0,
+    storage_cleanup: true,
+    local_media_preserved: true,
   };
 }
 
@@ -184,6 +210,31 @@ describe('hackathon release evidence', () => {
     const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
     expect(evidence.gates.live_evidence).toMatchObject({
       status: 'validated',
+      structurally_valid: true,
+      strict_ready: false,
+      blockers: ['live_claims_promotion_approval_missing'],
+      attestation: { source_commit: 'a'.repeat(40), claims_eligible: false },
+    });
+    expect(evidence.release_candidate).toBe(false);
+  });
+
+  it('incorporates a recovered-output attestation without promoting broader live claims', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const absolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(absolute), { recursive: true });
+    const result = privateRecoveredResult();
+    const built = buildRedactedRecoveredAttestation(
+      result,
+      Buffer.from(`${JSON.stringify(result, null, 2)}\n`),
+      { expectedCommit: 'a'.repeat(40) },
+    );
+    writeFileSync(absolute, `${JSON.stringify(built.attestation, null, 2)}\n`, { mode: 0o600 });
+
+    const evidence = collectReleaseEvidence({ root, git: fakeGit([proofPath]), liveAttestationFile: attestationPath });
+    expect(evidence.gates.live_evidence).toMatchObject({
+      status: 'validated_recovery',
       structurally_valid: true,
       strict_ready: false,
       blockers: ['live_claims_promotion_approval_missing'],
