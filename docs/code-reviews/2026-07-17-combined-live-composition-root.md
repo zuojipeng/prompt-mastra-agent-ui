@@ -16,4 +16,6 @@ Reviewed boundaries:
 
 Findings repaired during review: live result collision was initially detected after execution; approval file type was initially under-validated; consumed failures initially lacked automatic conservative evidence. All were moved or connected before approval.
 
+Live preflight repair: the first authorized invocation stopped before durable marker publication or provider delegation because the CLI passed a relative journal path into the absolute-path-only private store. The private root is now resolved before journal construction. No provider create or credits were consumed by that stopped invocation.
+
 Residual operational risk: the exact Runway CDN host can only be confirmed by the first successful task response. A host mismatch stops download and consumes the one-shot approval; it does not retry or widen the allowlist automatically.

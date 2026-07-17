@@ -515,14 +515,14 @@ def main(argv: list[str] | None = None, env: Mapping[str, str] = os.environ) -> 
         ).stdout.strip()
         if dirty:
             raise PermissionError("tracked worktree must be clean before live execution")
-        private_root = Path("artifacts/hackathon/backblaze-genmedia-2026/private")
+        private_root = Path("artifacts/hackathon/backblaze-genmedia-2026/private").resolve()
         private_root.mkdir(parents=True, exist_ok=True, mode=0o700)
         if private_root.stat().st_mode & 0o777 != 0o700:
             raise PermissionError("private result directory must be mode 0700")
         approval_path = Path(args.approval).resolve()
         approval_lstat = os.lstat(args.approval)
         if (
-            approval_path.parent != private_root.resolve()
+            approval_path.parent != private_root
             or not stat.S_ISREG(approval_lstat.st_mode)
             or approval_lstat.st_nlink != 1
             or approval_lstat.st_mode & 0o777 != 0o600

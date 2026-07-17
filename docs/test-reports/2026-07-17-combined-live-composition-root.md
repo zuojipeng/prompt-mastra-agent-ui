@@ -10,3 +10,4 @@ Result: PASS
 - Injected fake Runway plus in-memory B2 produced the live result schema with one create, verified media/storage digests, complete cleanup, canonical bytes, no URL, and mode 0600.
 - No external API request, B2 mutation, or Runway credit spend occurred.
 - The first frontend test launch used an obsolete Node runtime and failed before tests started; rerunning with the project Node 22 runtime passed 32 focused readiness/attestation/release-evidence tests.
+- The first authorized live invocation stopped locally before approval marker publication because the journal path was relative. No provider create occurred. The CLI now resolves the private root before constructing the absolute-path-only journal.
