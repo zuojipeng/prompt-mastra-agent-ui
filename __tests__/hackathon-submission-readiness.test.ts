@@ -8,7 +8,7 @@ describe('hackathon submission readiness', () => {
     const result = evaluateSubmission(readiness, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('live_b2_upload_readback');
+    expect(result.blockers).toContain('live_claims_promotion_approval');
     expect(result.blockers).toContain('human_submission_approval');
   });
 

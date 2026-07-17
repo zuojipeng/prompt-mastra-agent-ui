@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "9993117c87799a895a2cab5e3d35a0a2fce79707dac315500f8519fa64ddec3b"
+      "sha256": "5f3da5afd8e4417401e5f8eaacbd5b9047b6e062b2367ad151550fb0b4ed6046"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -18,7 +18,7 @@
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
-      "sha256": "9fb7a01bc019a2ad49ea34bff38e8c13a8057cb0e44a890ee41407c7e30c1644"
+      "sha256": "f598d6ba56104e5944b363d92931d0627ec14f851eb23492c840e0cde7f621b1"
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
@@ -29,11 +29,12 @@
     "registration_terms",
     "account_and_spend_authorization",
     "combined_live_verification",
+    "claims_promotion",
     "preview_deployment",
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "account_and_spend_authorization",
+  "current_stage": "claims_promotion",
   "stages": [
     {
       "id": "registration_terms",
@@ -43,15 +44,21 @@
     },
     {
       "id": "account_and_spend_authorization",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner",
       "required_evidence": "B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60"
     },
     {
       "id": "combined_live_verification",
-      "status": "waiting",
+      "status": "complete",
       "owner": "Operator Agent + DevOps Agent",
       "required_evidence": "Private attestation for one Runway-to-B2 transaction and cleanup"
+    },
+    {
+      "id": "claims_promotion",
+      "status": "current_human_gate",
+      "owner": "Human owner + Claims Review Agent",
+      "required_evidence": "Exact approval or revision of the evidence-bounded public claims packet"
     },
     {
       "id": "preview_deployment",
@@ -73,9 +80,9 @@
     }
   ],
   "source_gate_counts": {
-    "submission": 6,
+    "submission": 5,
     "deployment": 8,
-    "demo": 5,
+    "demo": 4,
     "live": 2
   },
   "plan_only_commands": [

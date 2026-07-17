@@ -2,7 +2,7 @@
 
 Target runtime: **2:35**
 
-Status: rehearsal draft. Record the final version only after live B2 evidence exists.
+Status: evidence-calibrated draft. Record the final version only after claims promotion is approved.
 
 ## 0:00–0:15 — Problem
 
@@ -30,11 +30,11 @@ Screen: Move quickly through story setting, shot card, risk tags, and platform f
 
 ## 1:08–1:48 — Run And Verify One Shot
 
-Voiceover for the final B2-backed recording:
+Candidate voiceover pending claims approval:
 
-> I run the selected shot through a Genblaze pipeline. Genblaze connects the provider step to object storage, while Backblaze B2 stores the generated media and a separate provenance manifest. The browser accepts success only when both records have valid hashes and the manifest is verified.
+> Runway generated this five-second shot. In a separate recovery verification, Genblaze stored the MP4 and its provenance manifest in Backblaze B2, read both objects back, verified their hashes and lineage, and then removed the two scoped test objects.
 
-Screen: Select shot 1, run provenance, then show provider/model, B2 asset URI, SHA-256, manifest URI, canonical hash, and Verified state.
+Screen: Show the generated MP4, then a public-safe evidence panel with provider/model, media SHA-256, manifest hash, `Verified recovery`, and `Test objects cleaned`. Never show the private task, signed output URL, B2 object keys, or account console.
 
 Rehearsal rule: while the UI says `Fixture` or `Local adapter`, say “local integration proof” and do not use the B2-backed voiceover.
 
@@ -56,7 +56,7 @@ Rehearsal rule: this failure path uses the visibly labeled offline `Fixture`. St
 
 Voiceover:
 
-> This turns generated media from a disposable provider link into an auditable production asset. The same project keeps execution status, handoff evidence, and platform feedback together.
+> This turns a temporary provider output into evidence that can be checked and handed off. The same project keeps execution status, provenance hashes, retry lineage, and platform feedback together.
 
 Local rehearsal replacement:
 
@@ -77,5 +77,5 @@ Screen: End on the verified selected-shot panel and product name.
 - Final runtime is below 2:55, leaving upload/transcode margin below the three-minute rule.
 - English voiceover or accurate English subtitles are present.
 - No third-party music, trademarks, private URLs, tokens, account IDs, or personal data appear.
-- Final footage shows live B2 evidence, not Fixture or Local adapter labels.
+- Final footage distinguishes the generated Runway output from the separate Genblaze-to-B2 recovery verification and shows no private evidence.
 - Video is publicly visible on YouTube, Vimeo, or Youku before the link is added to Devpost.

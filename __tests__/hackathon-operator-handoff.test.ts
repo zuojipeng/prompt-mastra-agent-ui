@@ -34,10 +34,10 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('accepts the repository handoff after the one-shot spend is consumed', () => {
+  it('advances the repository handoff to claims review after recovered evidence', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('account_and_spend_authorization');
+    expect(handoff.current_stage).toBe('claims_promotion');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });
@@ -63,6 +63,17 @@ describe('hackathon operator handoff', () => {
 
     input.live.payload.blockers = [];
     expect(buildOperatorHandoff(input).current_stage).toBe('combined_live_verification');
+
+    input.live.payload.status = 'completed';
+    expect(buildOperatorHandoff(input).current_stage).toBe('claims_promotion');
+
+    input.submission.payload.blockers = [];
+    input.submission.payload.claims = {
+      submitted: false,
+      live_ai_media_provider: true,
+      live_b2_upload_readback: true,
+    };
+    expect(buildOperatorHandoff(input).current_stage).toBe('preview_deployment');
   });
 
   it('rejects source drift, skipped stages, live commands, and execution enablement', () => {

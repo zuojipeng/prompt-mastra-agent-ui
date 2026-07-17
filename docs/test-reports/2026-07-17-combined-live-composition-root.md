@@ -20,3 +20,5 @@ Result: PASS
 - Final focused frontend verification passed 13 Vitest tests covering the live plan and operator handoff gates.
 - Recovery-attestation and release-evidence verification passed 27 focused Vitest tests. A read-only build/evaluate pass against the real private recovery result returned zero errors, the dedicated recovery schema, and `claims_eligible=false` without printing private identifiers.
 - Full frontend regression passed 61 suites / 164 tests; ESLint passed with only the existing stale browser-data advisory.
+- Claims packet and handoff repair passed 30 focused Vitest tests. Submission and demo draft validators now report `live_claims_promotion_approval` instead of stale live-provider/B2 evidence blockers, and operator handoff derives `claims_promotion` as the sole current stage.
+- The first full regression after blocker migration failed 2 assertions that still expected the retired `live_b2_evidence` and `live_b2_upload_readback` blocker names; the assertions were updated to the new human claims gate before the final rerun.

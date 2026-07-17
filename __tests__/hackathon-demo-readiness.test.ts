@@ -8,7 +8,7 @@ describe('hackathon demo readiness', () => {
     const result = evaluateDemo(rehearsal, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('live_b2_evidence');
+    expect(result.blockers).toContain('live_claims_promotion_approval');
     expect(isDemoStrictReady(rehearsal, result)).toBe(false);
   });
 

@@ -35,8 +35,22 @@ Status: in_progress
 | C-025 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | Build a source-bound human/Agent gate handoff | One deterministic status file identifies exactly one current stage, rejects source drift and skipped gates, and never enables execution | done |
 | C-026 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Promote the combined Runway-to-B2 plan into a guarded live composition root | Clean pinned source, canonical one-shot approval, durable consumption, one provider create, B2 read-back/cleanup, private result, and conservative failure evidence pass without live execution | done |
 | C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | done |
+| C-028 | Product Agent + Claims Review Agent + Operator Agent | Security Agent + Test Agent + Human owner | Calibrate Devpost and demo claims to the recovered live evidence | Exact recommended wording, mandatory qualification, unsupported claims, and separate human decision gate are reviewable | done |
 
 ## Event Log
+
+### 2026-07-17 14:31 C-E034
+
+Type: CLAIMS_PACKET_READY
+From: Product Agent + Claims Review Agent + Operator Agent
+To: Hermes Orchestrator + Human owner
+Task: C-028
+Gate: Claims Promotion Review
+Message: Replaced stale draft statements that said no live generation or Genblaze+B2 transaction had occurred. The proposed public wording now separates the successful Runway generation from the later Genblaze-to-B2 recovery verification and requires an explicit qualification that the phases were not one atomic transaction and the B2 test objects were removed.
+Evidence: `claims-promotion-review.md`, calibrated submission draft, calibrated demo script, redacted recovery attestation, and zero-secret release evidence.
+Decision: READY FOR HUMAN CLAIMS DECISION; DO NOT PUBLISH YET
+Next owner: Human owner, then Operator Agent + UEAgent
+Close condition: Human approves or edits the exact recommended claims; approval does not authorize deployment, video publication, final submission, or new spend.
 
 ### 2026-07-17 14:22 C-E033
 

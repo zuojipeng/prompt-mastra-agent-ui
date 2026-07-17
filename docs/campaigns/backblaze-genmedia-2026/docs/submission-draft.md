@@ -18,22 +18,22 @@ Jingci turns one creative idea into a DirectorKit: a feasibility diagnosis, thre
 
 The Python adapter uses Genblaze's official `SyncProvider`, `Pipeline`, `ObjectStorageSink`, and `StorageBackend` extension points. The current credential-free proof executes a deterministic provider, stores exact media bytes and a separate canonical manifest through an in-memory backend, and returns a strict `jingci.provenance-run.v1` record to the browser.
 
-A second no-network integration test composes the production Runway Genblaze adapter with a scripted fake Runway client and a B2-shaped in-memory backend. Fixture media passes through an injected probe gate, Genblaze `Pipeline`, and `ObjectStorageSink`; the test reads back and verifies the content-addressed asset and canonical manifest, then removes its owned storage objects and temporary local media. It does not execute ffprobe, Runway, or Backblaze B2.
+A second no-network integration test composes the production Runway Genblaze adapter with a scripted fake Runway client and a B2-shaped in-memory backend. Fixture media passes through an injected probe gate, Genblaze `Pipeline`, and `ObjectStorageSink`; the test reads back and verifies the content-addressed asset and canonical manifest, then removes its owned storage objects and temporary local media.
 
-Live provider execution is not yet proven and must not be inferred from the local deterministic provider.
+During an approved private verification, Runway `gen4.5` generated one five-second 1280x720 H.264 shot. After the provider task had succeeded, a separate recovery phase passed the verified MP4 through Genblaze, uploaded the content-addressed asset and provenance manifest to B2, read both back, verified their hashes and lineage, and deleted the two scoped objects. The phases were evidence-preserving but not one uninterrupted atomic transaction.
 
 ## How It Uses Backblaze B2
 
-The planned live path stores content-addressed generated media and its provenance manifest in a restricted B2 bucket through Genblaze's S3-compatible storage adapter. Configuration is server-side, fails closed when any required value is missing, redacts credentials, and disables accidental network preflight in offline tests.
+The live recovery path stores content-addressed generated media and its provenance manifest in a restricted B2 bucket through Genblaze's S3-compatible storage adapter. Configuration is server-side, fails closed when any required value is missing, redacts credentials, and disables accidental network preflight in offline tests.
 
-On July 16, 2026, one authorized live B2 transport smoke uploaded a small object below the restricted `jingci-smoke/` prefix, read it back with an identical SHA-256, deleted it, and confirmed absence. This proves scoped B2 transport only. The combined Genblaze asset and manifest transaction has not yet run and must not be inferred from the probe.
+On July 16, 2026, one authorized live B2 transport smoke uploaded a small object below the restricted `jingci-smoke/` prefix, read it back with an identical SHA-256, deleted it, and confirmed absence. A later recovery verification used the meaningful generated MP4 and canonical manifest: both were uploaded through Genblaze, read back, verified, and explicitly cleaned. This proves scoped ephemeral integration, not public serving, durable retention, or version-level erasure.
 
 ## AI Providers And Models
 
 - DeepSeek `deepseek-chat`: primary structured DirectorKit generation in the existing backend.
 - OpenAI `gpt-4.1-mini`: JSON text-generation fallback in the existing backend.
 - `jingci-local-video` / `local-proof`: deterministic Genblaze integration provider used only for credential-free pipeline testing; it is not an external AI media model.
-- Runway `gen4.5`: selected 5-second text-to-video candidate. Its REST transport, adapter, media validation, and guarded one-attempt harness pass offline tests, but no live generation has run.
+- Runway `gen4.5`: generated one privately verified five-second 1280x720 H.264 output. Public use of this claim remains subject to the claims-promotion gate.
 
 ## Significant Update During The Submission Period
 
@@ -47,9 +47,9 @@ The relevant campaign work begins at commit `3e42c78` and is isolated on `spike/
 DirectorKit selected shot
   -> versioned provenance request
   -> Python Genblaze pipeline
-  -> Runway gen4.5 (selected; live integration pending)
+  -> Runway gen4.5 (private generation verified)
   -> Genblaze ObjectStorageSink
-  -> Backblaze B2 asset + manifest (live verification pending)
+  -> Backblaze B2 asset + manifest (separate recovery verification)
   -> strict verified run record
   -> selected-shot evidence and retry lineage
 ```
@@ -62,8 +62,8 @@ Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's
 
 - Working application: **TBD after preview release and smoke**
 - Repository: https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance
-- Public demo video: **TBD after final B2-backed recording**
+- Public demo video: **TBD after claims approval and final recording**
 
 ## Current Blockers
 
-Live B2 evidence, a real AI media provider, public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026. See `submission-readiness.json` for the machine-checked gate state.
+Claims promotion for the private Runway and B2 recovery evidence, public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026. See `submission-readiness.json` and `claims-promotion-review.md` for the machine-checked gate and exact proposed wording.

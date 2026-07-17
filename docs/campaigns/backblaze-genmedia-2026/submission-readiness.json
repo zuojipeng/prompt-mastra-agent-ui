@@ -19,7 +19,7 @@
     { "name": "DeepSeek", "model": "deepseek-chat", "role": "DirectorKit structured text generation" },
     { "name": "OpenAI", "model": "gpt-4.1-mini", "role": "DirectorKit JSON fallback" },
     { "name": "Jingci deterministic provider", "model": "local-proof", "role": "Credential-free Genblaze pipeline test; not an external AI media model" },
-    { "name": "Runway", "model": "gen4.5", "role": "Selected 5-second text-to-video candidate; offline contract only, no live generation evidence" }
+    { "name": "Runway", "model": "gen4.5", "role": "Generated one privately verified 5-second shot; public claim promotion remains human-gated" }
   ],
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-draft.md",
@@ -27,14 +27,14 @@
     "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-rehearsal-report.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/rules-review.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-checklist.md",
     "docs/campaigns/backblaze-genmedia-2026/operator-handoff.json",
     "spikes/genblaze-provenance/README.md"
   ],
   "blockers": [
-    "live_ai_media_provider",
-    "live_b2_upload_readback",
+    "live_claims_promotion_approval",
     "public_campaign_deployment",
     "public_demo_video",
     "default_branch_or_reviewer_handoff",

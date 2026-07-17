@@ -22,6 +22,7 @@ const STAGE_ORDER = [
   'registration_terms',
   'account_and_spend_authorization',
   'combined_live_verification',
+  'claims_promotion',
   'preview_deployment',
   'final_demo',
   'final_submission',
@@ -57,25 +58,32 @@ export function buildOperatorHandoff(sources = loadSources()) {
     'b2_account_authorization',
     'bucket_scoped_credentials',
     'campaign_paid_api_authorization',
-    'runway_one_attempt_spend_authorization',
   ];
   const accountAuthorized = sources.campaign.payload.authorization?.may_use_paid_api === true &&
     sources.campaign.payload.authorization?.max_external_spend >= 0.6 &&
     accountBlockers.every((blocker) => !liveBlockers.has(blocker));
-  const liveComplete = sources.live.payload.status === 'completed' && sources.live.payload.blockers?.length === 0;
+  const submissionBlockers = new Set(sources.submission.payload.blockers ?? []);
+  const recoveredEvidenceReady = submissionBlockers.has('live_claims_promotion_approval') &&
+    !submissionBlockers.has('live_ai_media_provider') && !submissionBlockers.has('live_b2_upload_readback');
+  const liveComplete = (sources.live.payload.status === 'completed' && sources.live.payload.blockers?.length === 0) ||
+    recoveredEvidenceReady;
+  const claimsApproved = liveComplete && !submissionBlockers.has('live_claims_promotion_approval') &&
+    sources.submission.payload.claims?.live_ai_media_provider === true &&
+    sources.submission.payload.claims?.live_b2_upload_readback === true;
   const deployed = sources.deployment.payload.status === 'ready' && sources.deployment.payload.blockers?.length === 0;
   const demoReady = sources.demo.payload.status === 'ready' && sources.demo.payload.blockers?.length === 0;
   const submitted = sources.submission.payload.status === 'submitted' && sources.submission.payload.claims?.submitted === true;
-  const rawCompletions = [registrationApproved, accountAuthorized, liveComplete, deployed, demoReady, submitted];
+  const rawCompletions = [registrationApproved, accountAuthorized, liveComplete, claimsApproved, deployed, demoReady, submitted];
   const completions = rawCompletions.map((complete, index) => complete && rawCompletions.slice(0, index).every(Boolean));
   const currentIndex = completions.findIndex((complete) => !complete);
   const stages = [
     stage(STAGE_ORDER[0], registrationApproved ? 'complete' : 'current_human_gate', 'Human owner', 'Devpost registration and accepted terms recorded without credentials'),
     stage(STAGE_ORDER[1], completions[1] ? 'complete' : currentIndex === 1 ? 'current_human_gate' : 'waiting', 'Human owner', 'B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60'),
     stage(STAGE_ORDER[2], completions[2] ? 'complete' : currentIndex === 2 ? 'current_agent_gate' : 'waiting', 'Operator Agent + DevOps Agent', 'Private attestation for one Runway-to-B2 transaction and cleanup'),
-    stage(STAGE_ORDER[3], completions[3] ? 'complete' : currentIndex === 3 ? 'current_human_gate' : 'waiting', 'Human owner + DevOps Agent', 'Judge-accessible preview URL, access control, smoke, and rollback evidence'),
-    stage(STAGE_ORDER[4], completions[4] ? 'complete' : currentIndex === 4 ? 'current_human_gate' : 'waiting', 'Human owner + Operator Agent', 'Public under-three-minute video with truthful live claims'),
-    stage(STAGE_ORDER[5], completions[5] ? 'complete' : currentIndex === 5 ? 'current_human_gate' : 'waiting', 'Human owner', 'Final approval and Devpost submission confirmation'),
+    stage(STAGE_ORDER[3], completions[3] ? 'complete' : currentIndex === 3 ? 'current_human_gate' : 'waiting', 'Human owner + Claims Review Agent', 'Exact approval or revision of the evidence-bounded public claims packet'),
+    stage(STAGE_ORDER[4], completions[4] ? 'complete' : currentIndex === 4 ? 'current_human_gate' : 'waiting', 'Human owner + DevOps Agent', 'Judge-accessible preview URL, access control, smoke, and rollback evidence'),
+    stage(STAGE_ORDER[5], completions[5] ? 'complete' : currentIndex === 5 ? 'current_human_gate' : 'waiting', 'Human owner + Operator Agent', 'Public under-three-minute video with truthful live claims'),
+    stage(STAGE_ORDER[6], completions[6] ? 'complete' : currentIndex === 6 ? 'current_human_gate' : 'waiting', 'Human owner', 'Final approval and Devpost submission confirmation'),
   ];
 
   return {
