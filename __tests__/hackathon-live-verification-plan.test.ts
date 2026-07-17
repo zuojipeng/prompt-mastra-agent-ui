@@ -17,7 +17,7 @@ describe('hackathon live verification plan', () => {
     const result = evaluate();
     expect(result.errors).toEqual([]);
     expect(result.blockers).not.toContain('combined_live_execution_missing');
-    expect(result.blockers).not.toContain('runway_one_attempt_spend_authorization');
+    expect(result.blockers).toContain('runway_one_attempt_spend_authorization');
     expect(result.blockers).toContain('live_output_hosts_unverified');
     expect(isLiveVerificationExecutable(plan, result)).toBe(false);
   });

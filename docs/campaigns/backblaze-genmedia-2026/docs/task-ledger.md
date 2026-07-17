@@ -37,6 +37,19 @@ Status: in_progress
 
 ## Event Log
 
+### 2026-07-17 12:44 C-E028
+
+Type: LIVE_ATTEMPT_STOPPED
+From: DevOps Agent + Security Agent
+To: Hermes Orchestrator + Human owner
+Task: C-026
+Gate: Runway One-Attempt Spend
+Message: The source-bound approval was durably consumed, but the Python TLS handshake failed before an HTTP create request could be sent because the local Python 3.13 runtime had no default CA bundle. No Runway task, success result, B2 asset/manifest mutation, or retry occurred. A mode-0600 conservative failure record classifies provider disposition as `attempted_unknown` and blocks reuse.
+Evidence: curl reached the API and returned 401; the same unauthenticated stdlib transport reproduced `CERTIFICATE_VERIFY_FAILED`; after configuring the existing `/etc/ssl/cert.pem` in the ignored mode-0600 local environment, stdlib transport returned 401. Private approval marker and failure evidence are retained outside Git.
+Decision: STOP AND REQUIRE NEW ONE-SHOT APPROVAL
+Next owner: Human owner
+Close condition: After the repaired TLS preflight and this source update are committed, the human owner must explicitly approve one new `gen4.5` five-second attempt capped at 60 credits (`$0.60`) with retries forbidden.
+
 ### 2026-07-17 12:32 C-E027
 
 Type: HUMAN_GATE_CLOSED

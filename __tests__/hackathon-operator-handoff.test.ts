@@ -34,10 +34,10 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('accepts the repository handoff at combined live verification', () => {
+  it('accepts the repository handoff at renewed one-attempt authorization', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('combined_live_verification');
+    expect(handoff.current_stage).toBe('account_and_spend_authorization');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });
