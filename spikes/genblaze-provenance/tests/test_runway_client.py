@@ -159,6 +159,47 @@ class RunwayClientTest(unittest.TestCase):
             )
         self.assertEqual(transport.requests, [])
 
+    def test_exact_trusted_host_accepts_only_proxy_fake_ip_range(self) -> None:
+        response = HttpResponse(
+            200,
+            {"content-type": "video/mp4"},
+            b"0000ftypvideo",
+            "https://media.runway.test/output.mp4",
+        )
+        transport = ScriptedTransport([response])
+        client = RunwayHttpClient(
+            "key_" + "a" * 128,
+            transport,
+            resolve_host=lambda _: ("198.18.0.43",),
+            trusted_proxy_resolution_hosts=("media.runway.test",),
+        )
+        video = client.download_video(
+            "https://media.runway.test/output.mp4",
+            timeout_seconds=10,
+            max_bytes=100,
+            validate_redirect=lambda _: None,
+        )
+        self.assertEqual(video.data, b"0000ftypvideo")
+
+        for host, address in (
+            ("other.runway.test", "198.18.0.43"),
+            ("media.runway.test", "127.0.0.1"),
+        ):
+            with self.subTest(host=host, address=address):
+                blocked = RunwayHttpClient(
+                    "key_" + "a" * 128,
+                    ScriptedTransport([]),
+                    resolve_host=lambda _, value=address: (value,),
+                    trusted_proxy_resolution_hosts=("media.runway.test",),
+                )
+                with self.assertRaisesRegex(RunwayProviderError, "output_host_not_public"):
+                    blocked.download_video(
+                        f"https://{host}/output.mp4",
+                        timeout_seconds=10,
+                        max_bytes=100,
+                        validate_redirect=lambda _: None,
+                    )
+
     def test_urllib_transport_rejects_declared_and_actual_length_errors(self) -> None:
         cases = (
             (b"12345", {"Content-Length": "5"}, 4, "response_too_large"),

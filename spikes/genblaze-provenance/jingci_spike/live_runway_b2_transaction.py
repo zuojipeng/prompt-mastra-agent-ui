@@ -570,7 +570,11 @@ def main(argv: list[str] | None = None, env: Mapping[str, str] = os.environ) -> 
                 run_id=args.run_id,
                 commit=commit,
                 source_clean=True,
-                client=RunwayHttpClient(runway.api_secret, UrllibHttpTransport()),
+                client=RunwayHttpClient(
+                    runway.api_secret,
+                    UrllibHttpTransport(),
+                    trusted_proxy_resolution_hosts=runway.output_hosts,
+                ),
                 backend=build_live_backblaze_backend(B2Config.from_env(env)),
                 probe=probe_video,
                 prefix=prefix,

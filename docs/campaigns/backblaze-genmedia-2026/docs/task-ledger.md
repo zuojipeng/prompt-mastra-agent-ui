@@ -34,8 +34,22 @@ Status: in_progress
 | C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | done |
 | C-025 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | Build a source-bound human/Agent gate handoff | One deterministic status file identifies exactly one current stage, rejects source drift and skipped gates, and never enables execution | done |
 | C-026 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Promote the combined Runway-to-B2 plan into a guarded live composition root | Clean pinned source, canonical one-shot approval, durable consumption, one provider create, B2 read-back/cleanup, private result, and conservative failure evidence pass without live execution | done |
+| C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | in_progress |
 
 ## Event Log
+
+### 2026-07-17 13:45 C-E032
+
+Type: PRODUCTION_EVIDENCE_ADDED
+From: DevOps Agent + Engineering Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-026 / C-027
+Gate: Runway One-Attempt Spend / Output Recovery / Genblaze B2 Verification
+Message: Runway accepted exactly one new `gen4.5` five-second task, deducted 60 credits, and completed it successfully without cancellation or retry. The guarded downloader initially rejected the exact reviewed CloudFront host because the local transparent proxy resolves it into the benchmark-only `198.18.0.0/15` fake-IP range. The task was retrieved read-only, its existing signed output downloaded under an exact-host and TLS boundary, and the recovered MP4 passed ffprobe. A no-create recovery provider then preserved the original Runway task lineage through Genblaze, uploaded one content-addressed asset and one manifest to B2, read both back, verified digest and manifest, deleted both exact keys, and preserved the local video.
+Evidence: Runway balance decreased from 940 to 880 credits; request history showed one POST, successful GET polling, and no DELETE for the new task. Private mode-0600 task metadata, MP4, failure record, and recovery result remain outside Git. Video evidence: H.264, 1280x720, 5.041667 seconds, 1,044,064 bytes, SHA-256 `ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6`; B2 recovery result records `provider_create_count=0`, matching asset digest, verified manifest hash, complete cleanup, and preserved local media.
+Decision: CONTINUE TO RECOVERY ATTESTATION REVIEW; NO FURTHER PAID ATTEMPT AUTHORIZED
+Next owner: Claims Review Agent + Security Agent + Test Agent
+Close condition: Produce and validate a redacted source-bound recovery attestation before promoting narrow live claims; public serving, deployment, publication, and submission remain unapproved.
 
 ### 2026-07-17 13:32 C-E031
 

@@ -142,11 +142,12 @@
     "spikes/genblaze-provenance/jingci_spike/live_runway_smoke.py",
     "spikes/genblaze-provenance/jingci_spike/live_genblaze_b2_smoke.py",
     "spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py",
+    "spikes/genblaze-provenance/jingci_spike/recovered_runway_b2_transaction.py",
     "spikes/genblaze-provenance/jingci_spike/approval_journal.py",
     "spikes/genblaze-provenance/jingci_spike/transaction_failure_evidence.py"
   ],
   "blockers": [
-    "live_output_hosts_unverified",
+    "runway_one_attempt_spend_authorization",
     "private_live_attestation_absent"
   ]
 }

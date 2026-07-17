@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import json
 import re
 import socket
@@ -22,6 +23,7 @@ MAX_JSON_BYTES = 1024 * 1024
 MAX_REDIRECTS = 3
 MAX_DNS_RESULT_BYTES = 64 * 1024
 _TASK_ID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.IGNORECASE)
+_PROXY_FAKE_IP_NETWORK = ipaddress.ip_network("198.18.0.0/15")
 _DNS_RESOLVER_CODE = """\
 import json
 import socket
@@ -140,11 +142,15 @@ class RunwayHttpClient:
         transport: HttpTransport,
         *,
         resolve_host: Callable[[str], tuple[str, ...]] | None = None,
+        trusted_proxy_resolution_hosts: tuple[str, ...] = (),
         monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         self._api_secret = api_secret
         self.transport = transport
         self.resolve_host = resolve_host
+        self.trusted_proxy_resolution_hosts = frozenset(
+            host.strip().lower() for host in trusted_proxy_resolution_hosts
+        )
         self.monotonic = monotonic
 
     def create_text_video(self, **request: object) -> str:
@@ -268,11 +274,17 @@ class RunwayHttpClient:
             # Resolver injection is an offline test seam. Live execution always uses
             # the killable subprocess path above.
             addresses = self.resolve_host(host)
-        import ipaddress
-        for value in addresses:
-            address = ipaddress.ip_address(value)
-            if not address.is_global:
-                raise RunwayProviderError("output_host_not_public")
+        parsed = tuple(ipaddress.ip_address(value) for value in addresses)
+        non_global = tuple(address for address in parsed if not address.is_global)
+        if not non_global:
+            return
+        proxy_fake_ip_only = all(
+            address.version == 4 and address in _PROXY_FAKE_IP_NETWORK
+            for address in non_global
+        )
+        if host.lower() in self.trusted_proxy_resolution_hosts and proxy_fake_ip_only:
+            return
+        raise RunwayProviderError("output_host_not_public")
 
     @staticmethod
     def _raise_http_error(status: int) -> None:

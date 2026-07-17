@@ -25,3 +25,9 @@ Residual operational risk: the exact Runway CDN host can only be confirmed by th
 Finding: `_run_live_dependencies` reused `_run_runway_b2_transaction` without overriding fixture defaults. The live task therefore had a 30-second total deadline, a 1 MiB output ceiling, and a no-op sleep. Runway accepted and charged the task, but the client canceled it before completion.
 
 Repair: live policy is now explicit at the live boundary: 600-second deadline, 100 MiB output ceiling, and real `time.sleep`. Offline callers retain deterministic fast defaults. A regression test inspects the exact arguments crossing this boundary. Verdict remains blocked for another paid attempt until a new one-shot human authorization is supplied.
+
+## Proxy Fake-IP And Recovery Review
+
+Finding: macOS transparent proxy DNS returns `198.18.0.43` for the exact Runway CloudFront host. The address is intentionally non-global, so the generic SSRF guard rejected a valid completed output before download.
+
+Repair: benchmark fake-IP acceptance is opt-in per exact trusted hostname and does not accept loopback, RFC1918, link-local, literal-IP hosts, untrusted hosts, non-HTTPS URLs, userinfo, or uncontrolled redirects. TLS certificate verification remains mandatory. Recovery consumes only an existing `SUCCEEDED` task record and local verified MP4; its Genblaze provider reports zero creates and marks lineage as recovered. B2 object keys remain prefix-owned, content-addressed, read back, and explicitly deleted.
