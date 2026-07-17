@@ -73,8 +73,6 @@ const PLAN_COMMANDS = [
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan',
 ];
 const CURRENT_BLOCKERS = [
-  'campaign_paid_api_authorization',
-  'runway_one_attempt_spend_authorization',
   'live_output_hosts_unverified',
   'private_live_attestation_absent',
 ];

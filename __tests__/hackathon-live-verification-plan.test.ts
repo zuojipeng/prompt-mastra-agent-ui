@@ -17,7 +17,8 @@ describe('hackathon live verification plan', () => {
     const result = evaluate();
     expect(result.errors).toEqual([]);
     expect(result.blockers).not.toContain('combined_live_execution_missing');
-    expect(result.blockers).toContain('runway_one_attempt_spend_authorization');
+    expect(result.blockers).not.toContain('runway_one_attempt_spend_authorization');
+    expect(result.blockers).toContain('live_output_hosts_unverified');
     expect(isLiveVerificationExecutable(plan, result)).toBe(false);
   });
 
@@ -83,7 +84,7 @@ describe('hackathon live verification plan', () => {
       claims: { ...plan.claims, live_ai_media_provider: true },
     });
     expect(result.errors).toContain('premature_execution_state');
-    expect(result.errors).toContain('paid_api_not_authorized');
+    expect(result.errors).not.toContain('paid_api_not_authorized');
     expect(result.errors).toContain('premature_live_claim');
     expect(result.errors).toContain('live_execution_not_supported');
   });
@@ -125,7 +126,7 @@ describe('hackathon live verification plan', () => {
     const stale = evaluate({ blockers: ['combined_live_execution_missing', ...plan.blockers] });
     expect(stale.errors).toContain('combined_harness_blocker_stale');
     expect(stale.errors).toContain('blocked_gate_inventory_invalid');
-    const drift = evaluate({}, { authorization: { ...campaign.authorization, may_use_paid_api: true } });
+    const drift = evaluate({}, { authorization: { ...campaign.authorization, may_use_paid_api: false } });
     expect(drift.errors).toContain('campaign_authorization_drift');
   });
 

@@ -10,8 +10,8 @@
     "standalone_results_composable": false
   },
   "campaign_authorization": {
-    "may_use_paid_api": false,
-    "max_external_spend_usd": 0
+    "may_use_paid_api": true,
+    "max_external_spend_usd": 0.6
   },
   "approval": {
     "required_scopes": [
@@ -146,8 +146,6 @@
     "spikes/genblaze-provenance/jingci_spike/transaction_failure_evidence.py"
   ],
   "blockers": [
-    "campaign_paid_api_authorization",
-    "runway_one_attempt_spend_authorization",
     "live_output_hosts_unverified",
     "private_live_attestation_absent"
   ]

@@ -6,7 +6,7 @@
   "source_bindings": {
     "campaign": {
       "file": "docs/campaigns/backblaze-genmedia-2026/campaign.json",
-      "sha256": "964ae7fcb90c5a8516a86d28605b596867c0aae0403b1af030729228049166bc"
+      "sha256": "81c758d189bad0bc6bd57cf90436738e7762b95346350407ade9db1f4997957a"
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
@@ -22,7 +22,7 @@
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
-      "sha256": "61632515b1dbc8f4bda11bd2acac9a5d702d6c8aef0fa5da26bae8e210b71110"
+      "sha256": "723882f7c3ef964b47ccd40b61612f5d345c45fb517f24d89079a2fbfb36f94e"
     }
   },
   "stage_order": [
@@ -33,7 +33,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "account_and_spend_authorization",
+  "current_stage": "combined_live_verification",
   "stages": [
     {
       "id": "registration_terms",
@@ -43,13 +43,13 @@
     },
     {
       "id": "account_and_spend_authorization",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner",
       "required_evidence": "B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60"
     },
     {
       "id": "combined_live_verification",
-      "status": "waiting",
+      "status": "current_agent_gate",
       "owner": "Operator Agent + DevOps Agent",
       "required_evidence": "Private attestation for one Runway-to-B2 transaction and cleanup"
     },
@@ -76,7 +76,7 @@
     "submission": 6,
     "deployment": 8,
     "demo": 5,
-    "live": 5
+    "live": 2
   },
   "plan_only_commands": [
     "npm run hackathon:handoff",

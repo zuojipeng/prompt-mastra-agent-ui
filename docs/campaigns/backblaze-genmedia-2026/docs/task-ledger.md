@@ -37,6 +37,19 @@ Status: in_progress
 
 ## Event Log
 
+### 2026-07-17 12:32 C-E027
+
+Type: HUMAN_GATE_CLOSED
+From: Human owner
+To: Hermes Orchestrator + DevOps Agent
+Task: C-026
+Gate: Campaign Paid API / Runway One-Attempt Spend
+Message: Human owner explicitly authorized exactly one Runway `gen4.5` five-second generation, capped at 60 credits (`$0.60`), with retries forbidden. The campaign budget was raised from `$0` to exactly `$0.60`; this does not authorize another attempt, top-up, autobilling, publication, claims promotion, or submission.
+Evidence: Exact approval statement in the active task and source-bound campaign authorization fields.
+Decision: CONTINUE TO PINNED ONE-SHOT APPROVAL
+Next owner: Hermes Orchestrator + DevOps Agent
+Close condition: Commit and push the authorization state, create one expiring canonical approval bound to that final commit, execute at most one provider create, and preserve private success or conservative failure evidence.
+
 ### 2026-07-17 C-E026
 
 Type: REVIEWED
