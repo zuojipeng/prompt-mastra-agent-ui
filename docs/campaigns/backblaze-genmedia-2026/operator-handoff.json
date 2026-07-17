@@ -22,7 +22,7 @@
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
-      "sha256": "fa623bd916a4fb14d104651fd4923136d3ac6365bf1e4f76f965b51a96e7d6b5"
+      "sha256": "723882f7c3ef964b47ccd40b61612f5d345c45fb517f24d89079a2fbfb36f94e"
     }
   },
   "stage_order": [
@@ -33,7 +33,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "account_and_spend_authorization",
+  "current_stage": "combined_live_verification",
   "stages": [
     {
       "id": "registration_terms",
@@ -43,13 +43,13 @@
     },
     {
       "id": "account_and_spend_authorization",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner",
       "required_evidence": "B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60"
     },
     {
       "id": "combined_live_verification",
-      "status": "waiting",
+      "status": "current_agent_gate",
       "owner": "Operator Agent + DevOps Agent",
       "required_evidence": "Private attestation for one Runway-to-B2 transaction and cleanup"
     },
@@ -76,7 +76,7 @@
     "submission": 6,
     "deployment": 8,
     "demo": 5,
-    "live": 3
+    "live": 2
   },
   "plan_only_commands": [
     "npm run hackathon:handoff",

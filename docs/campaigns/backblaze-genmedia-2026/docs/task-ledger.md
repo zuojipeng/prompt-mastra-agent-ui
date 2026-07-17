@@ -37,6 +37,19 @@ Status: in_progress
 
 ## Event Log
 
+### 2026-07-17 13:06 C-E029
+
+Type: HUMAN_GATE_CLOSED
+From: Human owner
+To: Hermes Orchestrator + DevOps Agent
+Task: C-026
+Gate: Renewed Runway One-Attempt Spend
+Message: After reviewing the zero-create TLS stop and verified CA repair, the human owner explicitly authorized one new Runway `gen4.5` five-second generation capped at 60 credits (`$0.60`), with retries forbidden.
+Evidence: Exact renewed approval statement in the active task; previous approval remains consumed and cannot be reused.
+Decision: CONTINUE TO NEW SOURCE-BOUND APPROVAL
+Next owner: Hermes Orchestrator + DevOps Agent
+Close condition: Commit this renewed gate, create a new expiring approval bound to that commit, and execute at most one provider create.
+
 ### 2026-07-17 12:44 C-E028
 
 Type: LIVE_ATTEMPT_STOPPED
