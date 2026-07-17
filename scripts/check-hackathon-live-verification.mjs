@@ -73,7 +73,6 @@ const PLAN_COMMANDS = [
   'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan',
 ];
 const CURRENT_BLOCKERS = [
-  'combined_live_execution_missing',
   'campaign_paid_api_authorization',
   'runway_one_attempt_spend_authorization',
   'live_output_hosts_unverified',
@@ -145,6 +144,7 @@ export function evaluateLiveVerification(plan, campaign, artifactExists = exists
   if (SECRET_LITERAL.test(JSON.stringify(plan))) errors.push('secret_literal_in_plan');
   const implementationMissing = !plan.implementation?.combined_module || !plan.implementation?.combined_command;
   if (implementationMissing && !blockers.includes('combined_live_execution_missing')) errors.push('combined_harness_blocker_missing');
+  if (!implementationMissing && blockers.includes('combined_live_execution_missing')) errors.push('combined_harness_blocker_stale');
   if (plan.implementation?.plan_module !== 'spikes/genblaze-provenance/jingci_spike/live_runway_b2_transaction.py' ||
       plan.implementation?.plan_command !== 'PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_b2_transaction --plan' ||
       !artifactExists(path.resolve(plan.implementation.plan_module))) errors.push('combined_plan_harness_invalid');
@@ -153,16 +153,12 @@ export function evaluateLiveVerification(plan, campaign, artifactExists = exists
   }
   if (plan.implementation?.combined_command &&
       (!plan.implementation.combined_command.includes('jingci_spike.live_runway_b2_transaction') ||
-       !plan.implementation.combined_command.includes('--authorization-file') ||
-       !plan.implementation.combined_command.includes('--evidence-out') ||
+       !plan.implementation.combined_command.includes('--approval <private-file>') ||
+       !plan.implementation.combined_command.includes('--run-id <run-id>') ||
        FORBIDDEN_COMMAND.test(plan.implementation.combined_command.replace('--live', '')))) {
     errors.push('combined_command_unsafe');
   }
   if (plan.implementation?.standalone_results_composable !== false) errors.push('standalone_results_not_composable');
-  if (plan.status === 'blocked' &&
-      (plan.implementation?.combined_module !== null || plan.implementation?.combined_command !== null)) {
-    errors.push('blocked_implementation_must_be_absent');
-  }
   if (blockers.length > 0 && (plan.execution_allowed !== false || plan.status !== 'blocked')) errors.push('premature_execution_state');
   if (campaign?.authorization?.may_use_paid_api !== true && plan.execution_allowed !== false) errors.push('paid_api_not_authorized');
   if (campaign?.human_gates?.registration_terms !== 'approved' && !blockers.includes('registration_terms')) errors.push('registration_blocker_missing');

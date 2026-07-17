@@ -16,8 +16,11 @@ from jingci_spike.live_runway_b2_transaction import (
     fixture_result_bytes,
     main,
     parse_live_approval,
+    run_combined_live_transaction,
     run_combined_transaction_fixture,
+    validate_campaign_paid_authorization,
     write_fixture_result,
+    write_live_result,
 )
 from jingci_spike.live_runway_smoke import LIVE_CONFIRMATION_VALUE, VideoProbe
 from jingci_spike.local_pipeline import InMemoryStorageBackend
@@ -126,6 +129,36 @@ class LiveRunwayB2TransactionTest(unittest.TestCase):
         self.assertNotIn(b"https://", encoded)
         self.assertNotIn(b"token=", encoded)
 
+    def test_live_root_emits_attestable_schema_with_injected_dependencies(self) -> None:
+        result = run_combined_live_transaction(
+            approval_bytes=self.approval(),
+            run_id=RUN_ID,
+            commit=COMMIT,
+            source_clean=True,
+            client=self.client(),
+            backend=TransactionBackend(),
+            probe=self.probe,
+            prefix=self.prefix,
+            output_host="media.runway.test",
+            clock=self.clock(),
+            approval_consumer=InMemoryApprovalConsumer(),
+        )
+
+        self.assertEqual(result["schema_version"], "jingci.hackathon-live-result.v1")
+        self.assertNotIn("evidence_mode", result)
+        self.assertEqual(result["provider"]["create_attempts"], 1)
+        self.assertEqual(result["media"]["sha256"], result["storage"]["asset_sha256"])
+        with tempfile.TemporaryDirectory(prefix="jingci-live-result-") as directory:
+            private_dir = Path(directory) / "private"
+            private_dir.mkdir(mode=0o700)
+            output = private_dir / "run-001.json"
+            write_live_result(output, result)
+            self.assertEqual(output.stat().st_mode & 0o777, 0o600)
+            encoded = output.read_bytes()
+            self.assertEqual(encoded, canonical(result))
+            self.assertNotIn(b"https://", encoded)
+            self.assertNotIn(b"token=", encoded)
+
     def test_approval_is_canonical_bound_active_and_single_attempt(self) -> None:
         approval = parse_live_approval(
             self.approval(), expected_run_id=RUN_ID, expected_commit=COMMIT, at=self.start
@@ -146,6 +179,20 @@ class LiveRunwayB2TransactionTest(unittest.TestCase):
                     parse_live_approval(
                         raw, expected_run_id=RUN_ID, expected_commit=COMMIT, at=self.start
                     )
+
+    def test_campaign_paid_authorization_is_exact_and_separate(self) -> None:
+        validate_campaign_paid_authorization(
+            {"authorization": {"may_use_paid_api": True, "max_external_spend": 0.6}}
+        )
+        for authorization in (
+            {},
+            {"may_use_paid_api": False, "max_external_spend": 0.6},
+            {"may_use_paid_api": True, "max_external_spend": 0},
+            {"may_use_paid_api": True, "max_external_spend": 1.2},
+        ):
+            with self.subTest(authorization=authorization):
+                with self.assertRaises(PermissionError):
+                    validate_campaign_paid_authorization({"authorization": authorization})
 
     def test_expired_approval_and_real_dependencies_fail_before_create(self) -> None:
         client = self.client()
@@ -213,16 +260,18 @@ class LiveRunwayB2TransactionTest(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_fixture_result(output, result)
 
-    def test_plan_has_no_live_cli_or_external_side_effect(self) -> None:
+    def test_plan_describes_gated_live_cli_without_external_side_effect(self) -> None:
         plan = build_plan()
-        self.assertFalse(plan["execution_enabled"])
+        self.assertTrue(plan["execution_enabled"])
         self.assertFalse(plan["network"])
         self.assertFalse(plan["credentials_loaded"])
         self.assertFalse(plan["spend_authorized"])
-        self.assertFalse(plan["live_cli_mode"])
+        self.assertTrue(plan["live_cli_mode"])
         self.assertEqual(main(["--plan"]), 0)
         with self.assertRaises(SystemExit):
             main([])
+        with self.assertRaises(SystemExit):
+            main(["--live"])
 
 
 if __name__ == "__main__":

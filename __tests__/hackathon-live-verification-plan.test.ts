@@ -16,7 +16,7 @@ describe('hackathon live verification plan', () => {
   it('accepts the blocked plan without making it executable', () => {
     const result = evaluate();
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('combined_live_execution_missing');
+    expect(result.blockers).not.toContain('combined_live_execution_missing');
     expect(result.blockers).toContain('runway_one_attempt_spend_authorization');
     expect(isLiveVerificationExecutable(plan, result)).toBe(false);
   });
@@ -105,26 +105,26 @@ describe('hackathon live verification plan', () => {
     expect(isLiveVerificationExecutable({ ...plan, status: 'authorized', execution_allowed: true }, result)).toBe(false);
   });
 
-  it('rejects a populated blocked harness, missing claims, and secret literals', () => {
+  it('accepts the reviewed blocked harness but rejects missing claims and secret literals', () => {
     const populated = evaluate({
       implementation: {
         combined_module: 'package.json',
-        combined_command: 'python -m jingci_spike.live_runway_b2_transaction --live --authorization-file auth.json --evidence-out evidence.json',
+        combined_command: 'python -m jingci_spike.live_runway_b2_transaction --live --approval <private-file> --run-id <run-id>',
         standalone_results_composable: false,
       },
       claims: undefined,
       notes: `Authorization: Bearer key_${'c'.repeat(128)}`,
     });
 
-    expect(populated.errors).toContain('blocked_implementation_must_be_absent');
+    expect(populated.errors).not.toContain('combined_command_unsafe');
     expect(populated.errors).toContain('premature_live_claim');
     expect(populated.errors).toContain('secret_literal_in_plan');
   });
 
-  it('rejects campaign authorization drift and missing implementation blocker', () => {
-    const result = evaluate({ blockers: plan.blockers.filter((value) => value !== 'combined_live_execution_missing') });
-    expect(result.errors).toContain('combined_harness_blocker_missing');
-    expect(result.errors).toContain('blocked_gate_inventory_invalid');
+  it('rejects campaign authorization drift and stale implementation blockers', () => {
+    const stale = evaluate({ blockers: ['combined_live_execution_missing', ...plan.blockers] });
+    expect(stale.errors).toContain('combined_harness_blocker_stale');
+    expect(stale.errors).toContain('blocked_gate_inventory_invalid');
     const drift = evaluate({}, { authorization: { ...campaign.authorization, may_use_paid_api: true } });
     expect(drift.errors).toContain('campaign_authorization_drift');
   });

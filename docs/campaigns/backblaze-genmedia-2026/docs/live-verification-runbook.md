@@ -1,14 +1,14 @@
 # Human-Operated Runway-to-B2 Live Verification
 
-Status: **BLOCKED PLAN ONLY**
+Status: **IMPLEMENTED, AWAITING ONE-ATTEMPT SPEND AUTHORIZATION**
 
-This runbook does not authorize registration, terms, credentials, paid generation, B2 mutation, deployment, publication, claims promotion, or submission. There is currently no combined live executable. The standalone Runway and B2 smoke results must never be presented as one transaction.
+This runbook does not authorize paid generation, deployment, publication, claims promotion, or submission. The combined live executable now exists, but remains fail-closed until a canonical one-shot approval is bound to its clean reviewed commit and active run ID.
 
 ## Required Order
 
 Every stage is fail-closed. A failed, missing, expired, or ambiguous stage stops all later stages.
 
-1. Promote the reviewed plan-only `live_runway_b2_transaction` module into a separately authorized live command; its fixture result is explicitly non-attestable.
+1. Review the combined `live_runway_b2_transaction` live command; its fixture result remains explicitly non-attestable.
 2. Pin a clean reviewed commit and reproduce all offline tests and plan commands.
 3. A human accepts registration and terms through the event account.
 4. A human authorizes the B2 account and bucket-scoped credentials for explicit keys below one unique `jingci-smoke/` run prefix.
@@ -62,7 +62,7 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.live_runway_smoke --plan
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --plan
 ```
 
-The plan-only combined module is implemented. A live combined command is intentionally absent until durable one-shot approval consumption, failure evidence, implementation review, and every human gate are closed.
+The combined command is implemented and tested without external calls. Do not create its approval document or invoke `--live` until the human owner supplies the exact one-attempt spend authorization for the pinned commit. The command writes a canonical private success result only after complete cleanup; a consumed run that fails writes conservative non-attestable recovery evidence when possible and never retries.
 
 ## Stop Conditions
 

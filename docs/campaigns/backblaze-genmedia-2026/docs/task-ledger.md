@@ -33,8 +33,22 @@ Status: in_progress
 | C-023 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Implement the combined live transaction harness without executing it | One plan-only command defines guarded Runway, ffprobe, Genblaze, B2, approval, evidence, and cleanup boundaries; fake-only execution proves the transaction with an explicitly non-attestable result | done |
 | C-024 | Architecture Agent + Engineering Agent | Security Agent + Claims Review Agent + Test Agent | Build durable one-shot approval consumption and failure/recovery evidence contracts without live execution | Local atomic journal tests prevent sequential/concurrent reuse and stable non-attestable failure records preserve cleanup/recovery state without secrets | done |
 | C-025 | Operator Agent + Engineering Agent | Architecture Agent + Claims Review Agent + Test Agent | Build a source-bound human/Agent gate handoff | One deterministic status file identifies exactly one current stage, rejects source drift and skipped gates, and never enables execution | done |
+| C-026 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Promote the combined Runway-to-B2 plan into a guarded live composition root | Clean pinned source, canonical one-shot approval, durable consumption, one provider create, B2 read-back/cleanup, private result, and conservative failure evidence pass without live execution | done |
 
 ## Event Log
+
+### 2026-07-17 C-E026
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + Security Agent + Code Review Agent + Test Agent + DevOps Agent
+To: Hermes Orchestrator
+Task: C-026
+Gate: Architecture / Engineering / Code Review / Test / DevOps
+Message: Promoted the plan-only combined transaction into a fail-closed live CLI after Runway funding became available. The command rejects dirty source, unsafe approval files, stale or reusable approvals, pre-existing evidence, malformed credentials, and unreviewed output hosts before provider creation; one consumed approval cannot retry, and any post-consumption failure writes conservative non-attestable recovery evidence when possible.
+Evidence: 108 Python spike tests, compileall, no-network plan, live-schema fixture, mode-0600 writer, durable approval concurrency tests; no Runway or B2 request and no credits consumed in this change.
+Decision: ESCALATE PAID GATE
+Next owner: Human owner + Hermes Orchestrator
+Close condition: Human gives the exact one-attempt Runway authorization bound to the reviewed commit before a canonical approval document is created or the combined live command is executed.
 
 ### 2026-07-13 23:20 C-E001
 
