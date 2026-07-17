@@ -37,6 +37,19 @@ Status: in_progress
 
 ## Event Log
 
+### 2026-07-17 21:18 C-E030
+
+Type: LIVE_ATTEMPT_STOPPED
+From: DevOps Agent + Engineering Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-026
+Gate: Runway One-Attempt Spend / Combined Live Verification
+Message: Runway accepted exactly one `gen4.5` five-second task and deducted 60 credits. The live composition accidentally inherited the offline fixture's 30-second total deadline and no-wait polling behavior, then issued one cancellation before generation completed. No retry occurred, no media was returned, and no B2 asset or manifest was written.
+Evidence: Runway billing decreased from 1000 to 940 credits; authenticated request history showed one successful create, successful task polls, and one successful cancellation. Private conservative failure evidence remains mode 0600 outside Git. The live root now uses a 600-second deadline, a 100 MiB media cap, and real five-second polling, with a regression test that rejects offline defaults.
+Decision: STOP AND REQUIRE NEW ONE-SHOT APPROVAL
+Next owner: Code Review Agent + Test Agent, then Human owner
+Close condition: Commit and push the reviewed timeout repair; another provider create requires a fresh explicit authorization capped at 60 credits (`$0.60`) with retries forbidden.
+
 ### 2026-07-17 13:06 C-E029
 
 Type: HUMAN_GATE_CLOSED

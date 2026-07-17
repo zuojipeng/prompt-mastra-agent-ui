@@ -19,3 +19,9 @@ Findings repaired during review: live result collision was initially detected af
 Live preflight repair: the first authorized invocation stopped before durable marker publication or provider delegation because the CLI passed a relative journal path into the absolute-path-only private store. The private root is now resolved before journal construction. No provider create or credits were consumed by that stopped invocation.
 
 Residual operational risk: the exact Runway CDN host can only be confirmed by the first successful task response. A host mismatch stops download and consumes the one-shot approval; it does not retry or widen the allowlist automatically.
+
+## Paid Attempt Incident Review
+
+Finding: `_run_live_dependencies` reused `_run_runway_b2_transaction` without overriding fixture defaults. The live task therefore had a 30-second total deadline, a 1 MiB output ceiling, and a no-op sleep. Runway accepted and charged the task, but the client canceled it before completion.
+
+Repair: live policy is now explicit at the live boundary: 600-second deadline, 100 MiB output ceiling, and real `time.sleep`. Offline callers retain deterministic fast defaults. A regression test inspects the exact arguments crossing this boundary. Verdict remains blocked for another paid attempt until a new one-shot human authorization is supplied.

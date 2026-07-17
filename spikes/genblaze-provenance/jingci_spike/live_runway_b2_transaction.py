@@ -9,6 +9,7 @@ import stat
 import subprocess
 import sys
 import threading
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,6 +21,8 @@ LIVE_RESULT_SCHEMA = "jingci.hackathon-live-result.v1"
 CAMPAIGN_ID = "backblaze-genmedia-2026"
 EXPECTED_SCOPES = ("b2_account_and_credentials", "runway_one_attempt_spend")
 LIVE_CONFIRMATION_VALUE = "RUNWAY gen4.5 5s ONE ATTEMPT MAX $0.60"
+LIVE_TRANSACTION_TIMEOUT_SECONDS = 600.0
+LIVE_TRANSACTION_MAX_OUTPUT_BYTES = 100 * 1024 * 1024
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$")
 _ACTOR = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._@+-]{1,127}$")
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
@@ -312,6 +315,7 @@ def run_combined_live_transaction(
     output_host: str,
     clock: Callable[[], datetime],
     approval_consumer: ApprovalConsumer,
+    sleep: Callable[[float], None] = time.sleep,
 ) -> dict[str, Any]:
     """Execute one approval-bound provider-to-storage transaction.
 
@@ -333,6 +337,7 @@ def run_combined_live_transaction(
         probe=probe,
         prefix=prefix,
         output_host=output_host,
+        sleep=sleep,
     )
     cleanup_completed_at = clock().astimezone(timezone.utc)
     finished_at = clock().astimezone(timezone.utc)
@@ -406,7 +411,15 @@ def run_combined_live_transaction(
     }
 
 
-def _run_live_dependencies(*, guarded_client: Any, backend: Any, probe: Callable[[Path], Any], prefix: str, output_host: str):
+def _run_live_dependencies(
+    *,
+    guarded_client: Any,
+    backend: Any,
+    probe: Callable[[Path], Any],
+    prefix: str,
+    output_host: str,
+    sleep: Callable[[float], None],
+):
     from .offline_runway_b2_transaction import _run_runway_b2_transaction
 
     return _run_runway_b2_transaction(
@@ -417,6 +430,9 @@ def _run_live_dependencies(*, guarded_client: Any, backend: Any, probe: Callable
         output_host=output_host,
         network=True,
         schema_version=LIVE_RESULT_SCHEMA,
+        timeout_seconds=LIVE_TRANSACTION_TIMEOUT_SECONDS,
+        max_output_bytes=LIVE_TRANSACTION_MAX_OUTPUT_BYTES,
+        sleep=sleep,
     )
 
 

@@ -163,6 +163,9 @@ def _run_runway_b2_transaction(
     output_host: str = "media.runway.test",
     network: bool,
     schema_version: str,
+    timeout_seconds: float = 30.0,
+    max_output_bytes: int = 1024 * 1024,
+    sleep: Callable[[float], None] = lambda _: None,
 ) -> OfflineRunwayB2Result:
     run_prefix = validate_smoke_prefix(prefix or build_smoke_prefix())
     wrapper = DeferredCloseBackend(backend)
@@ -181,11 +184,11 @@ def _run_runway_b2_transaction(
                 RunwayProviderConfig(
                     output_dir=output_root,
                     allowed_output_hosts=(output_host,),
-                    timeout_seconds=30.0,
+                    timeout_seconds=timeout_seconds,
                     poll_interval_seconds=5.0,
-                    max_output_bytes=1024 * 1024,
+                    max_output_bytes=max_output_bytes,
                 ),
-                sleep=lambda _: None,
+                sleep=sleep,
             )
             probed_provider = _ProbeBeforeSinkProvider(provider, output_root, probe)
             storage_sink = ObjectStorageSink(

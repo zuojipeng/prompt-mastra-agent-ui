@@ -3,7 +3,7 @@
 Date: 2026-07-17
 Result: PASS
 
-- 109 Python spike tests passed.
+- 110 Python spike tests passed after the live-policy regression was added.
 - Focused combined transaction, durable approval journal, and failure evidence suites passed.
 - Python compileall passed.
 - `live_runway_b2_transaction --plan` returned a deterministic no-network plan.
@@ -12,3 +12,5 @@ Result: PASS
 - The first frontend test launch used an obsolete Node runtime and failed before tests started; rerunning with the project Node 22 runtime passed 32 focused readiness/attestation/release-evidence tests.
 - The first authorized live invocation stopped locally before approval marker publication because the journal path was relative. No provider create occurred. The CLI now resolves the private root before constructing the absolute-path-only journal.
 - The next source-bound approval was durably consumed, then Python failed TLS verification before sending an HTTP create. Conservative failure evidence was written and no retry occurred. Setting `SSL_CERT_FILE=/etc/ssl/cert.pem` only in the ignored mode-0600 environment made an unauthenticated stdlib request return the expected 401, matching curl connectivity without disabling verification.
+- The renewed paid attempt sent exactly one create. Runway accepted it and deducted 60 credits, but the live root inherited a 30-second fixture deadline and canceled the still-running task once. No retry, media output, B2 asset, or manifest was produced.
+- Regression coverage now asserts that the live dependency boundary passes a 600-second total deadline, 100 MiB media ceiling, and the caller's real sleep function; fixture execution keeps its fast deterministic defaults.

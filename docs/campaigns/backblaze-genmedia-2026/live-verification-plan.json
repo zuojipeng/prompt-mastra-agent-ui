@@ -146,6 +146,7 @@
     "spikes/genblaze-provenance/jingci_spike/transaction_failure_evidence.py"
   ],
   "blockers": [
+    "runway_one_attempt_spend_authorization",
     "live_output_hosts_unverified",
     "private_live_attestation_absent"
   ]

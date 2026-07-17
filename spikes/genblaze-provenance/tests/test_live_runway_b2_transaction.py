@@ -7,11 +7,15 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from jingci_spike.live_genblaze_b2_smoke import build_smoke_prefix
 from jingci_spike.live_runway_b2_transaction import (
     APPROVAL_SCHEMA,
     InMemoryApprovalConsumer,
+    LIVE_TRANSACTION_MAX_OUTPUT_BYTES,
+    LIVE_TRANSACTION_TIMEOUT_SECONDS,
+    _run_live_dependencies,
     build_plan,
     fixture_result_bytes,
     main,
@@ -142,6 +146,7 @@ class LiveRunwayB2TransactionTest(unittest.TestCase):
             output_host="media.runway.test",
             clock=self.clock(),
             approval_consumer=InMemoryApprovalConsumer(),
+            sleep=lambda _: None,
         )
 
         self.assertEqual(result["schema_version"], "jingci.hackathon-live-result.v1")
@@ -158,6 +163,26 @@ class LiveRunwayB2TransactionTest(unittest.TestCase):
             self.assertEqual(encoded, canonical(result))
             self.assertNotIn(b"https://", encoded)
             self.assertNotIn(b"token=", encoded)
+
+    def test_live_dependencies_do_not_inherit_offline_deadlines(self) -> None:
+        sleeper = lambda _: None
+        with patch(
+            "jingci_spike.offline_runway_b2_transaction._run_runway_b2_transaction",
+            return_value="transaction",
+        ) as transaction:
+            result = _run_live_dependencies(
+                guarded_client="client",
+                backend="backend",
+                probe=self.probe,
+                prefix=self.prefix,
+                output_host="media.runway.test",
+                sleep=sleeper,
+            )
+
+        self.assertEqual(result, "transaction")
+        self.assertEqual(transaction.call_args.kwargs["timeout_seconds"], LIVE_TRANSACTION_TIMEOUT_SECONDS)
+        self.assertEqual(transaction.call_args.kwargs["max_output_bytes"], LIVE_TRANSACTION_MAX_OUTPUT_BYTES)
+        self.assertIs(transaction.call_args.kwargs["sleep"], sleeper)
 
     def test_approval_is_canonical_bound_active_and_single_attempt(self) -> None:
         approval = parse_live_approval(
