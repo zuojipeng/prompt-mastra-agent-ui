@@ -1,0 +1,35 @@
+{
+  "schema_version": "jingci.hackathon-claims-promotion-approval.v1",
+  "status": "approved",
+  "campaign_id": "devpost-30205",
+  "human_actor": "human_owner",
+  "approved_at": "2026-07-17T14:37:59Z",
+  "claims_packet": {
+    "path": "docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md",
+    "sha256": "92b36abc9d233049697cee9bc59f862bd60c6efb77cf303f3cc7682a5767a847"
+  },
+  "attestation": {
+    "path": "artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json",
+    "schema_version": "jingci.hackathon-recovered-live-attestation.v1",
+    "source_commit": "da4633aefc9caa96a932e706ebfde12da6b05569",
+    "sha256": "bbda1dfcef38b14d6c1146ff425eafb76474ac523ffdaaa488edfe9930951aa0"
+  },
+  "approved_claim_ids": [
+    "runway_private_generation",
+    "genblaze_b2_recovery_verification",
+    "redacted_evidence"
+  ],
+  "mandatory_qualification_required": true,
+  "allowed_uses": {
+    "devpost_draft": true,
+    "final_demo_copy": true
+  },
+  "authorizations": {
+    "deployment": false,
+    "video_publication": false,
+    "final_submission": false,
+    "new_paid_call": false,
+    "private_evidence_disclosure": false
+  },
+  "reusable_for_spend": false
+}

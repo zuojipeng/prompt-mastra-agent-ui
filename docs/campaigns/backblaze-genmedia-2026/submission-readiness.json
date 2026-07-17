@@ -10,8 +10,8 @@
   "claims": {
     "genblaze_local_pipeline": true,
     "browser_python_integration": true,
-    "live_ai_media_provider": false,
-    "live_b2_upload_readback": false,
+    "live_ai_media_provider": true,
+    "live_b2_upload_readback": true,
     "public_campaign_deployment": false,
     "submitted": false
   },
@@ -28,13 +28,13 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-rehearsal-report.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md",
+    "docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json",
     "docs/campaigns/backblaze-genmedia-2026/docs/rules-review.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-checklist.md",
     "docs/campaigns/backblaze-genmedia-2026/operator-handoff.json",
     "spikes/genblaze-provenance/README.md"
   ],
   "blockers": [
-    "live_claims_promotion_approval",
     "public_campaign_deployment",
     "public_demo_video",
     "default_branch_or_reviewer_handoff",

@@ -243,6 +243,85 @@ describe('hackathon release evidence', () => {
     expect(evidence.release_candidate).toBe(false);
   });
 
+  it('accepts an exact claims approval without authorizing release', () => {
+    const root = fixtureRoot();
+    const proofPath = 'docs/campaigns/backblaze-genmedia-2026/docs/proof.md';
+    const campaign = path.join(root, 'docs/campaigns/backblaze-genmedia-2026');
+    const readinessPath = path.join(campaign, 'submission-readiness.json');
+    const readiness = JSON.parse(readFileSync(readinessPath, 'utf8'));
+    readiness.claims.live_ai_media_provider = true;
+    readiness.claims.live_b2_upload_readback = true;
+    writeFileSync(readinessPath, JSON.stringify(readiness));
+
+    const attestationPath = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+    const attestationAbsolute = path.join(root, attestationPath);
+    mkdirSync(path.dirname(attestationAbsolute), { recursive: true });
+    const result = privateRecoveredResult();
+    const built = buildRedactedRecoveredAttestation(
+      result,
+      Buffer.from(`${JSON.stringify(result, null, 2)}\n`),
+      { expectedCommit: 'a'.repeat(40) },
+    );
+    const attestationRaw = Buffer.from(`${JSON.stringify(built.attestation, null, 2)}\n`);
+    writeFileSync(attestationAbsolute, attestationRaw, { mode: 0o600 });
+
+    const packetPath = 'docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md';
+    const packetRaw = Buffer.from('approved packet\n');
+    writeFileSync(path.join(root, packetPath), packetRaw);
+    const approvalPath = 'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json';
+    const approval = {
+      schema_version: 'jingci.hackathon-claims-promotion-approval.v1',
+      status: 'approved',
+      campaign_id: 'devpost-30205',
+      human_actor: 'human_owner',
+      approved_at: '2026-07-17T14:37:59Z',
+      claims_packet: { path: packetPath, sha256: createHash('sha256').update(packetRaw).digest('hex') },
+      attestation: {
+        path: attestationPath,
+        schema_version: 'jingci.hackathon-recovered-live-attestation.v1',
+        source_commit: 'a'.repeat(40),
+        sha256: createHash('sha256').update(attestationRaw).digest('hex'),
+      },
+      approved_claim_ids: [
+        'runway_private_generation',
+        'genblaze_b2_recovery_verification',
+        'redacted_evidence',
+      ],
+      mandatory_qualification_required: true,
+      allowed_uses: { devpost_draft: true, final_demo_copy: true },
+      authorizations: {
+        deployment: false,
+        video_publication: false,
+        final_submission: false,
+        new_paid_call: false,
+        private_evidence_disclosure: false,
+      },
+      reusable_for_spend: false,
+    };
+    writeFileSync(path.join(root, approvalPath), `${JSON.stringify(approval, null, 2)}\n`);
+
+    const evidence = collectReleaseEvidence({
+      root,
+      git: fakeGit([proofPath, packetPath, approvalPath]),
+      liveAttestationFile: attestationPath,
+      claimsPromotionFile: approvalPath,
+    });
+    expect(evidence.gates.live_evidence).toMatchObject({
+      structurally_valid: true,
+      strict_ready: true,
+      errors: [],
+      blockers: [],
+      attestation: { claims_eligible: true },
+      claims_promotion: {
+        status: 'approved',
+        structurally_valid: true,
+        errors: [],
+        approval: { expanded_authorizations: false },
+      },
+    });
+    expect(evidence.release_candidate).toBe(false);
+  });
+
   it('fails closed when readiness asserts live claims without an attestation', () => {
     const root = fixtureRoot();
     const readinessPath = path.join(root, 'docs/campaigns/backblaze-genmedia-2026/submission-readiness.json');

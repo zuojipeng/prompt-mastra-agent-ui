@@ -30,7 +30,7 @@ Screen: Move quickly through story setting, shot card, risk tags, and platform f
 
 ## 1:08–1:48 — Run And Verify One Shot
 
-Candidate voiceover pending claims approval:
+Approved voiceover for final demo copy; recording and publication remain separately gated:
 
 > Runway generated this five-second shot. In a separate recovery verification, Genblaze stored the MP4 and its provenance manifest in Backblaze B2, read both objects back, verified their hashes and lineage, and then removed the two scoped test objects.
 

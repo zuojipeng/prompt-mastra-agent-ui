@@ -35,7 +35,6 @@
     "output/playwright/provenance-mobile.png"
   ],
   "blockers": [
-    "live_claims_promotion_approval",
     "final_voiceover_or_subtitles",
     "public_demo_video",
     "human_recording_approval"

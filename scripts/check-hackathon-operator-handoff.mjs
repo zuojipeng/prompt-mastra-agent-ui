@@ -63,13 +63,22 @@ export function buildOperatorHandoff(sources = loadSources()) {
     sources.campaign.payload.authorization?.max_external_spend >= 0.6 &&
     accountBlockers.every((blocker) => !liveBlockers.has(blocker));
   const submissionBlockers = new Set(sources.submission.payload.blockers ?? []);
-  const recoveredEvidenceReady = submissionBlockers.has('live_claims_promotion_approval') &&
-    !submissionBlockers.has('live_ai_media_provider') && !submissionBlockers.has('live_b2_upload_readback');
+  const submissionArtifacts = new Set(sources.submission.payload.artifacts ?? []);
+  const hasRecoveryClaimsPacket = submissionArtifacts.has(
+    'docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md',
+  );
+  const hasClaimsApproval = submissionArtifacts.has(
+    'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json',
+  );
+  const liveClaimsAsserted = sources.submission.payload.claims?.live_ai_media_provider === true &&
+    sources.submission.payload.claims?.live_b2_upload_readback === true;
+  const recoveredEvidenceReady = hasRecoveryClaimsPacket &&
+    !submissionBlockers.has('live_ai_media_provider') && !submissionBlockers.has('live_b2_upload_readback') &&
+    (submissionBlockers.has('live_claims_promotion_approval') || liveClaimsAsserted);
   const liveComplete = (sources.live.payload.status === 'completed' && sources.live.payload.blockers?.length === 0) ||
     recoveredEvidenceReady;
-  const claimsApproved = liveComplete && !submissionBlockers.has('live_claims_promotion_approval') &&
-    sources.submission.payload.claims?.live_ai_media_provider === true &&
-    sources.submission.payload.claims?.live_b2_upload_readback === true;
+  const claimsApproved = liveComplete && hasClaimsApproval &&
+    !submissionBlockers.has('live_claims_promotion_approval') && liveClaimsAsserted;
   const deployed = sources.deployment.payload.status === 'ready' && sources.deployment.payload.blockers?.length === 0;
   const demoReady = sources.demo.payload.status === 'ready' && sources.demo.payload.blockers?.length === 0;
   const submitted = sources.submission.payload.status === 'submitted' && sources.submission.payload.claims?.submitted === true;

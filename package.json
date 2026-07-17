@@ -31,6 +31,7 @@
     "hackathon:live:check:draft": "node scripts/check-hackathon-live-verification.mjs",
     "hackathon:live:check": "node scripts/check-hackathon-live-verification.mjs --strict",
     "hackathon:live:attest": "node scripts/attest-hackathon-live-result.mjs",
+    "hackathon:claims:check": "node scripts/check-hackathon-claims-promotion.mjs",
     "hackathon:handoff": "node scripts/check-hackathon-operator-handoff.mjs",
     "hackathon:handoff:write": "node scripts/check-hackathon-operator-handoff.mjs --write",
     "hackathon:handoff:strict": "node scripts/check-hackathon-operator-handoff.mjs --strict",

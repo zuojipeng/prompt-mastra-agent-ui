@@ -36,8 +36,35 @@ Status: in_progress
 | C-026 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Promote the combined Runway-to-B2 plan into a guarded live composition root | Clean pinned source, canonical one-shot approval, durable consumption, one provider create, B2 read-back/cleanup, private result, and conservative failure evidence pass without live execution | done |
 | C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | done |
 | C-028 | Product Agent + Claims Review Agent + Operator Agent | Security Agent + Test Agent + Human owner | Calibrate Devpost and demo claims to the recovered live evidence | Exact recommended wording, mandatory qualification, unsupported claims, and separate human decision gate are reviewable | done |
+| C-029 | Engineering Agent + Claims Review Agent | Security Agent + Test Agent + Operator Agent | Bind human claims approval without widening authority | Canonical approval binds packet and attestation hashes, accepts only two copy uses, and rejects deployment, publication, submission, spend, or evidence disclosure | done |
 
 ## Event Log
+
+### 2026-07-17 14:44 C-E036
+
+Type: REVIEWED
+From: Engineering Agent + Claims Review Agent + Security Agent + Test Agent
+To: Hermes Orchestrator + DevOps Agent
+Task: C-029
+Gate: Claims Approval Contract / Release Evidence
+Message: Converted the human decision into a canonical source artifact bound to the approved packet and redacted recovery attestation hashes. The contract accepts only Devpost draft and final demo copy; every deployment, publication, final submission, new paid call, and private evidence disclosure authorization remains false and spend reuse is forbidden.
+Evidence: 5 focused approval tests, 13 release-evidence tests, independent CLI validation, and real collector output with zero live-evidence blockers and zero secret findings. Release candidacy remains false because later gates are independent.
+Decision: PASS CLAIMS GATE; CONTINUE TO PREVIEW DEPLOYMENT PREPARATION
+Next owner: DevOps Agent + Architecture Agent + Security Agent + Test Agent
+Close condition: Select and harden a public service runtime, prepare deployment and rollback evidence, and request separate human release approval before creating or changing public infrastructure.
+
+### 2026-07-17 14:37 C-E035
+
+Type: HUMAN_GATE_CLOSED
+From: Human owner
+To: Hermes Orchestrator + Claims Review Agent + Operator Agent
+Task: C-028
+Gate: Claims Promotion
+Message: Human owner approved the three recommended claims and mandatory qualification in `claims-promotion-review.md` for Devpost draft and final demo copy only.
+Evidence: Exact approval statement in the active task and the packet text. Deployment, public video publication, final submission, new paid calls, and private evidence disclosure were explicitly excluded.
+Decision: PROMOTE NARROW CLAIMS; CONTINUE TO PREVIEW DEPLOYMENT PLANNING
+Next owner: DevOps Agent + Security Agent + Test Agent
+Close condition: Bind the approval to the claims packet and redacted attestation hashes, keep excluded actions false, then prepare a judge-accessible preview without deploying until separately authorized.
 
 ### 2026-07-17 14:31 C-E034
 

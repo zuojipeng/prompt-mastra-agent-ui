@@ -34,10 +34,10 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('advances the repository handoff to claims review after recovered evidence', () => {
+  it('advances the repository handoff to preview deployment after claims approval', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('claims_promotion');
+    expect(handoff.current_stage).toBe('preview_deployment');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });
@@ -73,6 +73,10 @@ describe('hackathon operator handoff', () => {
       live_ai_media_provider: true,
       live_b2_upload_readback: true,
     };
+    input.submission.payload.artifacts = [
+      'docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md',
+      'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json',
+    ];
     expect(buildOperatorHandoff(input).current_stage).toBe('preview_deployment');
   });
 

@@ -66,4 +66,4 @@ Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's
 
 ## Current Blockers
 
-Claims promotion for the private Runway and B2 recovery evidence, public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026. See `submission-readiness.json` and `claims-promotion-review.md` for the machine-checked gate and exact proposed wording.
+The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. Public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.

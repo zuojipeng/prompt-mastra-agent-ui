@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { evaluateDeployment, isDeploymentStrictReady } from './check-hackathon-deployment.mjs';
 import { evaluateSubmission, isSubmissionStrictReady } from './check-hackathon-submission.mjs';
 import { evaluateRedactedLiveAttestation } from './attest-hackathon-live-result.mjs';
+import { evaluateClaimsPromotion, isClaimsPromotionApproved } from './check-hackathon-claims-promotion.mjs';
 import { MAX_SCAN_BYTES, scanSecrets } from './hackathon-secret-scan.mjs';
 
 const SCHEMA_VERSION = 'jingci.hackathon-release-evidence.v2';
@@ -21,6 +22,7 @@ const SUBMISSION_FILE = 'docs/campaigns/backblaze-genmedia-2026/submission-readi
 const DEPLOYMENT_FILE = 'docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json';
 const DEFAULT_OUTPUT = 'artifacts/hackathon/backblaze-genmedia-2026/release-evidence.json';
 const LIVE_ATTESTATION_FILE = 'artifacts/hackathon/backblaze-genmedia-2026/live-attestation.json';
+const CLAIMS_PROMOTION_FILE = 'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json';
 
 function defaultGit(root, args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' });
@@ -45,7 +47,12 @@ function sha256(buffer) {
 
 export { scanSecrets } from './hackathon-secret-scan.mjs';
 
-export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit, liveAttestationFile = LIVE_ATTESTATION_FILE } = {}) {
+export function collectReleaseEvidence({
+  root = process.cwd(),
+  git = defaultGit,
+  liveAttestationFile = LIVE_ATTESTATION_FILE,
+  claimsPromotionFile = CLAIMS_PROMOTION_FILE,
+} = {}) {
   const repositoryRoot = realpathSync(root);
   const submission = readJson(repositoryRoot, SUBMISSION_FILE);
   const deployment = readJson(repositoryRoot, DEPLOYMENT_FILE);
@@ -101,6 +108,27 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
   let liveAttestation = null;
   let liveAttestationGate = { errors: [], blockers: ['redacted_live_attestation_missing'] };
   let liveAttestationSummary = null;
+  let claimsPromotion = null;
+  let claimsPromotionRaw = null;
+  let claimsPromotionGate = { errors: [], blockers: ['claims_promotion_approval_missing'] };
+  let claimsPromotionSummary = null;
+  const claimsPromotionAbsolute = resolveInside(repositoryRoot, claimsPromotionFile);
+  if (existsSync(claimsPromotionAbsolute)) {
+    try {
+      const stat = lstatSync(claimsPromotionAbsolute);
+      if (!stat.isFile() || stat.isSymbolicLink() || stat.size <= 0 || stat.size > 256_000) {
+        claimsPromotionGate = { errors: ['claims_promotion_file_unsafe'], blockers: [] };
+      } else {
+        claimsPromotionRaw = readFileSync(claimsPromotionAbsolute);
+        claimsPromotion = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(claimsPromotionRaw));
+        if (!claimsPromotionRaw.equals(Buffer.from(`${JSON.stringify(claimsPromotion, null, 2)}\n`))) {
+          claimsPromotionGate = { errors: ['claims_promotion_not_canonical'], blockers: [] };
+        }
+      }
+    } catch {
+      claimsPromotionGate = { errors: ['claims_promotion_parse_failed'], blockers: [] };
+    }
+  }
   const liveAttestationAbsolute = resolveInside(repositoryRoot, liveAttestationFile);
   if (existsSync(liveAttestationAbsolute)) {
     const stat = lstatSync(liveAttestationAbsolute);
@@ -115,12 +143,32 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
         const raw = readFileSync(liveAttestationAbsolute);
         const decoded = new TextDecoder('utf-8', { fatal: true }).decode(raw);
         liveAttestation = JSON.parse(decoded);
-        liveAttestationGate = evaluateRedactedLiveAttestation(liveAttestation, { expectedCommit: source.commit });
+        const expectedAttestationCommit = claimsPromotion?.attestation?.source_commit ?? source.commit;
+        liveAttestationGate = evaluateRedactedLiveAttestation(liveAttestation, {
+          expectedCommit: expectedAttestationCommit,
+        });
         if (!raw.equals(Buffer.from(`${JSON.stringify(liveAttestation, null, 2)}\n`))) {
           liveAttestationGate.errors.push('live_attestation_not_canonical');
         }
         if (scanSecrets([{ path: liveAttestationFile, content: raw }]).length > 0) {
           liveAttestationGate.errors.push('live_attestation_secret_material');
+        }
+        if (claimsPromotion && claimsPromotionGate.errors.length === 0) {
+          claimsPromotionGate = evaluateClaimsPromotion(claimsPromotion, {
+            root: repositoryRoot,
+            attestationRaw: raw,
+          });
+          if (isClaimsPromotionApproved(claimsPromotion, claimsPromotionGate)) {
+            liveAttestationGate.blockers = [];
+            claimsPromotionSummary = {
+              path: claimsPromotionFile,
+              bytes: claimsPromotionRaw.length,
+              sha256: sha256(claimsPromotionRaw),
+              approved_at: claimsPromotion.approved_at,
+              allowed_uses: claimsPromotion.allowed_uses,
+              expanded_authorizations: false,
+            };
+          }
         }
         if (liveAttestationGate.errors.length === 0) {
           liveAttestationSummary = {
@@ -129,7 +177,7 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
             sha256: sha256(raw),
             source_commit: liveAttestation.source_commit,
             result_sha256: liveAttestation.result_sha256,
-            claims_eligible: false,
+            claims_eligible: isClaimsPromotionApproved(claimsPromotion, claimsPromotionGate),
           };
         }
       } catch {
@@ -141,7 +189,8 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
     .filter((claim) => submission.claims?.[claim] === true);
   if (assertedLiveClaims.length > 0 && !liveAttestation) {
     liveAttestationGate.errors.push('asserted_live_claims_require_attestation');
-  } else if (assertedLiveClaims.length > 0 && liveAttestationGate.errors.length === 0) {
+  } else if (assertedLiveClaims.length > 0 && liveAttestationGate.errors.length === 0 &&
+      !isClaimsPromotionApproved(claimsPromotion, claimsPromotionGate)) {
     liveAttestationGate.errors.push('asserted_live_claims_require_promotion_approval');
   }
 
@@ -154,7 +203,8 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
     blockingScanExclusions.length === 0 &&
     submissionStrictReady &&
     deploymentStrictReady;
-  const liveEvidenceStrictReady = false;
+  const liveEvidenceStrictReady = liveAttestationGate.errors.length === 0 &&
+    isClaimsPromotionApproved(claimsPromotion, claimsPromotionGate);
   const releaseCandidateWithLiveEvidence = releaseCandidate && liveEvidenceStrictReady;
 
   return {
@@ -184,6 +234,13 @@ export function collectReleaseEvidence({ root = process.cwd(), git = defaultGit,
         errors: liveAttestationGate.errors,
         blockers: liveAttestationGate.blockers,
         attestation: liveAttestationSummary,
+        claims_promotion: {
+          status: claimsPromotion?.status ?? 'absent',
+          structurally_valid: claimsPromotionGate.errors.length === 0,
+          errors: claimsPromotionGate.errors,
+          blockers: claimsPromotionGate.blockers,
+          approval: claimsPromotionSummary,
+        },
       },
     },
     redacted_config: {

@@ -1,6 +1,8 @@
 # Claims Promotion Review
 
-Status: **READY FOR HUMAN DECISION; NOT APPROVED FOR PUBLICATION**
+Status: **APPROVED FOR DEVPOST DRAFT AND FINAL DEMO COPY ONLY**
+
+Human decision recorded: 2026-07-17T14:37:59Z. The human owner approved the three recommended claims and mandatory qualification exactly within the scope defined below. This approval does not authorize deployment, video publication, final submission, new paid calls, or private evidence disclosure.
 
 ## Recommended Public Claims
 
@@ -36,4 +38,4 @@ Do not say or imply:
 
 ## Decision Gate
 
-Human approval of this packet may promote only the three recommended claims with the mandatory qualification. It does not authorize deployment, publication of a video, Devpost submission, new provider spend, or disclosure of private evidence.
+Human approval of this packet promotes only the three recommended claims with the mandatory qualification for Devpost draft and final demo copy. Deployment, publication of a video, Devpost submission, new provider spend, and disclosure of private evidence remain unauthorized.

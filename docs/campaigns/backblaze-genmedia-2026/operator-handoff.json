@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "5f3da5afd8e4417401e5f8eaacbd5b9047b6e062b2367ad151550fb0b4ed6046"
+      "sha256": "aa022e25a7ce314599be0b8b7ee137a1d1ea747b27487668b2dbf6c13da3cc2e"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -18,7 +18,7 @@
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
-      "sha256": "f598d6ba56104e5944b363d92931d0627ec14f851eb23492c840e0cde7f621b1"
+      "sha256": "c01b10dcaf522f20bad51368d1b180d80641a0775ad2f654266d45746132e90f"
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
@@ -34,7 +34,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "claims_promotion",
+  "current_stage": "preview_deployment",
   "stages": [
     {
       "id": "registration_terms",
@@ -56,13 +56,13 @@
     },
     {
       "id": "claims_promotion",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner + Claims Review Agent",
       "required_evidence": "Exact approval or revision of the evidence-bounded public claims packet"
     },
     {
       "id": "preview_deployment",
-      "status": "waiting",
+      "status": "current_human_gate",
       "owner": "Human owner + DevOps Agent",
       "required_evidence": "Judge-accessible preview URL, access control, smoke, and rollback evidence"
     },
@@ -80,9 +80,9 @@
     }
   ],
   "source_gate_counts": {
-    "submission": 5,
+    "submission": 4,
     "deployment": 8,
-    "demo": 4,
+    "demo": 3,
     "live": 2
   },
   "plan_only_commands": [
