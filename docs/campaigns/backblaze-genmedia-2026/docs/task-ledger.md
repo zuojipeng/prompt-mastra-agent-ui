@@ -46,8 +46,22 @@ Status: in_progress
 | C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
 | C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
 | C-038 | Security Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | Bind retained-source execution to independently reviewable B2 credential scope | Canonical short-lived evidence binds bucket, region, prefix, key fingerprint, least privileges, and final private result without authorizing execution | done |
+| C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | v4 authorization returns allowed bucket/prefix/capabilities and a validated private attestation exists | blocked-human |
 
 ## Event Log
+
+### 2026-07-18 18:29 C-E046
+
+Type: BLOCKED
+From: Security Agent + DevOps Agent
+To: Human owner + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-039
+Gate: Production Credential / External Account
+Message: Executed the one approved read-only `b2_authorize_account` v4 request using the ignored owner-only mode-0600 local configuration. Backblaze returned HTTP 401. The no-retry requirement was honored. The checker did not print or persist the application key, authorization token, or response body; it created no scope attestation and performed no object read, write, or delete.
+Evidence: One process invocation and one HTTP 401 status; `attestation_absent=true`; configuration remained regular owner-only mode 0600 with one link; clean Git worktree; temporary checker removed.
+Decision: STOP. CURRENT CONFIGURATION CANNOT SUPPORT A SCOPE CLAIM OR B2 MUTATION. DO NOT RETRY UNDER THIS APPROVAL.
+Next owner: Human owner + DevOps Agent
+Close condition: Human owner verifies or recreates a bucket- and `jingci-preview/`-scoped standard Application Key, updates the ignored mode-0600 configuration, and issues a new explicit one-request read-only inspection approval.
 
 ### 2026-07-18 18:01 C-E045
 
