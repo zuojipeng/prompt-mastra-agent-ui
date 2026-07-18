@@ -47,3 +47,5 @@ Every result keeps deployment, publication, submission, and paid API authorizati
 ## Remaining Gate
 
 The machine-checked live plan, crash-recovery runbook, and guarded library adapter now implement clean-source checks, safe local media loading, bucket/region-bound approval, delayed configuration loading, result creation on post-consumption failures, conservative crash recovery, and no-overwrite behavior. Network execution remains blocked until an exact mode-0600 human approval exists for a clean pinned commit and separately reviewed bucket/prefix-scoped credentials are available.
+
+The credential review is represented by a separate canonical mode-0600 `jingci.b2-credential-scope-attestation.v1` document. It binds a short-lived review to the exact bucket, region, `jingci-preview/` prefix, Key ID SHA-256, and a deny-by-default capability set. Its authority is evidence-only and `execution_authorized` must remain false. The adapter validates it before backend creation and approval consumption, and the terminal result records its review ID and document hash. This attestation cannot replace the later one-shot mutation approval.

@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from .approval_journal import DurableApprovalJournal
 from .b2_config import B2Config, build_live_backblaze_backend
+from .b2_credential_scope_attestation import parse_b2_credential_scope_attestation
 from .preview_source_live_plan import load_plan, validate_plan
 from .preview_source_promotion import promote_preview_source, validate_source
 from .preview_source_promotion_contract import (
@@ -64,6 +65,7 @@ def run_guarded_source_promotion(
     expected_bucket: str,
     expected_region: str,
     approval_path: Path,
+    credential_scope_attestation_path: Path,
     source_media_path: Path,
     result_path: Path,
     approval_journal: DurableApprovalJournal,
@@ -90,6 +92,9 @@ def run_guarded_source_promotion(
     os.close(directory_descriptor)
 
     approval_bytes = read_private_file(approval_path, maximum_bytes=32 * 1024)
+    credential_scope_bytes = read_private_file(
+        credential_scope_attestation_path, maximum_bytes=32 * 1024
+    )
     media = read_private_file(source_media_path, maximum_bytes=100_000_000)
     digest = validate_source(source_key, media, hashlib.sha256(media).hexdigest())
     started_at = clock()
@@ -108,6 +113,13 @@ def run_guarded_source_promotion(
     try:
         config = config_loader()
         _validate_config(config, expected_bucket=approval.bucket, expected_region=approval.region)
+        credential_scope_attestation = parse_b2_credential_scope_attestation(
+            credential_scope_bytes,
+            expected_bucket=approval.bucket,
+            expected_region=approval.region,
+            expected_key_id=config.key_id,
+            at=started_at,
+        )
     except BaseException:
         raise GuardedSourcePromotionError(
             "source-promotion configuration preflight failed before approval consumption"
@@ -155,6 +167,7 @@ def run_guarded_source_promotion(
             failure_code="live_storage_failed",
             cleanup_confirmed=False,
             evidence_mode=evidence_mode,
+            credential_scope_attestation=credential_scope_attestation,
         )
         _write_terminal_result(result_writer, result_path, record, approval_journal)
         raise GuardedSourcePromotionError(
@@ -167,6 +180,7 @@ def run_guarded_source_promotion(
         recorded_at=clock(),
         outcome=outcome,
         evidence_mode=evidence_mode,
+        credential_scope_attestation=credential_scope_attestation,
     )
     _write_terminal_result(result_writer, result_path, record, approval_journal)
     return record

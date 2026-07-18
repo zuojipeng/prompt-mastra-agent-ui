@@ -136,6 +136,25 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
         self.assertFalse(any(record["authorizations"].values()))
         self.assertFalse(record["recovery_required"])
 
+    def test_live_result_requires_credential_scope_evidence(self) -> None:
+        approval = self.parse()
+        outcome = SourcePromotionResult(
+            schema_version="jingci.preview-source-promotion-result.v1",
+            status="passed",
+            source_key=KEY,
+            source_sha256=DIGEST,
+            source_size_bytes=len(MEDIA),
+            retained=True,
+        )
+        with self.assertRaisesRegex(ValueError, "requires credential-scope evidence"):
+            build_private_result(
+                approval=approval,
+                approval_marker=self.marker(approval),
+                recorded_at=NOW,
+                outcome=outcome,
+                evidence_mode="live_private",
+            )
+
     def test_failure_contract_distinguishes_compensation_and_recovery(self) -> None:
         approval = self.parse()
         compensated = build_private_result(
@@ -206,6 +225,38 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "integrity"):
                 write_private_result(
                     directory / "widened.json", widened, approval_journal=journal
+                )
+            malformed_scope = dict(record)
+            malformed_scope["credential_scope"] = {
+                "review_id": "scope-review-001",
+                "document_sha256": "0" * 64,
+                "bucket": "fixture-bucket",
+                "region": "us-east-005",
+                "name_prefix": "jingci-preview/",
+                "key_id_sha256": "1" * 64,
+                "capabilities": [1],
+            }
+            with self.assertRaisesRegex(ValueError, "integrity"):
+                write_private_result(
+                    directory / "malformed-scope.json",
+                    malformed_scope,
+                    approval_journal=journal,
+                )
+            forged_scope = dict(record)
+            forged_scope["credential_scope"] = {
+                "review_id": "scope-review-001",
+                "document_sha256": "0" * 64,
+                "bucket": "another-bucket",
+                "region": "us-east-005",
+                "name_prefix": "jingci-preview/",
+                "key_id_sha256": "1" * 64,
+                "capabilities": ["readFiles"],
+            }
+            with self.assertRaisesRegex(ValueError, "integrity"):
+                write_private_result(
+                    directory / "forged-scope.json",
+                    forged_scope,
+                    approval_journal=journal,
                 )
             forged = dict(record)
             forged["approval"] = dict(record["approval"], marker_sha256="0" * 64)

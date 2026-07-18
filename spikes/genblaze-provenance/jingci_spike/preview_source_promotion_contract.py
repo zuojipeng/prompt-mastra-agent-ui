@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .approval_journal import MARKER_SCHEMA, DurableApprovalJournal
+from .b2_credential_scope_attestation import B2CredentialScopeAttestation, SOURCE_PREFIX
 from .preview_source_promotion import MAX_SOURCE_BYTES, SOURCE_KEY_PATTERN, SourcePromotionResult
 from .private_file_store import open_owner_directory, publish_immutable
 
@@ -173,7 +174,8 @@ def build_private_result(
     failure_phase: str | None = None,
     failure_code: str | None = None,
     cleanup_confirmed: bool | None = None,
-    evidence_mode: str = "live_private",
+    evidence_mode: str = "fixture_non_attestable",
+    credential_scope_attestation: B2CredentialScopeAttestation | None = None,
 ) -> dict[str, Any]:
     marker_keys = {
         "schema_version",
@@ -230,6 +232,21 @@ def build_private_result(
     marker_sha256 = hashlib.sha256(
         (json.dumps(approval_marker, separators=(",", ":"), sort_keys=True) + "\n").encode("ascii")
     ).hexdigest()
+    credential_scope = (
+        None
+        if credential_scope_attestation is None
+        else {
+            "review_id": credential_scope_attestation.review_id,
+            "document_sha256": credential_scope_attestation.document_sha256,
+            "bucket": credential_scope_attestation.bucket,
+            "region": credential_scope_attestation.region,
+            "name_prefix": credential_scope_attestation.name_prefix,
+            "key_id_sha256": credential_scope_attestation.key_id_sha256,
+            "capabilities": list(credential_scope_attestation.capabilities),
+        }
+    )
+    if evidence_mode == "live_private" and credential_scope is None:
+        raise ValueError("live source-promotion result requires credential-scope evidence")
     record = {
         "schema_version": RESULT_SCHEMA,
         "evidence_mode": evidence_mode,
@@ -248,8 +265,11 @@ def build_private_result(
             "marker_sha256": marker_sha256,
             "consumed_at": approval_marker["consumed_at"],
         },
+        "credential_scope": credential_scope,
         "storage": {
             "backend": "backblaze_b2" if evidence_mode == "live_private" else "memory_fixture",
+            "bucket": approval.bucket,
+            "region": approval.region,
             "private": True,
             "retained": retained,
             "readback_verified": outcome is not None,
@@ -276,6 +296,7 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
         "run_id",
         "source",
         "approval",
+        "credential_scope",
         "storage",
         "failure",
         "recovery_required",
@@ -285,6 +306,7 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
         raise ValueError("private source-promotion result shape is invalid")
     source = record["source"]
     approval = record["approval"]
+    credential_scope = record["credential_scope"]
     storage = record["storage"]
     authorizations = record["authorizations"]
     if (
@@ -309,10 +331,50 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
         or not _ID.fullmatch(str(approval["approval_id"]))
         or not _DIGEST.fullmatch(str(approval["document_sha256"]))
         or not _DIGEST.fullmatch(str(approval["marker_sha256"]))
+        or (
+            credential_scope is not None
+            and (
+                not isinstance(credential_scope, dict)
+                or set(credential_scope)
+                != {
+                    "review_id",
+                    "document_sha256",
+                    "bucket",
+                    "region",
+                    "name_prefix",
+                    "key_id_sha256",
+                    "capabilities",
+                }
+                or not _ID.fullmatch(str(credential_scope["review_id"]))
+                or not _DIGEST.fullmatch(str(credential_scope["document_sha256"]))
+                or not _BUCKET.fullmatch(str(credential_scope["bucket"]))
+                or not _REGION.fullmatch(str(credential_scope["region"]))
+                or credential_scope["name_prefix"] != SOURCE_PREFIX
+                or not _DIGEST.fullmatch(str(credential_scope["key_id_sha256"]))
+                or not isinstance(credential_scope["capabilities"], list)
+                or any(
+                    not isinstance(capability, str)
+                    for capability in credential_scope["capabilities"]
+                )
+                or credential_scope["capabilities"]
+                != sorted(set(credential_scope["capabilities"]))
+            )
+        )
+        or (record["evidence_mode"] == "live_private" and credential_scope is None)
         or not isinstance(storage, dict)
-        or set(storage) != {"backend", "private", "retained", "readback_verified"}
+        or set(storage)
+        != {"backend", "bucket", "region", "private", "retained", "readback_verified"}
         or storage["backend"]
         != ("backblaze_b2" if record["evidence_mode"] == "live_private" else "memory_fixture")
+        or not _BUCKET.fullmatch(str(storage["bucket"]))
+        or not _REGION.fullmatch(str(storage["region"]))
+        or (
+            credential_scope is not None
+            and (
+                credential_scope["bucket"] != storage["bucket"]
+                or credential_scope["region"] != storage["region"]
+            )
+        )
         or storage["private"] is not True
         or not isinstance(authorizations, dict)
         or set(authorizations) != {"deployment", "publication", "submission", "paid_api"}

@@ -45,8 +45,22 @@ Status: in_progress
 | C-035 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Compose the source-promotion lifecycle offline | Pre-consumption checks, exact fake restriction, one-shot consumption, non-attestable success/failure evidence, cleanup uncertainty, and interrupted-write recovery pass without credentials or network | done |
 | C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
 | C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
+| C-038 | Security Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | Bind retained-source execution to independently reviewable B2 credential scope | Canonical short-lived evidence binds bucket, region, prefix, key fingerprint, least privileges, and final private result without authorizing execution | done |
 
 ## Event Log
+
+### 2026-07-18 18:01 C-E045
+
+Type: REVIEWED
+From: Security Agent + Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-038
+Gate: Security / Architecture / Engineering / Code Review / Test / DevOps / Claims
+Message: Added a canonical, short-lived B2 credential-scope attestation that is evidence-only and secret-free. It binds one reviewed key fingerprint to the exact bucket, region, `jingci-preview/` prefix, and a deny-by-default capability set derived from Backblaze's official Application Key documentation. The guarded adapter now requires this owner-only attestation before backend creation or one-shot approval consumption. Private terminal results retain its review ID and document hash; live-private results cannot be built without it, while fixture results remain non-attestable.
+Evidence: Backblaze official Application Key capability and S3 compatibility references, 37 focused tests, 170-test Python regression, canonical parser mutation tests, adapter ordering tests, and no credential, environment, network, B2 mutation, Runway call, deployment, publication, or submission.
+Decision: PASS OFFLINE CREDENTIAL-SCOPE GATE; REAL KEY INSPECTION AND B2 MUTATION REMAIN HUMAN-GATED
+Next owner: Security Agent + DevOps Agent + Human owner
+Close condition: Inspect the configured key's actual `allowed` or console scope without disclosing the secret, create the owner-only canonical attestation for the final key, then create the separate one-shot source approval and request exact B2 retention authorization.
 
 ### 2026-07-18 17:49 C-E044
 
