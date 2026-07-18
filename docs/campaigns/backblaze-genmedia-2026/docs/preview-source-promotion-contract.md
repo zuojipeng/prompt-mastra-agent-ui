@@ -1,6 +1,6 @@
 # Preview Source Promotion Contract
 
-Status: offline contract and disabled live plan accepted; live composition absent
+Status: guarded library adapter implemented and offline-tested; live execution absent
 
 Producer: Architecture Agent + Engineering Agent
 
@@ -23,6 +23,7 @@ One approval binds all of:
 - exactly one attempt;
 - one key below `jingci-preview/source/`;
 - the source's exact SHA-256 and byte count, bounded to 100 MB.
+- one exact target bucket and Backblaze region.
 
 It does not authorize Runway spend, another source, overwrite, deployment, publication, submission, or credential disclosure. No checked-in tool creates this human approval.
 
@@ -45,4 +46,4 @@ Every result keeps deployment, publication, submission, and paid API authorizati
 
 ## Remaining Gate
 
-The machine-checked live plan and crash-recovery runbook now freeze clean-source checks, safe local media loading, bucket/prefix-scoped credentials, result creation on every post-consumption path, conservative crash recovery, and no-overwrite behavior. A future slice may implement that exact adapter without executing it. Network execution remains blocked until the implemented adapter passes review and the human owner explicitly approves the exact retained-source mutation for a pinned commit.
+The machine-checked live plan, crash-recovery runbook, and guarded library adapter now implement clean-source checks, safe local media loading, bucket/region-bound approval, delayed configuration loading, result creation on post-consumption failures, conservative crash recovery, and no-overwrite behavior. Network execution remains blocked until an exact mode-0600 human approval exists for a clean pinned commit and separately reviewed bucket/prefix-scoped credentials are available.

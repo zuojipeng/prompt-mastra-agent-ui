@@ -29,7 +29,7 @@ COMMIT = "a" * 40
 KEY = "jingci-preview/source/recovered-runway.mp4"
 MEDIA = b"reviewed source"
 DIGEST = hashlib.sha256(MEDIA).hexdigest()
-CONFIG = B2Config("fixture", "us-east-005", "fixture-key", "fixture-secret")
+CONFIG = B2Config("fixture-bucket", "us-east-005", "fixture-key", "fixture-secret")
 
 
 def approval_bytes() -> bytes:
@@ -47,6 +47,8 @@ def approval_bytes() -> bytes:
         "source_key": KEY,
         "source_sha256": DIGEST,
         "source_size_bytes": len(MEDIA),
+        "bucket": "fixture-bucket",
+        "region": "us-east-005",
     }
     return (json.dumps(value, indent=2, separators=(",", ": ")) + "\n").encode("ascii")
 
@@ -93,6 +95,8 @@ class OfflinePreviewSourcePromotionTest(unittest.TestCase):
                         expected_source_key=KEY,
                         expected_source_sha256=DIGEST,
                         expected_source_size_bytes=len(MEDIA),
+                        expected_bucket=CONFIG.bucket,
+                        expected_region=CONFIG.region,
                         at=NOW,
                     ),
                     NOW,
@@ -181,6 +185,8 @@ class OfflinePreviewSourcePromotionTest(unittest.TestCase):
                 expected_source_key=KEY,
                 expected_source_sha256=DIGEST,
                 expected_source_size_bytes=len(MEDIA),
+                expected_bucket=CONFIG.bucket,
+                expected_region=CONFIG.region,
                 at=NOW,
             )
             recovered = recover_interrupted_offline_promotion(

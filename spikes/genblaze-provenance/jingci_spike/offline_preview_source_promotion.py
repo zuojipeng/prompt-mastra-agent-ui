@@ -102,6 +102,8 @@ def run_offline_source_promotion(
         expected_source_key=source_key,
         expected_source_sha256=expected_sha256,
         expected_source_size_bytes=len(media),
+        expected_bucket=config.bucket,
+        expected_region=config.region,
         at=started_at,
     )
     approval_journal.consume(approval, started_at)

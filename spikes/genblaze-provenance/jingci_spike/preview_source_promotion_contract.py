@@ -23,6 +23,8 @@ _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$")
 _ACTOR = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._@+-]{1,127}$")
 _COMMIT = re.compile(r"^[0-9a-f]{40}$")
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
+_BUCKET = re.compile(r"^[a-z0-9][a-z0-9.-]{4,61}[a-z0-9]$")
+_REGION = re.compile(r"^[a-z]{2}-[a-z]+-[0-9]{3}$")
 
 
 @dataclass(frozen=True)
@@ -38,6 +40,8 @@ class SourcePromotionApproval:
     source_key: str
     source_sha256: str
     source_size_bytes: int
+    bucket: str
+    region: str
 
 
 def _stamp(value: datetime) -> str:
@@ -74,6 +78,8 @@ def parse_source_promotion_approval(
     expected_source_key: str,
     expected_source_sha256: str,
     expected_source_size_bytes: int,
+    expected_bucket: str,
+    expected_region: str,
     at: datetime,
 ) -> SourcePromotionApproval:
     if not raw or len(raw) > 32 * 1024 or b"\x00" in raw:
@@ -96,6 +102,8 @@ def parse_source_promotion_approval(
         "source_key",
         "source_sha256",
         "source_size_bytes",
+        "bucket",
+        "region",
     }
     if not isinstance(payload, dict) or set(payload) != expected_keys or raw != _canonical_bytes(payload):
         raise ValueError("source-promotion approval shape or canonical encoding is invalid")
@@ -119,6 +127,8 @@ def parse_source_promotion_approval(
         or payload["source_size_bytes"] != expected_source_size_bytes
     ):
         raise PermissionError("source-promotion approval is not bound to the reviewed source")
+    if payload["bucket"] != expected_bucket or payload["region"] != expected_region:
+        raise PermissionError("source-promotion approval is not bound to the target storage")
     if not SOURCE_KEY_PATTERN.fullmatch(expected_source_key) or not _DIGEST.fullmatch(
         expected_source_sha256
     ):
@@ -128,6 +138,8 @@ def parse_source_promotion_approval(
         or not 1 <= expected_source_size_bytes <= MAX_SOURCE_BYTES
     ):
         raise ValueError("source-promotion source size is invalid")
+    if not _BUCKET.fullmatch(expected_bucket) or not _REGION.fullmatch(expected_region):
+        raise ValueError("source-promotion target storage identity is invalid")
     approved_at = _utc(payload["approved_at"])
     expires_at = _utc(payload["expires_at"])
     if at.tzinfo is None:
@@ -147,6 +159,8 @@ def parse_source_promotion_approval(
         source_key=payload["source_key"],
         source_sha256=payload["source_sha256"],
         source_size_bytes=payload["source_size_bytes"],
+        bucket=payload["bucket"],
+        region=payload["region"],
     )
 
 

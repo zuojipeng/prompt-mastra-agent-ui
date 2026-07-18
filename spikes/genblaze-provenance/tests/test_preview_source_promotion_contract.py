@@ -49,6 +49,8 @@ def approval_bytes(**changes: object) -> bytes:
         "source_key": KEY,
         "source_sha256": DIGEST,
         "source_size_bytes": len(MEDIA),
+        "bucket": "fixture-bucket",
+        "region": "us-east-005",
     }
     value.update(changes)
     return canonical(value)
@@ -63,6 +65,8 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
             expected_source_key=KEY,
             expected_source_sha256=DIGEST,
             expected_source_size_bytes=len(MEDIA),
+            expected_bucket="fixture-bucket",
+            expected_region="us-east-005",
             at=NOW,
         )
 
@@ -73,6 +77,7 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
             ({"scope": "runway_one_attempt_spend"}, "authority"),
             ({"commit": "b" * 40}, "run and commit"),
             ({"source_sha256": "0" * 64}, "reviewed source"),
+            ({"bucket": "another-bucket"}, "target storage"),
             ({"maximum_attempts": 2}, "exactly one"),
         ):
             with self.subTest(changes=changes), self.assertRaisesRegex(PermissionError, message):
@@ -85,6 +90,8 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
                 expected_source_key=KEY,
                 expected_source_sha256=DIGEST,
                 expected_source_size_bytes=len(MEDIA),
+                expected_bucket="fixture-bucket",
+                expected_region="us-east-005",
                 at=NOW + timedelta(hours=1),
             )
 

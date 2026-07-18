@@ -44,8 +44,22 @@ Status: in_progress
 | C-034 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Bind reviewed-source promotion to dedicated durable approval and private result contracts | Exact operation/source/commit/time binding, at-most-once consumption, immutable mode-0600 outcomes, recovery distinction, and zero adjacent authority pass without a live entrypoint | done |
 | C-035 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Compose the source-promotion lifecycle offline | Pre-consumption checks, exact fake restriction, one-shot consumption, non-attestable success/failure evidence, cleanup uncertainty, and interrupted-write recovery pass without credentials or network | done |
 | C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
+| C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
 
 ## Event Log
+
+### 2026-07-18 17:49 C-E044
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-037
+Gate: Architecture / Engineering / Security / Code Review / Test / Claims
+Message: Implemented the frozen retained-source lifecycle as a library-only adapter. Approval now additionally binds the exact B2 bucket and region. Owner-only approval/media reads, plan validation, clean commit, absent result, exact source identity, target binding, delayed injected config, and exact-key absence all precede durable consumption. Post-consumption failures write conservative recovery-required evidence with stable redacted errors. Any injected backend is forcibly non-attestable; only the exact default B2 factory can create live-private result shape.
+Evidence: 29 focused adapter/contract/plan tests, 162-test Python regression, compileall, stable-error tests, no CLI/main, no environment read, no credential load, and no network call.
+Decision: PASS OFFLINE ADAPTER GATE; ESCALATE ONLY WHEN AN EXACT MUTATION APPROVAL IS READY
+Next owner: Security Agent + DevOps Agent + Human owner
+Close condition: Independently inspect the real key's bucket/prefix restriction, create a canonical mode-0600 approval bound to the final clean commit/source/bucket/region, then request explicit one-attempt B2 retention authorization before invoking the library from a temporary operator harness.
 
 ### 2026-07-18 16:40 C-E043
 
