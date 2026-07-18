@@ -9,7 +9,7 @@
   "provenance_service": {
     "runtime": "dedicated Railway Python service behind a Cloudflare Pages Function",
     "public_url": null,
-    "current_mode": "guarded-preview-implemented-not-deployed"
+    "current_mode": "container-verified-not-deployed"
   },
   "access_model": "Cloudflare Access reviewer identity policy with JWT validation in the same-origin Pages Function",
   "controls": {
@@ -23,7 +23,7 @@
     "private_b2_objects": "verified-private-smoke-deployment-key-pending",
     "provider_and_url_allowlist": "verified-private-run-egress-policy-pending",
     "structured_redacted_logs": "implemented-code",
-    "health_and_dependency_checks": "implemented-code-process-only-dependencies-pending",
+    "health_and_dependency_checks": "verified-local-container-health-and-locked-dependencies",
     "rollback_feature_flag": "implemented-code",
     "retention_and_cleanup": "implemented-offline"
   },
@@ -36,13 +36,13 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/live-evidence-contract.md",
     "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
     "docs/campaigns/backblaze-genmedia-2026/docs/release-evidence-runbook.md",
-    "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md"
+    "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
+    "docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json"
   ],
   "blockers": [
     "reviewer_access_account",
     "cloudflare_access_configuration",
     "cloudflare_rate_limit_configuration",
-    "provenance_service_runtime",
     "bucket_scoped_credentials",
     "campaign_preview_deployment",
     "post_deploy_judge_smoke",

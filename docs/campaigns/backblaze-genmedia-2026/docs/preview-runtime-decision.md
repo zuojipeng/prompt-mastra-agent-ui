@@ -42,6 +42,19 @@ The Pages Function exposes only `GET /api/provenance/health` and `POST /api/prov
 
 The Python service uses the same token as `JINGCI_PREVIEW_BEARER_TOKEN`, sets `JINGCI_PREVIEW_ALLOWED_ORIGIN` to the exact Pages origin, and remains disabled unless `JINGCI_PUBLIC_PREVIEW_MODE=YES` and `JINGCI_PROVENANCE_ENABLED=YES` are both present.
 
+## Railway Runtime Package
+
+The service root is `spikes/genblaze-provenance`. Railway must be configured to use that exact root so its checked-in `railway.json` and `/Dockerfile` path resolve consistently.
+
+- Python is pinned to `3.12.13-slim-bookworm`; all Python packages are exact-version locked in `requirements.lock`.
+- The container runs as the unprivileged `jingci` user.
+- The runtime binds `0.0.0.0` and requires Railway's injected `PORT` to be an integer from 1 through 65535.
+- Public-preview policy is validated before the socket is created. Invalid configuration produces one generic event and exits with code 2 without echoing values.
+- Railway checks `/health`, restarts only on failure with three retries, and allows bounded overlap and draining during a future approved rollout.
+- SIGTERM and SIGINT trigger an asynchronous HTTP-server shutdown so Railway draining cannot deadlock the serving thread.
+
+`npm run hackathon:runtime:check` verifies the tracked runtime plan without reading environment values. `npm run hackathon:runtime:smoke` builds and exercises the container with a fixed fake token, deterministic memory storage, and no external API calls.
+
 ## External Controls
 
 - Protect the entire preview hostname with Cloudflare Access; the Function also validates the Access JWT.
@@ -68,6 +81,17 @@ The Python service uses the same token as `JINGCI_PREVIEW_BEARER_TOKEN`, sets `J
 - Desktop and mobile Playwright evidence.
 - Human deployment approval recorded separately.
 
+## Local Container Evidence
+
+On 2026-07-18 the pinned image built successfully and the reproducible smoke proved:
+
+- `/health` returned HTTP 200 in preview mode;
+- an origin-correct request without a bearer returned HTTP 401;
+- an origin-correct request with the fixed local-only token produced verified deterministic memory evidence;
+- SIGTERM completed within the ten-second local stop budget and the container was removed.
+
+This closes runtime packaging only. No Railway project, service, domain, variable, volume, or deployment was created.
+
 ## Sources Reviewed
 
 - Cloudflare Pages Functions: https://developers.cloudflare.com/pages/functions/
@@ -75,3 +99,7 @@ The Python service uses the same token as `JINGCI_PREVIEW_BEARER_TOKEN`, sets `J
 - Pages secret bindings: https://developers.cloudflare.com/pages/functions/bindings/
 - Cloudflare Access Pages plugin: https://developers.cloudflare.com/pages/functions/plugins/cloudflare-access/
 - Cloudflare Access JWT validation: https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/
+- Railway config as code: https://docs.railway.com/config-as-code
+- Railway config reference: https://docs.railway.com/config-as-code/reference
+- Railway health checks: https://docs.railway.com/deployments/healthchecks
+- Railway Dockerfiles: https://docs.railway.com/builds/dockerfiles

@@ -24,6 +24,8 @@
     "hackathon:check": "node scripts/check-hackathon-submission.mjs --strict",
     "hackathon:deploy:check:draft": "node scripts/check-hackathon-deployment.mjs",
     "hackathon:deploy:check": "node scripts/check-hackathon-deployment.mjs --strict",
+    "hackathon:runtime:check": "node scripts/check-hackathon-preview-runtime.mjs",
+    "hackathon:runtime:smoke": "bash scripts/smoke-hackathon-preview-runtime.sh",
     "hackathon:evidence": "node scripts/collect-hackathon-evidence.mjs",
     "hackathon:evidence:strict": "node scripts/collect-hackathon-evidence.mjs --strict",
     "hackathon:demo:check": "node scripts/check-hackathon-demo.mjs",

@@ -1,0 +1,22 @@
+{
+  "schema_version": "jingci.preview-runtime-plan.v1",
+  "runtime": "railway-docker",
+  "service_root": "spikes/genblaze-provenance",
+  "entrypoint": "python -m jingci_spike.runtime_service",
+  "healthcheck_path": "/health",
+  "required_variables": [
+    { "name": "PORT", "classification": "platform-injected" },
+    { "name": "JINGCI_PUBLIC_PREVIEW_MODE", "classification": "non-secret" },
+    { "name": "JINGCI_PREVIEW_ALLOWED_ORIGIN", "classification": "non-secret" },
+    { "name": "JINGCI_PREVIEW_BEARER_TOKEN", "classification": "secret" },
+    { "name": "JINGCI_PREVIEW_MAX_CONCURRENCY", "classification": "non-secret" },
+    { "name": "JINGCI_PROVENANCE_ENABLED", "classification": "non-secret" }
+  ],
+  "authorization": {
+    "create_cloud_resources": false,
+    "upload_secrets": false,
+    "deploy": false,
+    "write_b2": false,
+    "call_runway": false
+  }
+}

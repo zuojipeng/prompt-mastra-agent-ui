@@ -55,6 +55,24 @@ PROVENANCE_PYTHON=.venv/bin/python npm run test:e2e:provenance:local
 
 The dedicated Playwright configuration starts both loopback services, rejects occupied ports instead of reusing an unknown process, and verifies the HTTP response plus the rendered `memory://` evidence. Use a Node.js version supported by the frontend.
 
+## Railway Runtime Package
+
+The undeployed Railway service is packaged from this directory. Set the Railway service root to `spikes/genblaze-provenance`; its checked-in `railway.json` then selects `/Dockerfile`, `/health`, and the bounded restart/drain policy.
+
+From the repository root, validate the plan without reading environment values:
+
+```bash
+npm run hackathon:runtime:check
+```
+
+With Docker Desktop running, build and exercise the pinned non-root image using only a fixed fake token and deterministic memory evidence:
+
+```bash
+npm run hackathon:runtime:smoke
+```
+
+The smoke waits for health, requires an unauthenticated request to return 401, verifies an authenticated fixture manifest, sends SIGTERM, and removes the container and temporary responses. It does not create Railway resources, upload variables, use B2 credentials, or call Runway.
+
 ## Guarded Preview Boundary
 
 The HTTP adapter refuses a non-loopback bind unless all preview safety configuration is explicit. This mode is for local security verification before a separate runtime and reviewer-access decision; it is not deployment authorization.
@@ -118,7 +136,7 @@ The current stdlib transport rejects private DNS answers before every media requ
 - Selected live candidate: Runway `gen4.5`; adapter and guarded REST harness are implemented but only offline fakes have executed.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Local HTTP adapter: loopback-only `GET /health` and `POST /v1/provenance-runs`, with a 64KB body limit and local-origin CORS.
-- Preview boundary: same-origin Cloudflare Pages Function to a dedicated guarded Python runtime; implemented but not deployed.
+- Preview boundary: same-origin Cloudflare Pages Function to a pinned, locally container-verified guarded Python runtime; not deployed.
 
 ## B2 Gate
 

@@ -38,8 +38,22 @@ Status: in_progress
 | C-028 | Product Agent + Claims Review Agent + Operator Agent | Security Agent + Test Agent + Human owner | Calibrate Devpost and demo claims to the recovered live evidence | Exact recommended wording, mandatory qualification, unsupported claims, and separate human decision gate are reviewable | done |
 | C-029 | Engineering Agent + Claims Review Agent | Security Agent + Test Agent + Operator Agent | Bind human claims approval without widening authority | Canonical approval binds packet and attestation hashes, accepts only two copy uses, and rejects deployment, publication, submission, spend, or evidence disclosure | done |
 | C-030 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Implement the undeployed judge-preview security gateway | Same-origin preview transport, Access JWT validation, bounded proxy, safe config, runtime ADR, dependency audit, Worker build, and regression evidence pass without deployment | done |
+| C-031 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Package and locally verify the undeployed Railway provenance runtime | Pinned non-root container, fail-closed Railway entrypoint, config validator, deterministic container smoke, and regression evidence pass without cloud resources | done |
 
 ## Event Log
+
+### 2026-07-18 10:18 C-E038
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + DevOps Agent
+To: Security Agent + Code Review Agent + Test Agent + Hermes Orchestrator
+Task: C-031
+Gate: Architecture / Engineering / Security / Code Review / Test / Release Preparation
+Message: Packaged the Python provenance adapter as a pinned, non-root Railway Docker runtime without creating infrastructure. Startup now consumes Railway's `PORT`, validates the complete preview policy before binding publicly, emits redacted lifecycle events, and handles SIGTERM without blocking the serving thread. A machine-readable plan keeps deployment, secret upload, B2 writes, Runway calls, and resource creation unauthorized. The one-command local smoke rebuilt the image, proved health 200, unauthorized 401, authorized deterministic memory evidence, graceful stop, and cleanup.
+Evidence: `preview-runtime-plan.json`, `railway.json`, pinned Dockerfile and dependency lock, runtime validator with negative cases, 120 Python tests, 180 Vitest tests, TypeScript, ESLint, zero-vulnerability production audit, and reproducible container smoke.
+Decision: PASS LOCAL RUNTIME GATE; KEEP CLOUD DEPLOYMENT BLOCKED
+Next owner: DevOps Agent + Human owner + Test Agent
+Close condition: Obtain separate deployment authorization, configure Railway and Cloudflare Access/rate limiting with deployment-scoped secrets, deploy pinned commits, and pass judge-path smoke before changing readiness from design.
 
 ### 2026-07-18 01:12 C-E037
 
