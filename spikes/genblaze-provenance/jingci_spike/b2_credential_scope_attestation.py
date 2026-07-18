@@ -2,13 +2,18 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Mapping
+
+from .private_file_store import open_owner_directory, publish_immutable
 
 
 ATTESTATION_SCHEMA = "jingci.b2-credential-scope-attestation.v1"
+INSPECTION_SCHEMA = "jingci.b2-credential-scope-inspection.v1"
 CAMPAIGN_ID = "backblaze-genmedia-2026"
 AUTHORITY = "credential_scope_evidence_only"
 SOURCE_PREFIX = "jingci-preview/"
@@ -35,6 +40,11 @@ _ACTOR = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._@+-]{1,127}$")
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _BUCKET = re.compile(r"^[a-z0-9][a-z0-9.-]{4,61}[a-z0-9]$")
 _REGION = re.compile(r"^[a-z]{2}-[a-z]+-[0-9]{3}$")
+_POLICY_ERRORS = {
+    "prefix_mismatch",
+    "missing_required_capabilities",
+    "dangerous_or_unnecessary_capabilities",
+}
 
 
 @dataclass(frozen=True)
@@ -49,6 +59,108 @@ class B2CredentialScopeAttestation:
     capabilities: tuple[str, ...]
     key_id_sha256: str
     document_sha256: str
+
+
+def build_b2_scope_inspection_record(
+    *,
+    inspection_id: str,
+    inspected_at: datetime,
+    bucket: str,
+    region: str,
+    name_prefix: str | None,
+    capabilities: list[str],
+    key_id: str,
+) -> dict[str, Any]:
+    if not _ID.fullmatch(inspection_id) or not _BUCKET.fullmatch(bucket) or not _REGION.fullmatch(
+        region
+    ):
+        raise ValueError("credential-scope inspection identity is invalid")
+    if inspected_at.tzinfo is None:
+        raise ValueError("credential-scope inspection clock must be timezone-aware")
+    if (
+        not capabilities
+        or any(not isinstance(item, str) for item in capabilities)
+        or capabilities != sorted(set(capabilities))
+    ):
+        raise ValueError("credential-scope inspection capabilities must be sorted and unique")
+    capability_set = set(capabilities)
+    policy_errors: list[str] = []
+    if name_prefix != SOURCE_PREFIX:
+        policy_errors.append("prefix_mismatch")
+    if not REQUIRED_CAPABILITIES <= capability_set:
+        policy_errors.append("missing_required_capabilities")
+    if not capability_set <= ALLOWED_CAPABILITIES:
+        policy_errors.append("dangerous_or_unnecessary_capabilities")
+    policy_errors.sort()
+    return {
+        "schema_version": INSPECTION_SCHEMA,
+        "campaign_id": CAMPAIGN_ID,
+        "inspection_id": inspection_id,
+        "inspected_at": _stamp(inspected_at),
+        "bucket": bucket,
+        "region": region,
+        "name_prefix": name_prefix,
+        "capabilities": capabilities,
+        "key_id_sha256": hashlib.sha256(key_id.encode("utf-8")).hexdigest(),
+        "policy_status": "passed" if not policy_errors else "rejected",
+        "policy_errors": policy_errors,
+        "secret_value_recorded": False,
+        "authorization_token_recorded": False,
+        "execution_authorized": False,
+    }
+
+
+def write_private_b2_scope_inspection(path: Path, record: Mapping[str, Any]) -> None:
+    expected_keys = {
+        "schema_version",
+        "campaign_id",
+        "inspection_id",
+        "inspected_at",
+        "bucket",
+        "region",
+        "name_prefix",
+        "capabilities",
+        "key_id_sha256",
+        "policy_status",
+        "policy_errors",
+        "secret_value_recorded",
+        "authorization_token_recorded",
+        "execution_authorized",
+    }
+    if not isinstance(record, dict) or set(record) != expected_keys:
+        raise ValueError("credential-scope inspection record shape is invalid")
+    capabilities = record["capabilities"]
+    errors = record["policy_errors"]
+    if (
+        record["schema_version"] != INSPECTION_SCHEMA
+        or record["campaign_id"] != CAMPAIGN_ID
+        or not _ID.fullmatch(str(record["inspection_id"]))
+        or not _BUCKET.fullmatch(str(record["bucket"]))
+        or not _REGION.fullmatch(str(record["region"]))
+        or record["name_prefix"] is not None
+        and not isinstance(record["name_prefix"], str)
+        or not isinstance(capabilities, list)
+        or not capabilities
+        or any(not isinstance(item, str) for item in capabilities)
+        or capabilities != sorted(set(capabilities))
+        or not _DIGEST.fullmatch(str(record["key_id_sha256"]))
+        or record["policy_status"] not in {"passed", "rejected"}
+        or not isinstance(errors, list)
+        or errors != sorted(set(errors))
+        or any(error not in _POLICY_ERRORS for error in errors)
+        or (record["policy_status"] == "passed") != (not errors)
+        or record["secret_value_recorded"] is not False
+        or record["authorization_token_recorded"] is not False
+        or record["execution_authorized"] is not False
+    ):
+        raise ValueError("credential-scope inspection record integrity is invalid")
+    _utc(record["inspected_at"])
+    payload = _canonical_bytes(record)
+    directory = open_owner_directory(path.parent)
+    try:
+        publish_immutable(directory, path.name, payload)
+    finally:
+        os.close(directory)
 
 
 def _stamp(value: datetime) -> str:

@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import hashlib
 import json
+import stat
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from jingci_spike.b2_credential_scope_attestation import (
     ALLOWED_CAPABILITIES,
     ATTESTATION_SCHEMA,
     AUTHORITY,
     CAMPAIGN_ID,
+    INSPECTION_SCHEMA,
     REQUIRED_CAPABILITIES,
     SOURCE_PREFIX,
+    build_b2_scope_inspection_record,
     parse_b2_credential_scope_attestation,
+    write_private_b2_scope_inspection,
 )
 
 
@@ -98,6 +104,51 @@ class B2CredentialScopeAttestationTest(unittest.TestCase):
         raw = (json.dumps(value, indent=2, separators=(",", ": ")) + "\n").encode("ascii")
         with self.assertRaisesRegex(ValueError, "shape"):
             self.parse(raw)
+
+    def test_rejected_scope_is_preserved_as_non_authorizing_private_evidence(self) -> None:
+        capabilities = sorted(ALLOWED_CAPABILITIES | {"shareFiles"})
+        record = build_b2_scope_inspection_record(
+            inspection_id="scope-inspection-001",
+            inspected_at=NOW,
+            bucket=BUCKET,
+            region=REGION,
+            name_prefix=SOURCE_PREFIX,
+            capabilities=capabilities,
+            key_id=KEY_ID,
+        )
+        self.assertEqual(record["schema_version"], INSPECTION_SCHEMA)
+        self.assertEqual(record["policy_status"], "rejected")
+        self.assertEqual(record["policy_errors"], ["dangerous_or_unnecessary_capabilities"])
+        self.assertFalse(record["execution_authorized"])
+        with tempfile.TemporaryDirectory(dir="/private/tmp") as root:
+            directory = Path(root) / "private"
+            directory.mkdir(mode=0o700)
+            output = directory / "inspection.json"
+            write_private_b2_scope_inspection(output, record)
+            self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o600)
+            persisted = json.loads(output.read_text())
+            self.assertEqual(persisted["capabilities"], capabilities)
+            self.assertNotIn("application_key", persisted)
+            self.assertNotIn("authorization_token", persisted)
+            with self.assertRaises(FileExistsError):
+                write_private_b2_scope_inspection(output, record)
+
+    def test_inspection_record_rejects_authority_widening(self) -> None:
+        record = build_b2_scope_inspection_record(
+            inspection_id="scope-inspection-001",
+            inspected_at=NOW,
+            bucket=BUCKET,
+            region=REGION,
+            name_prefix=SOURCE_PREFIX,
+            capabilities=sorted(ALLOWED_CAPABILITIES),
+            key_id=KEY_ID,
+        )
+        record["execution_authorized"] = True
+        with tempfile.TemporaryDirectory(dir="/private/tmp") as root:
+            directory = Path(root) / "private"
+            directory.mkdir(mode=0o700)
+            with self.assertRaisesRegex(ValueError, "integrity"):
+                write_private_b2_scope_inspection(directory / "inspection.json", record)
 
 
 if __name__ == "__main__":

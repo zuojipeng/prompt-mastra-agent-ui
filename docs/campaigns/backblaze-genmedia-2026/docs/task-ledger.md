@@ -47,8 +47,35 @@ Status: in_progress
 | C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
 | C-038 | Security Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | Bind retained-source execution to independently reviewable B2 credential scope | Canonical short-lived evidence binds bucket, region, prefix, key fingerprint, least privileges, and final private result without authorizing execution | done |
 | C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | v4 authorization returns allowed bucket/prefix/capabilities and a validated private attestation exists | blocked-human |
+| C-040 | Security Agent + Engineering Agent | Architecture Agent + Code Review Agent + Test Agent | Preserve rejected B2 scope as non-authorizing private evidence | Rejection report is canonical, secret-free, mode 0600, immutable, capability-complete, and cannot authorize execution | done |
 
 ## Event Log
+
+### 2026-07-18 19:01 C-E048
+
+Type: REVIEWED
+From: Security Agent + Engineering Agent
+To: Architecture Agent + Code Review Agent + Test Agent + Hermes Orchestrator
+Task: C-040
+Gate: Security / Engineering / Architecture / Code Review / Test
+Message: Closed the inspection tooling evidence gap exposed by C-E047. A canonical private inspection record now preserves exact allowed bucket, region, name prefix, capability names, Key ID hash, and stable policy error codes whether policy passes or rejects. It always records secret/token absence and execution authorization false, publishes immutably as mode 0600, and remains distinct from the passing short-lived attestation.
+Evidence: 24 focused scope/adapter/contract tests, 172-test Python regression, rejected extra-capability persistence, authority-widening rejection, immutable output test, and no additional credential read or network request.
+Decision: PASS REJECTION-SAFE EVIDENCE CONTRACT; C-039 STILL REQUIRES A NEW SINGLE-REQUEST HUMAN APPROVAL
+Next owner: Human owner + Security Agent + DevOps Agent
+Close condition: Approve one new read-only v4 inspection that writes the private inspection record before policy evaluation, then classify exact extra capabilities without assumption or automatic policy widening.
+
+### 2026-07-18 18:57 C-E047
+
+Type: REWORK
+From: Security Agent + DevOps Agent
+To: Architecture Agent + Test Agent + Human owner + Hermes Orchestrator
+Task: C-039
+Gate: Production Credential / Least Privilege
+Message: Executed the one newly approved read-only `b2_authorize_account` v4 request with the rotated key. Authentication succeeded and returned an inspectable bucket scope, but the offline deny-by-default parser rejected at least one capability outside its allowed set. The no-retry constraint was honored. No passing scope attestation was written, no authorization token or response body was persisted, and no B2 object operation occurred.
+Evidence: One process invocation; parser rejection `credential scope contains unnecessary or dangerous capabilities`; `attestation_absent=true`; mode-0600 configuration unchanged; clean worktree before evidence recording; temporary checker removed.
+Decision: REWORK INSPECTION EVIDENCE. KEY IS VALID, BUT LEAST PRIVILEGE IS NOT PROVEN. DO NOT RETRY UNDER THIS APPROVAL.
+Next owner: Security Agent + Architecture Agent + Human owner
+Close condition: Under a new explicit one-request approval, collect a private secret-free inspection result that preserves the exact returned capability names even when policy rejects them; independently classify each extra capability before changing policy or creating a passing attestation.
 
 ### 2026-07-18 18:29 C-E046
 
