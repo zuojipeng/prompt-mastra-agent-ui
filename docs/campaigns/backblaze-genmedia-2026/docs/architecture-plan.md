@@ -6,7 +6,7 @@ Gate evidence: E2 plus existing E3 spike evidence
 
 ## Decision
 
-Keep the existing Next.js frontend and Cloudflare Worker unchanged for the first campaign slice. Add one isolated Python execution adapter behind a narrow versioned HTTP contract only when account-bound integration is approved. The browser consumes normalized run records and never receives provider or B2 credentials.
+Keep the existing Next.js frontend and DirectorKit Cloudflare Worker unchanged. The isolated Python execution adapter remains behind a narrow versioned HTTP contract. For judge preview, the browser calls only the exact same-origin `/api/provenance` Pages Function; Cloudflare Access validates reviewer identity and the Function injects the Python service token. The browser consumes normalized run records and never receives provider, B2, Access, or service credentials.
 
 ```text
 DirectorKit Shot

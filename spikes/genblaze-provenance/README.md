@@ -6,7 +6,7 @@ It accepts one completed shot asset with a SHA-256 digest and builds a verified 
 
 The second local slice also exercises Genblaze's real `SyncProvider -> Pipeline -> ObjectStorageSink -> StorageBackend` lifecycle with deterministic bytes and an in-memory storage fake. This validates content-addressed object keys and durable credential-free URLs, but it is still not a Backblaze network upload.
 
-The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter; `runway_client.py` and `live_runway_smoke.py` implement the guarded REST and one-attempt harness. They have only run with injected offline transports and do not prove live generation. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` for the decision, cost gate, and claims boundary.
+The campaign provider contract selects Runway `gen4.5` for a fixed 5-second text-to-video request. `runway_provider.py` implements the bounded Genblaze adapter; `runway_client.py` and `live_runway_smoke.py` implement the guarded REST and one-attempt harness. One privately attested generation and B2 recovery verification now support the exact human-approved claims packet; they do not authorize another generation, deployment, publication, or submission. See `docs/campaigns/backblaze-genmedia-2026/docs/provider-decision.md` and `docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md`.
 
 `offline_runway_b2_transaction.py` composes the real Runway Genblaze adapter with a scripted fake client, an injected probe gate, `Pipeline`, `ObjectStorageSink`, and a B2-shaped in-memory backend. It verifies asset and manifest read-back plus compensating cleanup under one owner. This is no-network composition evidence only: it is not ffprobe, Runway, or Backblaze B2 live evidence.
 
@@ -38,6 +38,14 @@ NEXT_PUBLIC_PROVENANCE_API_URL=http://127.0.0.1:8788 npm run dev
 ```
 
 Without this variable the UI stays in its explicit deterministic Fixture mode. A configured adapter failure is shown as a failed run and never silently downgraded to fixture evidence.
+
+The undeployed judge-preview build uses the exact same-origin gateway path instead of a public Python URL:
+
+```bash
+NEXT_PUBLIC_PROVENANCE_API_URL=/api/provenance npm run build
+```
+
+That path is implemented by the root Pages Function and requires Cloudflare Access plus server-side bindings. It is not usable until the separate deployment gate is approved and configured.
 
 To run the browser-to-Python integration against both desktop and mobile Chromium:
 
@@ -110,7 +118,7 @@ The current stdlib transport rejects private DNS answers before every media requ
 - Selected live candidate: Runway `gen4.5`; adapter and guarded REST harness are implemented but only offline fakes have executed.
 - Current local adapter: deterministic provider plus official object-storage sink against an in-memory backend.
 - Local HTTP adapter: loopback-only `GET /health` and `POST /v1/provenance-runs`, with a 64KB body limit and local-origin CORS.
-- Later adapter: persist asset and manifest through `genblaze-s3` to an explicitly authorized B2 bucket.
+- Preview boundary: same-origin Cloudflare Pages Function to a dedicated guarded Python runtime; implemented but not deployed.
 
 ## B2 Gate
 

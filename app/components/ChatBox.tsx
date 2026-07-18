@@ -722,14 +722,14 @@ export function ChatBox() {
         attempt: (previousRun?.attempt ?? 0) + 1,
         prompt: buildShotPrompt(card),
         negative_prompt: directorKit?.negativePrompt ?? '',
-        provider: provenanceTransportMode === 'local' ? 'jingci-local-video' : 'genblaze-fixture',
+        provider: provenanceTransportMode === 'fixture' ? 'genblaze-fixture' : 'jingci-local-video',
         model: 'local-proof',
         modality: 'video',
       };
       const updateRun = (run: ProvenanceRun) => {
         setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
       };
-      if (provenanceTransportMode === 'local') {
+      if (provenanceTransportMode !== 'fixture') {
         await runProvenanceHttp({ request, onUpdate: updateRun });
       } else {
         await runProvenanceFixture({

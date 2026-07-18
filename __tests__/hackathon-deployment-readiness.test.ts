@@ -8,7 +8,9 @@ describe('hackathon deployment readiness', () => {
     const result = evaluateDeployment(deployment, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('edge_and_identity_integration');
+    expect(result.blockers).toContain('cloudflare_access_configuration');
+    expect(result.blockers).toContain('cloudflare_rate_limit_configuration');
+    expect(result.blockers).not.toContain('live_provider_and_b2_evidence');
     expect(result.blockers).toContain('human_release_approval');
   });
 

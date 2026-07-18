@@ -6,19 +6,22 @@ import {
   type ProvenanceRunStatus,
 } from './provenance-run-contract';
 
-export type ProvenanceTransportMode = 'fixture' | 'local';
+export type ProvenanceTransportMode = 'fixture' | 'local' | 'preview';
 
 export function getProvenanceTransportMode(): ProvenanceTransportMode {
-  return process.env.NEXT_PUBLIC_PROVENANCE_API_URL ? 'local' : 'fixture';
+  const rawUrl = process.env.NEXT_PUBLIC_PROVENANCE_API_URL;
+  if (!rawUrl) return 'fixture';
+  return rawUrl === '/api/provenance' ? 'preview' : 'local';
 }
 
-function getLoopbackApiUrl(rawUrl = process.env.NEXT_PUBLIC_PROVENANCE_API_URL) {
-  if (!rawUrl) throw new Error('Local provenance adapter is not configured');
+function getProvenanceEndpoint(rawUrl = process.env.NEXT_PUBLIC_PROVENANCE_API_URL) {
+  if (!rawUrl) throw new Error('Provenance adapter is not configured');
+  if (rawUrl === '/api/provenance') return '/api/provenance/v1/provenance-runs';
   const url = new URL(rawUrl);
   if (url.protocol !== 'http:' || !['127.0.0.1', 'localhost'].includes(url.hostname)) {
     throw new Error('Local provenance adapter URL must use loopback HTTP');
   }
-  return url.toString().replace(/\/$/, '');
+  return `${url.toString().replace(/\/$/, '')}/v1/provenance-runs`;
 }
 
 function buildClientRun(
@@ -71,9 +74,9 @@ export async function runProvenanceHttp({
   if (!request) throw new Error('Invalid provenance run request');
   let endpoint: string;
   try {
-    endpoint = `${getLoopbackApiUrl(baseUrl)}/v1/provenance-runs`;
+    endpoint = getProvenanceEndpoint(baseUrl);
   } catch {
-    const failed = buildClientRun(request, 'failed', 'Local provenance adapter URL is invalid');
+    const failed = buildClientRun(request, 'failed', 'Provenance adapter URL is invalid');
     onUpdate(failed);
     return failed;
   }
@@ -92,14 +95,14 @@ export async function runProvenanceHttp({
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const run = normalizeProvenanceRun(await response.json());
     if (!run || !matchesRequest(run, request)) {
-      throw new Error('Local provenance adapter returned an invalid run');
+      throw new Error('Provenance adapter returned an invalid run');
     }
     onUpdate(run);
     return run;
   } catch (error) {
     const message = error instanceof DOMException && error.name === 'AbortError'
-      ? 'Local provenance adapter timed out'
-      : 'Local provenance adapter unavailable';
+      ? 'Provenance adapter timed out'
+      : 'Provenance adapter unavailable';
     const failed = buildClientRun(request, 'failed', message);
     onUpdate(failed);
     return failed;

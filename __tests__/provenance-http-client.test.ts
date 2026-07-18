@@ -50,6 +50,25 @@ describe('provenance HTTP client', () => {
     expect(getProvenanceTransportMode()).toBe('fixture');
     process.env.NEXT_PUBLIC_PROVENANCE_API_URL = 'http://127.0.0.1:8788';
     expect(getProvenanceTransportMode()).toBe('local');
+    process.env.NEXT_PUBLIC_PROVENANCE_API_URL = '/api/provenance';
+    expect(getProvenanceTransportMode()).toBe('preview');
+  });
+
+  it('uses the same-origin preview gateway without exposing a service token', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, json: async () => response() });
+    await runProvenanceHttp({
+      request: request(),
+      baseUrl: '/api/provenance',
+      fetchImpl: fetchImpl as typeof fetch,
+      onUpdate: () => {},
+    });
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/api/provenance/v1/provenance-runs',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
   });
 
   it('posts to loopback and emits queued, running, succeeded', async () => {
@@ -78,7 +97,7 @@ describe('provenance HTTP client', () => {
       onUpdate: (run) => driftUpdates.push(run.status),
     });
     expect(drift.status).toBe('failed');
-    expect(drift.error).toBe('Local provenance adapter unavailable');
+    expect(drift.error).toBe('Provenance adapter unavailable');
     expect(driftUpdates).toEqual(['queued', 'running', 'failed']);
 
     const httpFailure = await runProvenanceHttp({
@@ -101,7 +120,7 @@ describe('provenance HTTP client', () => {
       timeoutMs: 0,
       onUpdate: () => {},
     });
-    expect(result).toMatchObject({ status: 'failed', error: 'Local provenance adapter timed out' });
+    expect(result).toMatchObject({ status: 'failed', error: 'Provenance adapter timed out' });
   });
 
   it('refuses non-loopback endpoints before fetch', async () => {
@@ -112,7 +131,7 @@ describe('provenance HTTP client', () => {
       fetchImpl: fetchImpl as typeof fetch,
       onUpdate: () => {},
     });
-    expect(result).toMatchObject({ status: 'failed', error: 'Local provenance adapter URL is invalid' });
+    expect(result).toMatchObject({ status: 'failed', error: 'Provenance adapter URL is invalid' });
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });

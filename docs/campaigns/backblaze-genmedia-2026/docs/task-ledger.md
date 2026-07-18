@@ -37,8 +37,22 @@ Status: in_progress
 | C-027 | Engineering Agent + Claims Review Agent | Security Agent + Code Review Agent + Test Agent | Promote the recovered succeeded task into redacted live evidence | Recovery result is independently scanned, source-bound, and cannot authorize another create or overclaim public serving | done |
 | C-028 | Product Agent + Claims Review Agent + Operator Agent | Security Agent + Test Agent + Human owner | Calibrate Devpost and demo claims to the recovered live evidence | Exact recommended wording, mandatory qualification, unsupported claims, and separate human decision gate are reviewable | done |
 | C-029 | Engineering Agent + Claims Review Agent | Security Agent + Test Agent + Operator Agent | Bind human claims approval without widening authority | Canonical approval binds packet and attestation hashes, accepts only two copy uses, and rejects deployment, publication, submission, spend, or evidence disclosure | done |
+| C-030 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Implement the undeployed judge-preview security gateway | Same-origin preview transport, Access JWT validation, bounded proxy, safe config, runtime ADR, dependency audit, Worker build, and regression evidence pass without deployment | done |
 
 ## Event Log
+
+### 2026-07-18 01:12 C-E037
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + DevOps Agent
+To: Security Agent + Code Review Agent + Test Agent + Hermes Orchestrator
+Task: C-030
+Gate: Architecture / Engineering / Security / Code Review / Test / Release Preparation
+Message: Accepted Cloudflare Pages + same-origin Pages Function + dedicated Railway Python service as the smallest judge-preview boundary and implemented it without creating resources. The browser now supports only fixture, loopback, or exact same-origin preview transport; Cloudflare's official Access plugin validates the reviewer JWT and the gateway injects the server-only Python token, limits routes and bytes, rejects cross-site requests and redirects, applies a deadline, and redacts upstream auth/5xx bodies. Next.js and the lint config were aligned at 15.5.20, PostCSS was overridden to 8.5.15, and build-time type/lint bypasses were removed.
+Evidence: `preview-runtime-decision.md`, 6 focused gateway tests, 65-suite/177-test full Vitest pass, strict TypeScript and ESLint pass, Next.js preview build with type/lint validation, Wrangler Pages Function build, generated `_routes.json` limited to `/api/provenance/*`, and `npm audit` with zero vulnerabilities.
+Decision: PASS CODE-ONLY PREVIEW GATE; KEEP DEPLOYMENT BLOCKED
+Next owner: DevOps Agent + Human owner + Test Agent
+Close condition: Configure a reviewer Access policy, distributed edge rate limit, dedicated Python runtime and deployment-scoped B2 credential, then obtain separate human deployment approval before creating or changing public infrastructure.
 
 ### 2026-07-17 14:44 C-E036
 

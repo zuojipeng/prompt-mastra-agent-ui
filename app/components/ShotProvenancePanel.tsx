@@ -10,6 +10,21 @@ const STATUS_COPY = {
   failed: { label: '执行失败', tone: 'bg-red-500' },
 } as const;
 
+const MODE_COPY: Record<ProvenanceTransportMode, { label: string; description: string }> = {
+  fixture: {
+    label: 'Fixture',
+    description: 'Genblaze + B2 契约演示，未写入真实存储',
+  },
+  local: {
+    label: 'Local adapter',
+    description: '本机 Genblaze adapter，使用内存存储',
+  },
+  preview: {
+    label: 'Protected preview',
+    description: '经受保护的同源网关执行，证据类型以服务返回结果为准',
+  },
+};
+
 function compactHash(value: string) {
   return `${value.slice(0, 10)}...${value.slice(-8)}`;
 }
@@ -31,6 +46,7 @@ export function ShotProvenancePanel({
 }) {
   const status = run ? STATUS_COPY[run.status] : null;
   const canRetry = run?.status === 'succeeded' || run?.status === 'failed';
+  const modeCopy = MODE_COPY[mode];
 
   return (
     <section
@@ -42,11 +58,11 @@ export function ShotProvenancePanel({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">生成存证</h3>
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-              {mode === 'fixture' ? 'Fixture' : 'Local adapter'}
+              {modeCopy.label}
             </span>
           </div>
           <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-            {mode === 'fixture' ? 'Genblaze + B2 契约演示，未写入真实存储' : '本机 Genblaze adapter，使用内存存储'}
+            {modeCopy.description}
           </p>
         </div>
         {status && (

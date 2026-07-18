@@ -42,4 +42,5 @@ next-env.d.ts
 # cloudflare
 wrangler.toml
 .wrangler/
-.dev.vars
+.dev.vars*
+.env.*

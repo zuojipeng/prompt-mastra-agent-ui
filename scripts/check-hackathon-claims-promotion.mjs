@@ -37,13 +37,17 @@ function validTimestamp(value) {
   return new Date(value).toISOString() === value.replace('Z', '.000Z');
 }
 
+/**
+ * @param {any} approval
+ * @param {{ packetRaw?: Uint8Array | null, attestationRaw?: Uint8Array | null, root?: string }} options
+ */
 export function evaluateClaimsPromotion(
   approval,
   {
     packetRaw = null,
     attestationRaw = null,
     root = process.cwd(),
-  } = {},
+  } = /** @type {{ packetRaw?: Uint8Array | null, attestationRaw?: Uint8Array | null, root?: string }} */ ({}),
 ) {
   const errors = [];
   if (!exactKeys(approval, [

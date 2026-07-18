@@ -141,6 +141,8 @@ describe('hackathon private live result attestation', () => {
     writeFileSync(input, canonical(privateRecoveredResult()), { mode: 0o600 });
 
     const attestation = attestPrivateLiveResultFile({ inputPath: input, outputPath: output, expectedCommit: commit });
+    expect(attestation).not.toBeNull();
+    if (!attestation) throw new Error('Expected recovered attestation');
     expect(attestation.schema_version).toBe('jingci.hackathon-recovered-live-attestation.v1');
     expect(lstatSync(output).mode & 0o777).toBe(0o600);
   });

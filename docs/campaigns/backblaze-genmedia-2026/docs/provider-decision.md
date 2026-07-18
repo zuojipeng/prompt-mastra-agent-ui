@@ -1,6 +1,6 @@
 # ADR: Campaign AI Video Provider
 
-Status: accepted for offline implementation; live execution remains blocked
+Status: accepted; one private live execution is attested and further spend remains blocked
 Date: 2026-07-14
 Owners: Product Agent + Architecture Agent
 Reviewers: Claims Review Agent + Test Agent
@@ -38,7 +38,7 @@ Runway can change these constraints. The live gate must re-check the endpoint sc
 
 ## Cost And Human Gate
 
-A 5-second `gen4.5` run is estimated at 60 credits, or **$0.60 before tax**. No cost has been incurred by this decision or its tests.
+A 5-second `gen4.5` run is estimated at 60 credits, or **$0.60 before tax**. One separately approved live attempt was completed and privately attested. This ADR does not authorize a retry or any additional paid call.
 
 The first live smoke is limited to one generation. A retry would raise the maximum to $1.20 and needs a separate operator decision after the first result is inspected. Registration approval is not spend approval. A future live command must require an exact confirmation, load the API secret only after that check, and report the planned maximum cost without printing credentials.
 
@@ -56,7 +56,7 @@ The first live smoke is limited to one generation. A retry would raise the maxim
 8. Write verified bytes to a private local handoff file. Persist only a file URI, digest, size, task ID, API version, and output host into Genblaze; never persist the signed provider URL.
 9. Hand the file to Genblaze `ObjectStorageSink`; only a successful B2 read-back may become live campaign evidence.
 
-The guarded HTTP client and live-smoke command now exist, but have only run against injected transports. `FakeRunwayTaskClient` scripts the lifecycle without a socket, credential, or billable action. No real Runway request has run.
+The guarded HTTP client and live-smoke command were first validated against injected transports. `FakeRunwayTaskClient` still provides the credential-free regression path. One real Runway result was later recovered through the combined Genblaze/B2 evidence flow and bound to a private attestation; private identifiers and signed URLs remain excluded from tracked artifacts.
 
 ## Failure Semantics
 
@@ -78,4 +78,4 @@ The guarded HTTP client and live-smoke command now exist, but have only run agai
 
 ## Claims Boundary
 
-Provider **selection and offline adapter behavior are proven**. External AI media generation is still blocked. Submission text must continue to say that live Runway output, B2 persistence, and the public path are unproven until their separate gates pass.
+Provider selection, offline adapter behavior, one private Runway generation, and one private B2 upload/read-back/cleanup evidence path are proven at the exact scope in the approved claims packet. Public serving and judge-accessible deployment remain unproven. Any public copy must preserve the mandatory qualifications, and no evidence authorizes another paid call.
