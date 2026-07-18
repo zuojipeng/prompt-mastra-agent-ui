@@ -1,6 +1,6 @@
 # B2 Credential Scope Attestation
 
-Status: offline contract implemented; real configured key not yet inspected
+Status: live scope inspected and rejected; replacement least-privilege key required
 
 Producer: Security Agent + Architecture Agent
 
@@ -43,4 +43,6 @@ The guarded adapter reads the attestation from an owner-only regular mode-0600 f
 
 ## Remaining Gate
 
-Security/DevOps must inspect the real configured key without printing its secret, write the canonical owner-only attestation, and confirm the file passes the parser. The human owner must then issue a separate clean-commit/source-bound one-attempt approval before any B2 source-retention call.
+The 2026-07-18 read-only inspection authenticated and confirmed the intended bucket, region, and `jingci-preview/` prefix. It did not pass least-privilege review. The Backblaze `Read and Write` preset returned required file operations together with unrelated authority including `writeBuckets`, `writeBucketEncryption`, `writeBucketLifecycleRules`, `writeBucketLogging`, `writeBucketNotifications`, and `writeBucketReplications`. The private mode-0600 rejection report contains only the approved non-secret scope fields and cannot authorize execution.
+
+The human owner must create a replacement key restricted to the same bucket and prefix with only the reviewed list/file capabilities. Security/DevOps must then perform one separately approved read-only inspection and produce a passing canonical attestation. Only after that may the human owner issue a separate clean-commit/source-bound one-attempt approval for B2 source retention.

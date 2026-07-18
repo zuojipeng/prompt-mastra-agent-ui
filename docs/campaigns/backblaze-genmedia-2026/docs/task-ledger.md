@@ -46,10 +46,24 @@ Status: in_progress
 | C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
 | C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
 | C-038 | Security Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | Bind retained-source execution to independently reviewable B2 credential scope | Canonical short-lived evidence binds bucket, region, prefix, key fingerprint, least privileges, and final private result without authorizing execution | done |
-| C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | v4 authorization returns allowed bucket/prefix/capabilities and a validated private attestation exists | blocked-human |
+| C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | A replacement key returns only the reviewed bucket/prefix/capabilities and a validated private attestation exists | blocked-human |
 | C-040 | Security Agent + Engineering Agent | Architecture Agent + Code Review Agent + Test Agent | Preserve rejected B2 scope as non-authorizing private evidence | Rejection report is canonical, secret-free, mode 0600, immutable, capability-complete, and cannot authorize execution | done |
+| C-041 | Security Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Classify the live rotated B2 key scope | Exact approved non-secret fields are retained privately and every excessive capability is identified without widening policy | done |
 
 ## Event Log
+
+### 2026-07-18 19:16 C-E049
+
+Type: BLOCKED
+From: Security Agent + DevOps Agent
+To: Architecture Agent + Code Review Agent + Test Agent + Human owner + Hermes Orchestrator
+Task: C-039 / C-041
+Gate: Production Credential / Least Privilege
+Message: Executed exactly one newly approved read-only `b2_authorize_account` v4 request. Authentication succeeded and confirmed bucket `jingci-genmedia-2026-zuojipeng`, region `us-east-005`, and prefix `jingci-preview/`. The immutable owner-only inspection report retained only the approved non-secret fields and rejected the key because its `Read and Write` capability bundle includes bucket administration and configuration mutation such as `writeBuckets`, encryption, lifecycle, logging, notification, and replication writes. No retry, object operation, deployment, token persistence, or secret output occurred.
+Evidence: Private ignored `artifacts/hackathon/backblaze-genmedia-2026/private/b2-scope-inspection-20260718.json` mode 0600; policy error `dangerous_or_unnecessary_capabilities`; Key ID represented only by SHA-256; `secret_value_recorded=false`; `authorization_token_recorded=false`; `execution_authorized=false`.
+Decision: BLOCK CURRENT KEY FOR RETAINED-SOURCE EXECUTION. DO NOT WIDEN POLICY TO MATCH A BROAD PRESET.
+Next owner: Human owner + Security Agent + DevOps Agent
+Close condition: Create a replacement bucket- and `jingci-preview/`-restricted key with only the reviewed file/list capabilities, rotate the ignored mode-0600 configuration, and separately authorize one final read-only scope inspection.
 
 ### 2026-07-18 19:01 C-E048
 
