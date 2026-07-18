@@ -40,8 +40,22 @@ Status: in_progress
 | C-030 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Implement the undeployed judge-preview security gateway | Same-origin preview transport, Access JWT validation, bounded proxy, safe config, runtime ADR, dependency audit, Worker build, and regression evidence pass without deployment | done |
 | C-031 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Package and locally verify the undeployed Railway provenance runtime | Pinned non-root container, fail-closed Railway entrypoint, config validator, deterministic container smoke, and regression evidence pass without cloud resources | done |
 | C-032 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Add the undeployed B2 evidence executor to the preview runtime | Server-bound reviewed source, fixed namespaces, bounded read, verified write/read-back, failure cleanup, truthful UI lineage, and offline evidence pass without credentials or network | done |
+| C-033 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build the offline reviewed-source promotion core | Fixed source namespace, exact digest, size bound, no overwrite, one put/read-back/retain path, compensation tests, and a no-network plan pass with no live entrypoint | done |
 
 ## Event Log
+
+### 2026-07-18 16:12 C-E040
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + Hermes Orchestrator
+Task: C-033
+Gate: Architecture / Engineering / Security / Code Review / Test
+Message: Built only the source-promotion execution core after rejecting reuse of the paid-generation approval schema for a persistent B2 mutation. The core validates the fixed source namespace, exact SHA-256, and 100 MB maximum before backend creation; refuses overwrite; permits one put; verifies existence, bytes, and digest; retains on success; and compensates a failed new upload. Its CLI exposes only `--plan`, explicitly reports `live_entrypoint=false`, and cannot load credentials or perform network operations.
+Evidence: 5 focused promotion tests, 133-test Python regression, credential-free plan output, README boundary, and unchanged seven-blocker deployment gate.
+Decision: PASS OFFLINE PROMOTION CORE; LIVE SOURCE UPLOAD REMAINS IMPOSSIBLE
+Next owner: Architecture Agent + Security Agent + Operator Agent
+Close condition: Define and test a dedicated durable source-promotion approval schema and private result contract before adding any live composition root; execution then still requires separate human approval.
 
 ### 2026-07-18 16:00 C-E039
 
