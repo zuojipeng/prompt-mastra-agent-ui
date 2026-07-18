@@ -41,8 +41,22 @@ Status: in_progress
 | C-031 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Package and locally verify the undeployed Railway provenance runtime | Pinned non-root container, fail-closed Railway entrypoint, config validator, deterministic container smoke, and regression evidence pass without cloud resources | done |
 | C-032 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Add the undeployed B2 evidence executor to the preview runtime | Server-bound reviewed source, fixed namespaces, bounded read, verified write/read-back, failure cleanup, truthful UI lineage, and offline evidence pass without credentials or network | done |
 | C-033 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build the offline reviewed-source promotion core | Fixed source namespace, exact digest, size bound, no overwrite, one put/read-back/retain path, compensation tests, and a no-network plan pass with no live entrypoint | done |
+| C-034 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Bind reviewed-source promotion to dedicated durable approval and private result contracts | Exact operation/source/commit/time binding, at-most-once consumption, immutable mode-0600 outcomes, recovery distinction, and zero adjacent authority pass without a live entrypoint | done |
 
 ## Event Log
+
+### 2026-07-18 16:23 C-E041
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + Operator Agent + Hermes Orchestrator
+Task: C-034
+Gate: Architecture / Engineering / Security / Code Review / Test / Operator
+Message: Added a dedicated canonical approval for retained private-source promotion instead of reusing the paid Runway scope. It binds exactly one attempt to the commit, run, actor, time window, fixed private source key, SHA-256, and byte count. The existing immutable journal provides local at-most-once consumption through the approval document hash. A strict private result records verified retention, confirmed compensation, or unresolved recovery and grants no adjacent authority.
+Evidence: 10 focused tests, immutable mode-0600 writer checks, same-document replay rejection, authority-widening rejection, contract decision, and unchanged plan-only CLI.
+Decision: PASS OFFLINE APPROVAL AND RESULT CONTRACT; LIVE COMPOSITION AND NETWORK REMAIN BLOCKED
+Next owner: Architecture Agent + Security Agent + DevOps Agent
+Close condition: Design and review a fail-closed composition root that creates private evidence for every post-consumption path; real B2 mutation still requires a separate exact human approval.
 
 ### 2026-07-18 16:12 C-E040
 

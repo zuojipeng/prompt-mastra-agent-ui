@@ -75,7 +75,7 @@ The smoke waits for health, requires an unauthenticated request to return 401, v
 
 `JINGCI_PROVENANCE_STORAGE_MODE` is mandatory. `MEMORY` exists only for the local smoke. An approved deployment must use `B2` and provide a bucket-scoped B2 configuration plus a reviewed private source object under `jingci-preview/source/`, its exact SHA-256, and fixed provider/model lineage. The browser cannot select or override the source key or digest. Each successful request retains one content-addressed asset and one verified manifest below a random `jingci-preview/runs/` prefix; a partial failure deletes only the keys owned by that request and never deletes the reviewed source object.
 
-Inspect the no-network source-promotion core with `PYTHONPATH=. .venv/bin/python -m jingci_spike.preview_source_promotion --plan`. There is intentionally no live CLI entrypoint yet; persistent upload must first receive a dedicated durable approval contract.
+Inspect the no-network source-promotion core with `PYTHONPATH=. .venv/bin/python -m jingci_spike.preview_source_promotion --plan`. The dedicated approval contract binds one immutable approval to the exact commit, run, private source key, SHA-256, byte count, scope, and active time window. Its private result contract distinguishes retained verified success, compensated failure, and unresolved recovery while granting no deployment, publication, submission, or paid-API authority. There is intentionally no live CLI entrypoint or approval-generation command; a human decision and a separately reviewed composition root are still required.
 
 ## Guarded Preview Boundary
 
