@@ -42,8 +42,22 @@ Status: in_progress
 | C-032 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Add the undeployed B2 evidence executor to the preview runtime | Server-bound reviewed source, fixed namespaces, bounded read, verified write/read-back, failure cleanup, truthful UI lineage, and offline evidence pass without credentials or network | done |
 | C-033 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build the offline reviewed-source promotion core | Fixed source namespace, exact digest, size bound, no overwrite, one put/read-back/retain path, compensation tests, and a no-network plan pass with no live entrypoint | done |
 | C-034 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Bind reviewed-source promotion to dedicated durable approval and private result contracts | Exact operation/source/commit/time binding, at-most-once consumption, immutable mode-0600 outcomes, recovery distinction, and zero adjacent authority pass without a live entrypoint | done |
+| C-035 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Compose the source-promotion lifecycle offline | Pre-consumption checks, exact fake restriction, one-shot consumption, non-attestable success/failure evidence, cleanup uncertainty, and interrupted-write recovery pass without credentials or network | done |
 
 ## Event Log
+
+### 2026-07-18 16:32 C-E042
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + DevOps Agent + Hermes Orchestrator
+Task: C-035
+Gate: Architecture / Engineering / Security / Code Review / Test / DevOps
+Message: Composed the approval, durable journal, promotion core, and private result writer only through an exact in-memory backend. Dirty source, wrong campaign, invalid bytes, existing object, unsafe result path, and non-fixture backend all fail before approval consumption. After consumption, success, compensated read-back failure, unresolved cleanup, and interrupted terminal writes produce or can recover conservative non-attestable evidence.
+Evidence: 18 focused tests, exact fake type restriction, replay test, pre-consumption marker absence tests, immutable private result checks, and plan output with no live entrypoint.
+Decision: PASS OFFLINE COMPOSITION; DO NOT ADD LIVE CLI OR REQUEST MUTATION YET
+Next owner: Architecture Agent + Security Agent + DevOps Agent
+Close condition: Specify the narrow live composition adapter and crash-recovery runbook without execution, then request an exact human B2 source-retention approval only after review.
 
 ### 2026-07-18 16:23 C-E041
 

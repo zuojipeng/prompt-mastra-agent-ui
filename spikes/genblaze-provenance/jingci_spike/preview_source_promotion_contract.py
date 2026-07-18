@@ -159,6 +159,7 @@ def build_private_result(
     failure_phase: str | None = None,
     failure_code: str | None = None,
     cleanup_confirmed: bool | None = None,
+    evidence_mode: str = "live_private",
 ) -> dict[str, Any]:
     marker_keys = {
         "schema_version",
@@ -217,6 +218,7 @@ def build_private_result(
     ).hexdigest()
     record = {
         "schema_version": RESULT_SCHEMA,
+        "evidence_mode": evidence_mode,
         "status": status,
         "recorded_at": _stamp(recorded_at),
         "run_id": approval.run_id,
@@ -233,7 +235,7 @@ def build_private_result(
             "consumed_at": approval_marker["consumed_at"],
         },
         "storage": {
-            "backend": "backblaze_b2",
+            "backend": "backblaze_b2" if evidence_mode == "live_private" else "memory_fixture",
             "private": True,
             "retained": retained,
             "readback_verified": outcome is not None,
@@ -254,6 +256,7 @@ def build_private_result(
 def _validate_private_result(record: Mapping[str, Any]) -> None:
     expected_keys = {
         "schema_version",
+        "evidence_mode",
         "status",
         "recorded_at",
         "run_id",
@@ -272,6 +275,7 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
     authorizations = record["authorizations"]
     if (
         record["schema_version"] != RESULT_SCHEMA
+        or record["evidence_mode"] not in {"live_private", "fixture_non_attestable"}
         or record["status"] not in {"passed", "failed_compensated", "recovery_required"}
         or not _ID.fullmatch(str(record["run_id"]))
         or not isinstance(source, dict)
@@ -293,7 +297,8 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
         or not _DIGEST.fullmatch(str(approval["marker_sha256"]))
         or not isinstance(storage, dict)
         or set(storage) != {"backend", "private", "retained", "readback_verified"}
-        or storage["backend"] != "backblaze_b2"
+        or storage["backend"]
+        != ("backblaze_b2" if record["evidence_mode"] == "live_private" else "memory_fixture")
         or storage["private"] is not True
         or not isinstance(authorizations, dict)
         or set(authorizations) != {"deployment", "publication", "submission", "paid_api"}
@@ -302,7 +307,8 @@ def _validate_private_result(record: Mapping[str, Any]) -> None:
     ):
         raise ValueError("private source-promotion result integrity is invalid")
     _utc(record["recorded_at"])
-    _utc(approval["consumed_at"])
+    if _utc(record["recorded_at"]) < _utc(approval["consumed_at"]):
+        raise ValueError("private source-promotion result precedes approval consumption")
     expected_state = {
         "passed": (True, True, False, None),
         "failed_compensated": (False, False, False, "failure"),

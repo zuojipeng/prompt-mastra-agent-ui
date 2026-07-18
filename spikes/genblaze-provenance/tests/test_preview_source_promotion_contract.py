@@ -204,6 +204,11 @@ class PreviewSourcePromotionContractTest(unittest.TestCase):
             forged["approval"] = dict(record["approval"], marker_sha256="0" * 64)
             with self.assertRaisesRegex(ValueError, "durable marker"):
                 write_private_result(directory / "forged.json", forged, approval_journal=journal)
+            reversed_time = dict(record, recorded_at="2026-07-18T08:59:59Z")
+            with self.assertRaisesRegex(ValueError, "precedes"):
+                write_private_result(
+                    directory / "time-reversed.json", reversed_time, approval_journal=journal
+                )
 
 
 if __name__ == "__main__":

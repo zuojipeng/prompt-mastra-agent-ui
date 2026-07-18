@@ -77,6 +77,8 @@ The smoke waits for health, requires an unauthenticated request to return 401, v
 
 Inspect the no-network source-promotion core with `PYTHONPATH=. .venv/bin/python -m jingci_spike.preview_source_promotion --plan`. The dedicated approval contract binds one immutable approval to the exact commit, run, private source key, SHA-256, byte count, scope, and active time window. Its private result contract distinguishes retained verified success, compensated failure, and unresolved recovery while granting no deployment, publication, submission, or paid-API authority. There is intentionally no live CLI entrypoint or approval-generation command; a human decision and a separately reviewed composition root are still required.
 
+`offline_preview_source_promotion.py` composes the full lifecycle only with its exact in-memory backend. It validates every precondition before durable approval consumption, writes `fixture_non_attestable` private evidence after consumption, and supports conservative recovery when terminal evidence publication is interrupted. It has no CLI, environment read, credential loader, or network-capable dependency path.
+
 ## Guarded Preview Boundary
 
 The HTTP adapter refuses a non-loopback bind unless all preview safety configuration is explicit. This mode is for local security verification before a separate runtime and reviewer-access decision; it is not deployment authorization.

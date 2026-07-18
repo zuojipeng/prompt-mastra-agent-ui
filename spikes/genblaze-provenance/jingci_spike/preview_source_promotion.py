@@ -90,7 +90,8 @@ def build_plan() -> dict[str, Any]:
         "maximum_source_bytes": MAX_SOURCE_BYTES,
         "operations": ["refuse_overwrite", "put_once", "readback", "sha256", "retain_on_success"],
         "failure_compensation": "delete only the newly uploaded approved key",
-        "required_future_gate": "new durable source-promotion approval schema",
+        "approval_contract": "dedicated durable schema exists; no approval document is generated",
+        "required_future_gate": "reviewed live composition root and exact human mutation approval",
         "prints_credentials": False,
     }
 
