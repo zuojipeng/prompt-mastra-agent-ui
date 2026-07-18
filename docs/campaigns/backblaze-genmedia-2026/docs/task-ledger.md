@@ -39,8 +39,22 @@ Status: in_progress
 | C-029 | Engineering Agent + Claims Review Agent | Security Agent + Test Agent + Operator Agent | Bind human claims approval without widening authority | Canonical approval binds packet and attestation hashes, accepts only two copy uses, and rejects deployment, publication, submission, spend, or evidence disclosure | done |
 | C-030 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Implement the undeployed judge-preview security gateway | Same-origin preview transport, Access JWT validation, bounded proxy, safe config, runtime ADR, dependency audit, Worker build, and regression evidence pass without deployment | done |
 | C-031 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent | Package and locally verify the undeployed Railway provenance runtime | Pinned non-root container, fail-closed Railway entrypoint, config validator, deterministic container smoke, and regression evidence pass without cloud resources | done |
+| C-032 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Add the undeployed B2 evidence executor to the preview runtime | Server-bound reviewed source, fixed namespaces, bounded read, verified write/read-back, failure cleanup, truthful UI lineage, and offline evidence pass without credentials or network | done |
 
 ## Event Log
+
+### 2026-07-18 16:00 C-E039
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-032
+Gate: Architecture / Engineering / Security / Code Review / Test / Claims
+Message: Rejected premature release-plan work after identifying that the deployable Python path still produced only memory evidence. Added an injected B2 executor that binds a reviewed private source key to exact digest, byte limit, Runway provider, and model from server-only configuration; the browser can request but cannot choose that source lineage. Each successful request owns a random fixed-namespace asset/manifest pair and verifies both on read-back. Partial failure compensates only owned keys and preserves the source. MEMORY remains explicit local-smoke mode; the tracked deployment mode is B2.
+Evidence: 7 B2 executor tests, runtime fail-closed tests, manifest-internal Runway/gen4.5 assertion, preview UI lineage test, 128-test Python regression, 181-test Vitest regression, TypeScript, ESLint, runtime validator with 16 variable names, and rebuilt local container smoke.
+Decision: PASS OFFLINE B2 EXECUTOR GATE; KEEP NETWORK AND DEPLOYMENT BLOCKED
+Next owner: DevOps Agent + Human owner + Test Agent
+Close condition: Under separate authorization, create/upload the reviewed private source object, configure a deployment-scoped bucket key and server variables, then prove B2 read/write/read-back and cleanup behavior through the deployed judge path.
 
 ### 2026-07-18 10:18 C-E038
 

@@ -12,7 +12,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Mapping, Optional
+from typing import Any, Callable, Mapping, Optional
 from urllib.parse import urlparse
 
 from .contract import AssetEvidence, ProvenanceRunRequest, SCHEMA_VERSION, ShotProvenanceJob
@@ -22,6 +22,7 @@ from .local_pipeline import execute_local_storage_pipeline
 MAX_BODY_BYTES = 65_536
 FIXTURE_MEDIA_BYTES = b"jingci deterministic local video fixture"
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+ProvenanceExecutor = Callable[[ProvenanceRunRequest], dict[str, Any]]
 
 
 @dataclass(frozen=True)
@@ -190,6 +191,7 @@ def dispatch_request(
     headers: Mapping[str, str],
     body: bytes = b"",
     policy: Optional[PreviewSecurityPolicy] = None,
+    executor: Optional[ProvenanceExecutor] = None,
 ) -> HttpResult:
     cors = _cors_headers(headers, policy)
     if method == "OPTIONS":
@@ -215,7 +217,7 @@ def dispatch_request(
     try:
         payload = json.loads(body.decode("utf-8"))
         request = ProvenanceRunRequest.from_dict(payload)
-        response = execute_local_provenance_run(request)
+        response = (executor or execute_local_provenance_run)(request)
     except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
         message = "Request does not match the provenance contract" if policy is not None else str(error)
         return _json_error(400, "invalid_request", message, headers, policy)
@@ -227,9 +229,15 @@ def dispatch_request(
 class ProvenanceHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, address: tuple[str, int], policy: Optional[PreviewSecurityPolicy]) -> None:
+    def __init__(
+        self,
+        address: tuple[str, int],
+        policy: Optional[PreviewSecurityPolicy],
+        executor: Optional[ProvenanceExecutor] = None,
+    ) -> None:
         super().__init__(address, ProvenanceRequestHandler)
         self.policy = policy
+        self.executor = executor or execute_local_provenance_run
         self.concurrency_gate = ConcurrencyGate(policy.max_concurrency if policy else 8)
 
 
@@ -242,6 +250,7 @@ class ProvenanceRequestHandler(BaseHTTPRequestHandler):
         request_id = uuid.uuid4().hex
         policy = self.server.policy  # type: ignore[attr-defined]
         gate = self.server.concurrency_gate  # type: ignore[attr-defined]
+        executor = self.server.executor  # type: ignore[attr-defined]
         if policy is not None:
             self.connection.settimeout(10)
             if self.command == "POST" and self.path == "/v1/provenance-runs":
@@ -270,7 +279,7 @@ class ProvenanceRequestHandler(BaseHTTPRequestHandler):
                     body = b"x" * (MAX_BODY_BYTES + 1)
                 else:
                     body = self.rfile.read(content_length) if content_length else b""
-                result = dispatch_request(self.command, self.path, self.headers, body, policy)
+                result = dispatch_request(self.command, self.path, self.headers, body, policy, executor)
             except TimeoutError:
                 result = _json_error(408, "request_timeout", "Request timed out", self.headers, policy)
             self._write_result(result, request_id, started)
@@ -305,9 +314,14 @@ def create_local_server(port: int = 8788) -> ThreadingHTTPServer:
     return ProvenanceHTTPServer(("127.0.0.1", port), None)
 
 
-def create_server(host: str, port: int, environment: Mapping[str, str]) -> ProvenanceHTTPServer:
+def create_server(
+    host: str,
+    port: int,
+    environment: Mapping[str, str],
+    executor: Optional[ProvenanceExecutor] = None,
+) -> ProvenanceHTTPServer:
     policy = None if host in LOCAL_HOSTS else PreviewSecurityPolicy.from_environment(environment)
-    return ProvenanceHTTPServer((host, port), policy)
+    return ProvenanceHTTPServer((host, port), policy, executor)
 
 
 def main() -> int:

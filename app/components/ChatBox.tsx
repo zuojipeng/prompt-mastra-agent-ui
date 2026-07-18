@@ -722,8 +722,10 @@ export function ChatBox() {
         attempt: (previousRun?.attempt ?? 0) + 1,
         prompt: buildShotPrompt(card),
         negative_prompt: directorKit?.negativePrompt ?? '',
-        provider: provenanceTransportMode === 'fixture' ? 'genblaze-fixture' : 'jingci-local-video',
-        model: 'local-proof',
+        provider: provenanceTransportMode === 'fixture'
+          ? 'genblaze-fixture'
+          : provenanceTransportMode === 'preview' ? 'runway' : 'jingci-local-video',
+        model: provenanceTransportMode === 'preview' ? 'gen4.5' : 'local-proof',
         modality: 'video',
       };
       const updateRun = (run: ProvenanceRun) => {

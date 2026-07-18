@@ -24,9 +24,10 @@ class DeterministicVideoProvider(SyncProvider):
 
     name = "jingci-local-video"
 
-    def __init__(self, output_path: Path) -> None:
+    def __init__(self, output_path: Path, provider_name: str = "jingci-local-video") -> None:
         super().__init__()
         self.output_path = output_path.resolve()
+        self.name = provider_name
         self.call_count = 0
 
     def generate(self, step: Step, config: Any = None) -> Step:
@@ -93,6 +94,7 @@ def execute_storage_pipeline(
     backend: StorageBackend,
     *,
     prefix: str,
+    provider_name: str = "jingci-local-video",
 ) -> tuple[Any, DeterministicVideoProvider]:
     if job.modality != "video":
         raise ValueError("local pipeline spike currently supports video only")
@@ -102,7 +104,7 @@ def execute_storage_pipeline(
     with tempfile.TemporaryDirectory(prefix="jingci-genblaze-") as output_dir:
         output_path = Path(output_dir) / f"shot-{job.shot_id}.mp4"
         output_path.write_bytes(media_bytes)
-        provider = DeterministicVideoProvider(output_path)
+        provider = DeterministicVideoProvider(output_path, provider_name)
         sink = ObjectStorageSink(
             backend,
             prefix=prefix,

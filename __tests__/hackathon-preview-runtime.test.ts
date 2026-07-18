@@ -11,6 +11,7 @@ const valid = {
   railway: JSON.parse(readFileSync(path.join(root, 'railway.json'), 'utf8')),
   dockerfile: readFileSync(path.join(root, 'Dockerfile'), 'utf8'),
   runtimeSource: readFileSync(path.join(root, 'jingci_spike/runtime_service.py'), 'utf8'),
+  b2Source: readFileSync(path.join(root, 'jingci_spike/b2_preview_executor.py'), 'utf8'),
   dependencyLock: readFileSync(path.join(root, 'requirements.lock'), 'utf8'),
 };
 

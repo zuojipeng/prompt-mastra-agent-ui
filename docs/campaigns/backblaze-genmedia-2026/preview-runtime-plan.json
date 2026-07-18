@@ -4,13 +4,24 @@
   "service_root": "spikes/genblaze-provenance",
   "entrypoint": "python -m jingci_spike.runtime_service",
   "healthcheck_path": "/health",
+  "deployment_storage_mode": "B2",
   "required_variables": [
     { "name": "PORT", "classification": "platform-injected" },
     { "name": "JINGCI_PUBLIC_PREVIEW_MODE", "classification": "non-secret" },
     { "name": "JINGCI_PREVIEW_ALLOWED_ORIGIN", "classification": "non-secret" },
     { "name": "JINGCI_PREVIEW_BEARER_TOKEN", "classification": "secret" },
     { "name": "JINGCI_PREVIEW_MAX_CONCURRENCY", "classification": "non-secret" },
-    { "name": "JINGCI_PROVENANCE_ENABLED", "classification": "non-secret" }
+    { "name": "JINGCI_PROVENANCE_ENABLED", "classification": "non-secret" },
+    { "name": "JINGCI_PROVENANCE_STORAGE_MODE", "classification": "non-secret" },
+    { "name": "B2_BUCKET", "classification": "protected" },
+    { "name": "B2_REGION", "classification": "non-secret" },
+    { "name": "B2_KEY_ID", "classification": "secret" },
+    { "name": "B2_APP_KEY", "classification": "secret" },
+    { "name": "JINGCI_PREVIEW_SOURCE_KEY", "classification": "protected" },
+    { "name": "JINGCI_PREVIEW_SOURCE_SHA256", "classification": "protected" },
+    { "name": "JINGCI_PREVIEW_SOURCE_PROVIDER", "classification": "non-secret" },
+    { "name": "JINGCI_PREVIEW_SOURCE_MODEL", "classification": "non-secret" },
+    { "name": "JINGCI_PREVIEW_SOURCE_MAX_BYTES", "classification": "non-secret" }
   ],
   "authorization": {
     "create_cloud_resources": false,

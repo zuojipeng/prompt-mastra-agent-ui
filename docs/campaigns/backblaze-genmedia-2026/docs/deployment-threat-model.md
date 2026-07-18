@@ -40,11 +40,11 @@ The existing DirectorKit Worker remains a separate service and repository. No B2
 | Cross-origin invocation | Third-party sites consume quota | Same-origin gateway plus exact Python origin allowlist | Implemented in code; deployment smoke pending |
 | Oversized or malformed requests | Memory/CPU exhaustion or contract bypass | 64KB body cap, JSON media type, strict request schema | Implemented locally |
 | Provider output SSRF or arbitrary URL fetch | Internal network access or data exfiltration | Provider and exact URL scheme/host allowlist; pre-fetch redirect validation; public-address check; deployment egress policy | Offline transport implemented; live host, DNS pinning/egress, and network evidence pending |
-| Forged verified response | False provenance claim | Strict response parser, asset digest, read-back manifest verification | Implemented locally/offline |
+| Forged verified response | False provenance claim | Server-bound source lineage, source digest, strict response parser, asset digest, read-back manifest verification | Implemented locally/offline; B2 network verification pending |
 | Cross-run object collision | Wrong deletion or lineage mix-up | Unique run prefix and content-addressed asset keys | Implemented offline |
 | Public B2 object exposure | Prompt/media leakage | Private bucket and short-lived signed reads only | Pending account setup |
 | Persistent presigned URLs | Credential material in durable records | Persist key/durable URI only; sign at read time | Design established |
-| Partial upload residue | Cost and privacy residue | Owned-key tracking, cleanup, retention policy, manual recovery key | Implemented offline |
+| Partial upload residue | Cost and privacy residue | Random fixed-namespace run prefix, owned-key tracking, cleanup, retention policy, manual recovery key | Implemented offline for the preview executor; live deployment verification pending |
 | Dependency or runtime drift | Broken judge app | Pinned versions, immutable commit, build and smoke evidence | Partial |
 | Unobservable failure | Slow recovery during judging | Health/dependency checks, request IDs, latency/error counters | Local process health and redacted request logs; dependencies/counters missing |
 
@@ -61,7 +61,7 @@ The existing DirectorKit Worker remains a separate service and repository. No B2
 9. `PROVENANCE_ENABLED=false` rollback switch that leaves the existing manual shot workflow available.
 10. Cleanup/retention runbook and explicit human approval before deployment.
 
-Implementation evidence is in `lib/provenance-gateway.ts`, `functions/api/provenance/`, `jingci_spike/http_service.py`, the TypeScript gateway tests, Python regression tests, and `tests/preview_http_service_smoke.py`. It does not satisfy configured edge rate limiting, reviewer-account evidence, provider/B2 dependency health, deployed runtime, or post-deploy controls.
+Implementation evidence is in `lib/provenance-gateway.ts`, `functions/api/provenance/`, `jingci_spike/http_service.py`, `jingci_spike/b2_preview_executor.py`, the TypeScript gateway/runtime tests, Python regression tests, and local container smoke. It does not satisfy configured edge rate limiting, reviewer-account evidence, B2 network dependency health, deployed runtime, or post-deploy controls.
 
 ## Release And Rollback
 

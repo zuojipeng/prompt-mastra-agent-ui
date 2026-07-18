@@ -63,6 +63,11 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('copiedHandoff');
   });
 
+  it('binds preview evidence requests to the reviewed Runway source lineage', () => {
+    expect(source).toContain("provenanceTransportMode === 'preview' ? 'runway'");
+    expect(source).toContain("provenanceTransportMode === 'preview' ? 'gen4.5'");
+  });
+
   it('keeps the mobile fixed action bar out of the Work view', () => {
     expect(source).toContain("mobileTab === 'execute'");
     expect(source).not.toContain("mobileTab === 'work' &&");

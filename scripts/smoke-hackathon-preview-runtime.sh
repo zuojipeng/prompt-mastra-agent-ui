@@ -25,6 +25,7 @@ docker run --rm --detach \
   --env JINGCI_PREVIEW_BEARER_TOKEN="${TOKEN}" \
   --env JINGCI_PREVIEW_MAX_CONCURRENCY=2 \
   --env JINGCI_PROVENANCE_ENABLED=YES \
+  --env JINGCI_PROVENANCE_STORAGE_MODE=MEMORY \
   "${IMAGE}" >/dev/null
 
 for _ in {1..30}; do

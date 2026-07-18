@@ -55,6 +55,23 @@ The service root is `spikes/genblaze-provenance`. Railway must be configured to 
 
 `npm run hackathon:runtime:check` verifies the tracked runtime plan without reading environment values. `npm run hackathon:runtime:smoke` builds and exercises the container with a fixed fake token, deterministic memory storage, and no external API calls.
 
+## B2 Evidence Mode
+
+`JINGCI_PROVENANCE_STORAGE_MODE` is mandatory. `MEMORY` is restricted to local container smoke; the tracked deployment plan requires `B2`.
+
+The B2 executor does not generate new paid media and does not trust the browser for source lineage. Server-only configuration binds one reviewed private source object below `jingci-preview/source/` to its exact SHA-256, maximum bytes, provider, and model. For this campaign the reviewed lineage is Runway `gen4.5`.
+
+Each accepted request:
+
+1. rejects provider/model drift before opening storage;
+2. reads the fixed source object and verifies size plus SHA-256 before any write;
+3. writes one content-addressed video and one Genblaze manifest below a random `jingci-preview/runs/` prefix;
+4. reads both objects back and verifies bytes, digest, manifest signature state, and canonical hash;
+5. retains both evidence objects on success;
+6. deletes only the current request's owned keys on partial failure and never deletes the reviewed source.
+
+The browser's preview request now declares `runway` / `gen4.5`, while Fixture and Local modes keep their existing labels. No source key, digest, bucket, region, credential, or service origin enters the static bundle.
+
 ## External Controls
 
 - Protect the entire preview hostname with Cloudflare Access; the Function also validates the Access JWT.
@@ -91,6 +108,8 @@ On 2026-07-18 the pinned image built successfully and the reproducible smoke pro
 - SIGTERM completed within the ten-second local stop budget and the container was removed.
 
 This closes runtime packaging only. No Railway project, service, domain, variable, volume, or deployment was created.
+
+The B2 executor has also passed offline tests against an injected in-memory backend. That proves ownership, verification, lineage, and compensation logic but is not B2 network evidence.
 
 ## Sources Reviewed
 

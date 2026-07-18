@@ -9,7 +9,7 @@
   "provenance_service": {
     "runtime": "dedicated Railway Python service behind a Cloudflare Pages Function",
     "public_url": null,
-    "current_mode": "container-verified-not-deployed"
+    "current_mode": "b2-capable-container-not-network-verified-or-deployed"
   },
   "access_model": "Cloudflare Access reviewer identity policy with JWT validation in the same-origin Pages Function",
   "controls": {

@@ -73,6 +73,8 @@ npm run hackathon:runtime:smoke
 
 The smoke waits for health, requires an unauthenticated request to return 401, verifies an authenticated fixture manifest, sends SIGTERM, and removes the container and temporary responses. It does not create Railway resources, upload variables, use B2 credentials, or call Runway.
 
+`JINGCI_PROVENANCE_STORAGE_MODE` is mandatory. `MEMORY` exists only for the local smoke. An approved deployment must use `B2` and provide a bucket-scoped B2 configuration plus a reviewed private source object under `jingci-preview/source/`, its exact SHA-256, and fixed provider/model lineage. The browser cannot select or override the source key or digest. Each successful request retains one content-addressed asset and one verified manifest below a random `jingci-preview/runs/` prefix; a partial failure deletes only the keys owned by that request and never deletes the reviewed source object.
+
 ## Guarded Preview Boundary
 
 The HTTP adapter refuses a non-loopback bind unless all preview safety configuration is explicit. This mode is for local security verification before a separate runtime and reviewer-access decision; it is not deployment authorization.

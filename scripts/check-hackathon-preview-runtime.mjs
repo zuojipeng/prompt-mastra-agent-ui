@@ -11,13 +11,24 @@ const REQUIRED_VARIABLES = [
   'JINGCI_PREVIEW_BEARER_TOKEN',
   'JINGCI_PREVIEW_MAX_CONCURRENCY',
   'JINGCI_PROVENANCE_ENABLED',
+  'JINGCI_PROVENANCE_STORAGE_MODE',
+  'B2_BUCKET',
+  'B2_REGION',
+  'B2_KEY_ID',
+  'B2_APP_KEY',
+  'JINGCI_PREVIEW_SOURCE_KEY',
+  'JINGCI_PREVIEW_SOURCE_SHA256',
+  'JINGCI_PREVIEW_SOURCE_PROVIDER',
+  'JINGCI_PREVIEW_SOURCE_MODEL',
+  'JINGCI_PREVIEW_SOURCE_MAX_BYTES',
 ];
 
-export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, dependencyLock }) {
+export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, dependencyLock }) {
   const errors = [];
   if (plan?.schema_version !== 'jingci.preview-runtime-plan.v1') errors.push('invalid runtime plan schema');
   if (plan?.service_root !== SERVICE_ROOT) errors.push(`service_root must be ${SERVICE_ROOT}`);
   if (plan?.entrypoint !== 'python -m jingci_spike.runtime_service') errors.push('runtime entrypoint is not pinned');
+  if (plan?.deployment_storage_mode !== 'B2') errors.push('deployment storage mode must be B2');
   const variableNames = plan?.required_variables?.map((item) => item?.name) ?? [];
   for (const name of REQUIRED_VARIABLES) {
     if (!variableNames.includes(name)) errors.push(`missing required variable declaration: ${name}`);
@@ -37,6 +48,9 @@ export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSourc
   if (/\b(?:ARG|ENV)\s+.*(?:TOKEN|KEY|SECRET|PASSWORD)/i.test(dockerfile)) errors.push('Dockerfile must not declare secret inputs');
   if (!runtimeSource.includes('PUBLIC_HOST = "0.0.0.0"')) errors.push('runtime must bind to all container interfaces');
   if (!runtimeSource.includes('environment.get("PORT"')) errors.push('runtime must use the platform PORT');
+  if (!runtimeSource.includes('JINGCI_PROVENANCE_STORAGE_MODE')) errors.push('runtime must require an explicit storage mode');
+  if (!b2Source.includes('RUN_PREFIX = "jingci-preview/runs"')) errors.push('B2 writes must use the fixed preview run namespace');
+  if (!b2Source.includes('wrapper.cleanup_owned()')) errors.push('B2 failures must clean owned objects');
   if (!dependencyLock.includes('genblaze==0.4.1')) errors.push('dependency lock must pin Genblaze');
   for (const line of dependencyLock.split('\n').filter(Boolean)) {
     if (!/^[a-zA-Z0-9_.-]+==[^=\s]+$/.test(line)) errors.push(`dependency is not exactly pinned: ${line}`);
@@ -49,8 +63,9 @@ function main() {
   const railway = JSON.parse(readFileSync(path.resolve(SERVICE_ROOT, 'railway.json'), 'utf8'));
   const dockerfile = readFileSync(path.resolve(SERVICE_ROOT, 'Dockerfile'), 'utf8');
   const runtimeSource = readFileSync(path.resolve(SERVICE_ROOT, 'jingci_spike/runtime_service.py'), 'utf8');
+  const b2Source = readFileSync(path.resolve(SERVICE_ROOT, 'jingci_spike/b2_preview_executor.py'), 'utf8');
   const dependencyLock = readFileSync(path.resolve(SERVICE_ROOT, 'requirements.lock'), 'utf8');
-  const errors = evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, dependencyLock });
+  const errors = evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, dependencyLock });
   if (errors.length > 0) {
     console.error(`Preview runtime plan is invalid:\n- ${errors.join('\n- ')}`);
     return 1;
