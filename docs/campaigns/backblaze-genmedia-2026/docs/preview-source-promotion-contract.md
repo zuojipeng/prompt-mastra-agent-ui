@@ -1,6 +1,6 @@
 # Preview Source Promotion Contract
 
-Status: offline contract accepted; live composition absent
+Status: offline contract and disabled live plan accepted; live composition absent
 
 Producer: Architecture Agent + Engineering Agent
 
@@ -45,4 +45,4 @@ Every result keeps deployment, publication, submission, and paid API authorizati
 
 ## Remaining Gate
 
-A future slice may compose this contract with the upload core only after it proves clean-source checks, safe local media loading, bucket-scoped credentials, result creation on every post-consumption path, crash recovery, and no-overwrite behavior under a separately authorized live run. Network execution remains blocked until the human owner explicitly approves that exact operation.
+The machine-checked live plan and crash-recovery runbook now freeze clean-source checks, safe local media loading, bucket/prefix-scoped credentials, result creation on every post-consumption path, conservative crash recovery, and no-overwrite behavior. A future slice may implement that exact adapter without executing it. Network execution remains blocked until the implemented adapter passes review and the human owner explicitly approves the exact retained-source mutation for a pinned commit.

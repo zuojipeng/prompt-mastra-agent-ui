@@ -43,8 +43,22 @@ Status: in_progress
 | C-033 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build the offline reviewed-source promotion core | Fixed source namespace, exact digest, size bound, no overwrite, one put/read-back/retain path, compensation tests, and a no-network plan pass with no live entrypoint | done |
 | C-034 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Bind reviewed-source promotion to dedicated durable approval and private result contracts | Exact operation/source/commit/time binding, at-most-once consumption, immutable mode-0600 outcomes, recovery distinction, and zero adjacent authority pass without a live entrypoint | done |
 | C-035 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Compose the source-promotion lifecycle offline | Pre-consumption checks, exact fake restriction, one-shot consumption, non-attestable success/failure evidence, cleanup uncertainty, and interrupted-write recovery pass without credentials or network | done |
+| C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
 
 ## Event Log
+
+### 2026-07-18 16:40 C-E043
+
+Type: REVIEWED
+From: Architecture Agent + DevOps Agent
+To: Security Agent + Code Review Agent + Test Agent + Operator Agent + Hermes Orchestrator
+Task: C-036
+Gate: Architecture / Security / Code Review / Test / DevOps / Operator
+Message: Froze a value-free live-adapter plan instead of adding an executable. The validator requires the private source namespace, 100 MB and one-attempt limits, private visibility, bucket/prefix credential scope, exact pre/post-consumption stage order, no retry, preserve-on-ambiguity recovery, complete prohibitions, and all-false execution and authorization flags. The runbook makes the immutable marker the recovery anchor and forbids deleting ambiguous objects to clear a gate.
+Evidence: Tracked plan JSON, strict validator, 7 focused mutation tests, clean CLI check, recovery decision table, and zero environment/network imports.
+Decision: PASS LIVE DESIGN GATE; IMPLEMENTATION AND HUMAN MUTATION APPROVAL REMAIN SEPARATE
+Next owner: Architecture Agent + Engineering Agent + Security Agent
+Close condition: Implement the exact adapter behind no default CLI, prove safe private media/config loading and conservative result recovery with injected transports, then return for human approval before any B2 write.
 
 ### 2026-07-18 16:32 C-E042
 

@@ -1,0 +1,97 @@
+{
+  "schema_version": "jingci.preview-source-promotion-live-plan.v1",
+  "operation": "retain_one_reviewed_source_in_private_b2",
+  "constraints": {
+    "source_namespace": "jingci-preview/source/",
+    "maximum_source_bytes": 100000000,
+    "bucket_visibility": "private",
+    "maximum_attempts": 1,
+    "automatic_retry": false,
+    "credential_scope": "one-bucket-and-source-prefix",
+    "terminal_evidence_mode": "live_private"
+  },
+  "execution": {
+    "live_entrypoint": false,
+    "network_enabled": false,
+    "environment_read": false,
+    "credentials_loaded": false,
+    "approval_generated": false
+  },
+  "required_inputs": [
+    { "name": "commit", "classification": "tracked" },
+    { "name": "run_id", "classification": "operator-bound" },
+    { "name": "approval_file", "classification": "private-mode-0600" },
+    { "name": "approval_journal", "classification": "private-mode-0700" },
+    { "name": "source_media_file", "classification": "private-mode-0600" },
+    { "name": "private_result_file", "classification": "private-mode-0600" },
+    { "name": "B2_BUCKET", "classification": "protected-name-only" },
+    { "name": "B2_REGION", "classification": "non-secret-name-only" },
+    { "name": "B2_KEY_ID", "classification": "secret-name-only" },
+    { "name": "B2_APP_KEY", "classification": "secret-name-only" }
+  ],
+  "before_approval_consumption": [
+    "verify_clean_pinned_commit",
+    "verify_private_paths_and_absent_result",
+    "verify_canonical_active_approval",
+    "verify_exact_source_key_digest_and_size",
+    "verify_bucket_scoped_configuration_shape",
+    "verify_exact_source_key_absent_by_read_only_lookup"
+  ],
+  "after_approval_consumption": [
+    "put_exact_source_key_once",
+    "read_back_exact_bytes_digest_and_size",
+    "close_backend",
+    "write_immutable_private_terminal_result"
+  ],
+  "recovery_matrix": [
+    {
+      "condition": "no_consumption_marker",
+      "decision": "no_operation_authorized",
+      "object_action": "none",
+      "retry": false
+    },
+    {
+      "condition": "marker_and_terminal_result",
+      "decision": "accept_validated_terminal_state_only",
+      "object_action": "none",
+      "retry": false
+    },
+    {
+      "condition": "marker_no_result_object_absent",
+      "decision": "record_failed_compensated",
+      "object_action": "none",
+      "retry": false
+    },
+    {
+      "condition": "marker_no_result_object_exact_match",
+      "decision": "record_recovery_required",
+      "object_action": "preserve",
+      "retry": false
+    },
+    {
+      "condition": "marker_no_result_object_mismatch_or_lookup_unknown",
+      "decision": "record_recovery_required",
+      "object_action": "preserve",
+      "retry": false
+    }
+  ],
+  "prohibited_actions": [
+    "automatic_retry",
+    "overwrite_existing_key",
+    "delete_unowned_or_ambiguous_key",
+    "bucket_visibility_or_lifecycle_change",
+    "recursive_or_prefix_cleanup",
+    "credential_or_signed_url_output",
+    "deployment_publication_or_submission"
+  ],
+  "authorization": {
+    "create_or_change_cloud_resources": false,
+    "load_credentials": false,
+    "write_b2": false,
+    "delete_b2": false,
+    "deploy": false,
+    "publish": false,
+    "submit": false,
+    "paid_api": false
+  }
+}
