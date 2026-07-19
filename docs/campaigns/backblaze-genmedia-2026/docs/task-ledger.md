@@ -59,6 +59,19 @@ Status: in_progress
 
 ## Event Log
 
+### 2026-07-19 17:32 C-E057
+
+Type: HUMAN_GATE_BLOCKED
+From: DevOps Agent + Operator Agent
+To: Human owner + Hermes Orchestrator
+Task: C-048
+Gate: Cloudflare Access / Terms / Potential Overage Authorization
+Message: Created the isolated `jingci-genmedia-preview-2026` Pages project under the confirmed Cloudflare account. No first deployment exists, so the project URL has no published content. Zero Trust Free is priced at USD 0 per month for up to 50 users, but activation requires the human owner to accept Cloudflare terms and authorize the existing payment method for usage beyond the free allowance. The Agent did not check either box or activate the plan.
+Evidence: Wrangler project-create success; Cloudflare dashboard activation page retained as a human handoff; project has no deployment, bindings, secrets, Access policy, rate rule, or Worker-to-B2 request.
+Decision: STOP AT NON-DELEGABLE TERMS AND PAYMENT-AUTHORIZATION GATE.
+Next owner: Human owner
+Close condition: Human owner either activates Zero Trust Free with informed consent or rejects that overage authorization and chooses a different access-control design. Only then may DevOps continue with Access/rate configuration, secret upload, deployment, smoke, and rollback.
+
 ### 2026-07-19 17:15 C-E056
 
 Type: REVIEWED

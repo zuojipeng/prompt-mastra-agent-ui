@@ -3,6 +3,8 @@
   "status": "design",
   "frontend": {
     "runtime": "Cloudflare Pages static export",
+    "project": "jingci-genmedia-preview-2026",
+    "project_created": true,
     "campaign_url": null,
     "commit": null
   },
