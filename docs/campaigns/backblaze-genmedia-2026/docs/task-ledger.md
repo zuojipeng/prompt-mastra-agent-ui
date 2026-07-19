@@ -51,8 +51,22 @@ Status: in_progress
 | C-041 | Security Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Classify the live rotated B2 key scope | Exact approved non-secret fields are retained privately and every excessive capability is identified without widening policy | done |
 | C-042 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Create and bind a custom least-privilege B2 runtime key | Thirty-day child key is bucket/prefix restricted, exact-capability inspected, locally configured, and represented by a passing non-authorizing scope attestation | done |
 | C-043 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Remove obsolete B2 administrator material | Exact rejected-key identity is revoked, active minimal-key identity is unchanged, local Master Key file is absent, and private cleanup evidence is secret-free | done |
+| C-044 | DevOps Agent + Operator Agent + Human owner | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Retain the reviewed Runway source in private B2 | Exact clean commit/source/key approval is consumed once; target absence, upload, read-back SHA-256, retained state, least-privilege scope, and no-retry transport are privately evidenced | done |
 
 ## Event Log
+
+### 2026-07-19 14:45 C-E052
+
+Type: PRODUCTION_EVIDENCE_ADDED
+From: Human owner + DevOps Agent + Operator Agent
+To: Security Agent + Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-044
+Gate: Production Data / Private B2 Retention
+Message: After the human owner explicitly acknowledged that the private local MP4 would be transferred to and retained by third-party Backblaze B2, the one-shot source-promotion adapter checked the exact target, uploaded the 1,044,064-byte reviewed Runway MP4 to `jingci-preview/source/runway-gen45-ca8ea95388d2.mp4`, read it back, and matched SHA-256 `ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6`. The approved object remains private and retained. Botocore was process-locally constrained and asserted to `total_max_attempts=1`; no retry, deployment, publication, or Devpost submission occurred.
+Evidence: Ignored owner-only mode-0600 approval, durable consumption marker, credential-scope binding, and private terminal result with `status=passed`, `evidence_mode=live_private`, `retained=true`, and `readback_verified=true`.
+Decision: PASS ONE RETAINED PRIVATE SOURCE. THIS DOES NOT PROVE PUBLIC SERVING OR DEPLOYMENT.
+Next owner: Architecture Agent + DevOps Agent + Claims Review Agent
+Close condition: Bind the retained source to the undeployed preview runtime and define the next deployment gate without disclosing private evidence or assuming future transport retry settings.
 
 ### 2026-07-19 12:48 C-E051
 
