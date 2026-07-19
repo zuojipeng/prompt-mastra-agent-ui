@@ -15,12 +15,12 @@ describe('hackathon preview deployment packet', () => {
 
   it('rejects secret population, source drift, blocker drift, and authority widening', () => {
     const changed = structuredClone(packet);
-    changed.railway.variables.B2_APP_KEY = 'must-not-appear';
-    changed.railway.variables.JINGCI_PREVIEW_SOURCE_SHA256 = '0'.repeat(64);
+    changed.cloudflare_pages.bindings.B2_APP_KEY = 'must-not-appear';
+    changed.cloudflare_pages.bindings.JINGCI_PREVIEW_SOURCE_SHA256 = '0'.repeat(64);
     changed.blockers = [];
     changed.authorization.deploy = true;
     const errors = evaluateDeploymentPacket(changed, runtimePlan, deployment);
-    expect(errors).toContain('secret field must remain null: railway.variables.B2_APP_KEY');
+    expect(errors).toContain('secret field must remain null: cloudflare_pages.bindings.B2_APP_KEY');
     expect(errors).toContain('retained source binding drift: JINGCI_PREVIEW_SOURCE_SHA256');
     expect(errors).toContain('deployment blocker drift');
     expect(errors).toContain('authorization deploy must remain false');

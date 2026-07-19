@@ -1,9 +1,9 @@
 {
-  "schema_version": "jingci.preview-runtime-plan.v1",
-  "runtime": "railway-docker",
-  "service_root": "spikes/genblaze-provenance",
-  "entrypoint": "python -m jingci_spike.runtime_service",
-  "healthcheck_path": "/health",
+  "schema_version": "jingci.preview-runtime-plan.v2",
+  "runtime": "cloudflare-pages-function",
+  "service_root": "functions/api/provenance",
+  "entrypoint": "functions/api/provenance/[[path]].ts",
+  "healthcheck_path": "/api/provenance/health",
   "deployment_storage_mode": "B2",
   "reviewed_source": {
     "key": "jingci-preview/source/runway-gen45-ca8ea95388d2.mp4",
@@ -15,14 +15,10 @@
     "promotion_commit": "9a0e875a87acb276eccbd0b975c5b25ed7235a59",
     "deployment_configured": false
   },
-  "required_variables": [
-    { "name": "PORT", "classification": "platform-injected" },
-    { "name": "JINGCI_PUBLIC_PREVIEW_MODE", "classification": "non-secret" },
-    { "name": "JINGCI_PREVIEW_ALLOWED_ORIGIN", "classification": "non-secret" },
-    { "name": "JINGCI_PREVIEW_BEARER_TOKEN", "classification": "secret" },
-    { "name": "JINGCI_PREVIEW_MAX_CONCURRENCY", "classification": "non-secret" },
+  "required_bindings": [
+    { "name": "CF_ACCESS_TEAM_DOMAIN", "classification": "protected" },
+    { "name": "CF_ACCESS_AUD", "classification": "protected" },
     { "name": "JINGCI_PROVENANCE_ENABLED", "classification": "non-secret" },
-    { "name": "JINGCI_PROVENANCE_STORAGE_MODE", "classification": "non-secret" },
     { "name": "B2_BUCKET", "classification": "protected" },
     { "name": "B2_REGION", "classification": "non-secret" },
     { "name": "B2_KEY_ID", "classification": "secret" },
@@ -33,6 +29,13 @@
     { "name": "JINGCI_PREVIEW_SOURCE_MODEL", "classification": "non-secret" },
     { "name": "JINGCI_PREVIEW_SOURCE_MAX_BYTES", "classification": "non-secret" }
   ],
+  "write_contract": {
+    "source_objects_per_request": 0,
+    "manifest_objects_per_request": 1,
+    "manifest_prefix": "jingci-preview/runs",
+    "raw_prompt_persisted": false,
+    "failed_manifest_deleted": true
+  },
   "authorization": {
     "create_cloud_resources": false,
     "upload_secrets": false,

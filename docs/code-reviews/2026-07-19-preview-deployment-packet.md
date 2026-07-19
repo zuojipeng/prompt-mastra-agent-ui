@@ -1,6 +1,8 @@
 # Code Review: Preview Deployment Packet
 
-Status: PASS
+Status: SUPERSEDED by `2026-07-19-cloudflare-b2-preview-runtime.md`
+
+This review records the earlier Cloudflare/Railway packet. Railway resource creation later failed at an expired-trial billing gate; the current v2 packet uses Cloudflare Pages Functions and two B2 secrets.
 
 Producer: DevOps Agent + Security Agent
 

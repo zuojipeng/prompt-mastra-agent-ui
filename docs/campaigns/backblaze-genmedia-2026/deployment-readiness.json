@@ -7,25 +7,25 @@
     "commit": null
   },
   "provenance_service": {
-    "runtime": "dedicated Railway Python service behind a Cloudflare Pages Function",
+    "runtime": "Cloudflare Pages Function with direct signed B2 access",
     "public_url": null,
-    "current_mode": "b2-capable-container-not-network-verified-or-deployed"
+    "current_mode": "cloudflare-b2-worker-locally-verified-not-deployed"
   },
   "access_model": "Cloudflare Access reviewer identity policy with JWT validation in the same-origin Pages Function",
   "controls": {
-    "exact_origin_cors": "implemented-code-unconfigured",
+    "exact_origin_cors": "implemented-code-same-origin",
     "reviewer_authentication": "implemented-code-unconfigured-cloudflare-access-jwt",
     "edge_rate_limit": "planned-external-cloudflare-rule",
-    "request_schema_and_size_limit": "implemented-code-64kb-gateway-and-python",
-    "concurrency_and_timeout_limit": "implemented-code-gateway-timeout-and-python-concurrency",
+    "request_schema_and_size_limit": "implemented-code-64kb-worker-boundary",
+    "concurrency_and_timeout_limit": "edge-rate-limit-pending-worker-has-bounded-input-and-source",
     "server_side_secrets": "implemented-code-bindings-unconfigured",
     "bucket_scoped_credentials": "verified-local-least-privilege-not-configured-in-cloud",
     "private_b2_objects": "verified-retained-source-private-readback",
-    "provider_and_url_allowlist": "verified-private-run-egress-policy-pending",
+    "provider_and_url_allowlist": "implemented-retained-source-provider-model-and-b2-endpoint",
     "structured_redacted_logs": "implemented-code",
-    "health_and_dependency_checks": "verified-local-container-health-and-locked-dependencies",
+    "health_and_dependency_checks": "verified-worker-health-and-locked-sigv4-dependency",
     "rollback_feature_flag": "implemented-code",
-    "retention_and_cleanup": "implemented-offline"
+    "retention_and_cleanup": "implemented-worker-owned-manifest-compensation"
   },
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/deployment-threat-model.md",

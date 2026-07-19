@@ -1,31 +1,18 @@
 {
-  "schema_version": "jingci.preview-deployment-packet.v1",
+  "schema_version": "jingci.preview-deployment-packet.v2",
   "status": "blocked",
   "release_commit": null,
   "cloudflare_pages": {
+    "project": "prompt-mastra-agent-ui",
+    "branch": "spike-backblaze-provenance",
+    "build_output": "out",
+    "build_variables": {
+      "NEXT_PUBLIC_PROVENANCE_API_URL": "/api/provenance"
+    },
     "bindings": {
       "CF_ACCESS_TEAM_DOMAIN": null,
       "CF_ACCESS_AUD": null,
-      "PROVENANCE_SERVICE_URL": null,
-      "PROVENANCE_SERVICE_TOKEN": null,
-      "JINGCI_PROVENANCE_ENABLED": "YES"
-    },
-    "external_controls": {
-      "access_application": false,
-      "reviewer_policy": false,
-      "provenance_rate_limit": false
-    }
-  },
-  "railway": {
-    "service_root": "spikes/genblaze-provenance",
-    "variables": {
-      "PORT": null,
-      "JINGCI_PUBLIC_PREVIEW_MODE": "YES",
-      "JINGCI_PREVIEW_ALLOWED_ORIGIN": null,
-      "JINGCI_PREVIEW_BEARER_TOKEN": null,
-      "JINGCI_PREVIEW_MAX_CONCURRENCY": "2",
       "JINGCI_PROVENANCE_ENABLED": "YES",
-      "JINGCI_PROVENANCE_STORAGE_MODE": "B2",
       "B2_BUCKET": "jingci-genmedia-2026-zuojipeng",
       "B2_REGION": "us-east-005",
       "B2_KEY_ID": null,
@@ -35,32 +22,35 @@
       "JINGCI_PREVIEW_SOURCE_PROVIDER": "runway",
       "JINGCI_PREVIEW_SOURCE_MODEL": "gen4.5",
       "JINGCI_PREVIEW_SOURCE_MAX_BYTES": "1044064"
+    },
+    "external_controls": {
+      "access_application": false,
+      "reviewer_policy": false,
+      "provenance_rate_limit": false
     }
   },
   "secret_fields": [
-    "cloudflare_pages.bindings.PROVENANCE_SERVICE_TOKEN",
-    "railway.variables.JINGCI_PREVIEW_BEARER_TOKEN",
-    "railway.variables.B2_KEY_ID",
-    "railway.variables.B2_APP_KEY"
+    "cloudflare_pages.bindings.B2_KEY_ID",
+    "cloudflare_pages.bindings.B2_APP_KEY"
   ],
   "smoke_order": [
     "health_200",
-    "unauthenticated_401",
+    "unauthenticated_denied_by_access",
     "wrong_origin_denied",
     "oversized_body_413",
-    "invalid_lineage_400",
+    "invalid_lineage_denied_before_b2",
     "retained_source_digest_verified",
-    "asset_manifest_readback_verified",
-    "rate_limit_blocks_before_upstream",
+    "manifest_write_readback_verified",
+    "rate_limit_blocks_before_b2",
     "feature_disable_fallback",
     "desktop_mobile_judge_path"
   ],
   "rollback_order": [
-    "disable_pages_gateway",
-    "disable_railway_provenance",
+    "disable_pages_function",
     "rollback_pages_commit",
-    "stop_railway_service",
-    "revoke_secrets_if_compromised"
+    "remove_preview_bindings",
+    "revoke_b2_key_if_compromised",
+    "verify_static_director_kit"
   ],
   "blockers": [
     "reviewer_access_account",

@@ -55,8 +55,22 @@ Status: in_progress
 | C-045 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Bind the retained source to the undeployed preview runtime plan | Exact source key, digest, size, lineage, visibility, and promotion commit are machine checked; handoff remains non-executable and cloud configuration stays blocked | done |
 | C-046 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Freeze the preview runtime B2 transport to one total attempt | Live B2 default factory preserves Genblaze behavior while Botocore is constrained to `total_max_attempts=1`; focused, mutation, and full regressions pass without network | done |
 | C-047 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | Build the redacted preview deployment packet | Cloudflare/Railway values, four null secrets, source binding, smoke order, rollback order, blockers, and all-false authority are cross-validated | done |
+| C-048 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Replace the paid Railway preview with a Cloudflare-native B2 runtime | Same-origin Access boundary, retained-source digest, one manifest write/read-back, compensation, privacy hashes, validators, full regression, build, and Worker bundle pass before cloud configuration | done |
 
 ## Event Log
+
+### 2026-07-19 17:15 C-E056
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent + DevOps Agent
+To: Security Agent + Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-048
+Gate: Architecture / Engineering / Security / Code Review / Test / DevOps / Claims Review
+Message: Superseded the Railway preview after its expired trial blocked resource creation. The new smallest sufficient boundary runs inside the existing same-origin Cloudflare Pages Function, keeps Access JWT validation, signs direct B2 requests with the locked `aws4fetch` implementation, verifies the exact retained Runway source, writes and reads back one private retained-source manifest, hashes prompts and identifiers before persistence, and compensates ambiguous or tampered manifest writes without touching the source. No Runway client or credential exists in the deployed path.
+Evidence: 6 focused gateway tests, 12 focused runtime/deployment tests, 185-test Node regression, TypeScript, ESLint, production build, successful Cloudflare Functions bundle, updated ADR/threat model/deployment packet/operator handoff, and zero tracked-secret findings.
+Decision: PASS LOCAL CLOUDFLARE RUNTIME; CONTINUE TO ISOLATED PAGES PROJECT, ACCESS/RATE CONFIGURATION, SECRET UPLOAD, DEPLOYMENT, SMOKE, AND ROLLBACK.
+Next owner: DevOps Agent + Human owner
+Close condition: Create an isolated Pages project, configure Access and edge rate limiting, upload the two B2 secrets without disclosure, deploy a pinned commit, and pass the ten ordered smokes plus rollback. Publication and Devpost submission remain unauthorized.
 
 ### 2026-07-19 16:10 C-E055
 

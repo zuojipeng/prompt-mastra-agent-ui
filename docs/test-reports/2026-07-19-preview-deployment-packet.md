@@ -1,6 +1,8 @@
 # Test Report: Preview Deployment Packet
 
-Status: PASS
+Status: SUPERSEDED by `2026-07-19-cloudflare-b2-preview-runtime.md`
+
+This report covers the earlier v1 Cloudflare/Railway packet. The current v2 packet is tested in the superseding report.
 
 Date: 2026-07-19
 

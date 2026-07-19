@@ -1,5 +1,7 @@
 # Agent Run: Preview Deployment Packet
 
+Status: SUPERSEDED by `2026-07-19-cloudflare-b2-preview-runtime.md`
+
 Date: 2026-07-19
 
 Task: C-047 / JC-T005

@@ -16,7 +16,9 @@ Jingci turns one creative idea into a DirectorKit: a feasibility diagnosis, thre
 
 ## How It Uses Genblaze
 
-The Python adapter uses Genblaze's official `SyncProvider`, `Pipeline`, `ObjectStorageSink`, and `StorageBackend` extension points. The current credential-free proof executes a deterministic provider, stores exact media bytes and a separate canonical manifest through an in-memory backend, and returns a strict `jingci.provenance-run.v1` record to the browser.
+The Python adapter uses Genblaze's official `SyncProvider`, `Pipeline`, `ObjectStorageSink`, and `StorageBackend` extension points. The credential-free proof executes a deterministic provider, stores exact media bytes and a separate canonical manifest through an in-memory backend, and returns a strict `jingci.provenance-run.v1` record to the browser.
+
+The judge preview uses a smaller Cloudflare Pages Function instead of exposing or hosting the Python process. It verifies the one retained private Runway asset directly in B2, stores one read-back retained-source manifest per reviewer run, and persists prompt hashes rather than raw prompts. This browser path does not claim to invoke Runway or Genblaze again; the approved private recovery evidence below proves the separate Genblaze-to-B2 composition.
 
 A second no-network integration test composes the production Runway Genblaze adapter with a scripted fake Runway client and a B2-shaped in-memory backend. Fixture media passes through an injected probe gate, Genblaze `Pipeline`, and `ObjectStorageSink`; the test reads back and verifies the content-addressed asset and canonical manifest, then removes its owned storage objects and temporary local media.
 

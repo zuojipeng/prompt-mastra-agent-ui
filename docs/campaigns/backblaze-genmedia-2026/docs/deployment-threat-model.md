@@ -1,76 +1,32 @@
 # Preview Deployment Threat Model
 
-Status: design gate only. No deployment or account action is authorized by this document.
+Status: Cloudflare Worker implementation complete locally; cloud controls and deployment evidence pending.
 
-## Security Decision
-
-The default Python adapter remains loopback-only and must not be exposed directly. A guarded preview mode refuses non-loopback bind without explicit configuration and locally proves exact-origin CORS, an upstream service token, bounded concurrency/read timeout, metadata-only logs, process health, and a disable switch. The frontend now accepts only loopback HTTP for local work or the exact same-origin `/api/provenance` preview path.
-
-The accepted preview design adds a Cloudflare Pages Function that validates Cloudflare Access with the official plugin before forwarding to the Python service. It injects a server-only bearer, rejects cross-site POSTs, limits both directions to 64KB, refuses redirects, bounds upstream time, and redacts upstream auth/5xx bodies. B2 and provider credentials remain only in the provenance service. An embedded browser token is not authentication and is rejected as the primary control.
-
-## Trust Boundaries
+## Trust Boundary
 
 ```text
-Judge browser
-  -> Cloudflare Access
-  -> Cloudflare Pages campaign build
-  -> same-origin Pages Function security gateway
-  -> hardened Python provenance service
-  -> allowlisted AI media provider
-  -> private dedicated B2 bucket
+Reviewer -> Cloudflare Access -> Pages UI + Function -> private Backblaze B2
 ```
 
-The existing DirectorKit Worker remains a separate service and repository. No B2 or provider secret crosses into static JavaScript, local storage, screenshots, URLs, or the Worker unless a separately reviewed server-to-server proxy is introduced.
-
-## Assets To Protect
-
-- B2 key ID and application key.
-- AI provider credentials and spend quota.
-- Generated media, prompts, manifests, and project identifiers.
-- Provenance hashes and retry lineage.
-- Judge access credentials and deployment URLs before publication approval.
-- Availability through the judging period.
+The existing DirectorKit Worker remains a separate backend. The preview Function has no Runway credential and cannot create paid media.
 
 ## Threat Matrix
 
-| Threat | User Impact | Required Control | Current State |
-| --- | --- | --- | --- |
-| Secret shipped in static bundle or logs | Account compromise and storage loss | Server-only secrets, redacted structured logs, bundle scan | Implemented in gateway/Python code; bindings and bundle evidence pending |
-| Anonymous generation abuse | Provider spend and denial of service | Reviewer authentication, edge rate limit, daily quota, concurrency cap | Access JWT and concurrency implemented in code; policy/rate rule pending |
-| Cross-origin invocation | Third-party sites consume quota | Same-origin gateway plus exact Python origin allowlist | Implemented in code; deployment smoke pending |
-| Oversized or malformed requests | Memory/CPU exhaustion or contract bypass | 64KB body cap, JSON media type, strict request schema | Implemented locally |
-| Provider output SSRF or arbitrary URL fetch | Internal network access or data exfiltration | Provider and exact URL scheme/host allowlist; pre-fetch redirect validation; public-address check; deployment egress policy | Offline transport implemented; live host, DNS pinning/egress, and network evidence pending |
-| Forged verified response | False provenance claim | Server-bound source lineage, source digest, strict response parser, asset digest, read-back manifest verification | Implemented locally/offline; B2 network verification pending |
-| Cross-run object collision | Wrong deletion or lineage mix-up | Unique run prefix and content-addressed asset keys | Implemented offline |
-| Public B2 object exposure | Prompt/media leakage | Private bucket and short-lived signed reads only | Pending account setup |
-| Persistent presigned URLs | Credential material in durable records | Persist key/durable URI only; sign at read time | Design established |
-| Partial upload residue | Cost and privacy residue | Random fixed-namespace run prefix, owned-key tracking, cleanup, retention policy, manual recovery key | Implemented offline for the preview executor; live deployment verification pending |
-| Dependency or runtime drift | Broken judge app | Pinned versions, immutable commit, build and smoke evidence | Partial |
-| Unobservable failure | Slow recovery during judging | Health/dependency checks, request IDs, latency/error counters | Local process health and redacted request logs; dependencies/counters missing |
+| Threat | Control | Evidence state |
+| --- | --- | --- |
+| B2 secret reaches browser or logs | encrypted bindings, generic errors, static bundle scan | implemented; cloud binding pending |
+| Anonymous write/read abuse | Cloudflare Access plus edge rate limit | JWT middleware implemented; policy/rule pending |
+| Cross-site invocation | exact same-origin check and `Sec-Fetch-Site` validation | unit tested |
+| Oversized or malformed request | 64KB stream cap and strict contract normalizer | unit tested |
+| Source substitution | server-bound key, provider/model, byte limit, SHA-256 | unit tested; live Worker smoke pending |
+| Manifest overwrite | random run ID plus destination-absence check | unit tested |
+| Partial manifest residue | delete only current request's owned manifest | tampered read-back test passes |
+| Prompt or project identifier disclosure | persist SHA-256 only, never raw values | unit tested |
+| Arbitrary egress/SSRF | B2 endpoint and key built exclusively from reviewed server config | implemented |
+| False Genblaze claim | label browser manifest as retained-source envelope; keep Genblaze claim bound to separate recovery evidence | Claims Review required |
+| Paid provider call | no Runway binding or client in deployed Function | structurally excluded |
+| Unbounded object growth | Access, edge rate limit, judging-period monitoring and teardown | rate/ops evidence pending |
 
-## Required Public-Service Controls
+## Release Conditions
 
-1. Exact `JINGCI_PUBLIC_PREVIEW_MODE=YES`; service refuses non-loopback bind without it.
-2. Exact `ALLOWED_ORIGINS` with HTTPS only; no wildcard.
-3. Cloudflare Access on the preview hostname plus JWT validation in the Pages Function. The upstream bearer is injected from an encrypted binding and never embedded in JavaScript.
-4. Edge request rate limit plus process concurrency and timeout limits.
-5. Dedicated bucket-scoped B2 key and private bucket; no lifecycle mutation by the app.
-6. Provider/model and output URL allowlists.
-7. Structured redacted logs with request ID, status, duration, provider, model, attempt, and no prompts or secrets by default.
-8. `/health` for process state and a protected dependency check for provider/B2 configuration.
-9. `PROVENANCE_ENABLED=false` rollback switch that leaves the existing manual shot workflow available.
-10. Cleanup/retention runbook and explicit human approval before deployment.
-
-Implementation evidence is in `lib/provenance-gateway.ts`, `functions/api/provenance/`, `jingci_spike/http_service.py`, `jingci_spike/b2_preview_executor.py`, the TypeScript gateway/runtime tests, Python regression tests, and local container smoke. It does not satisfy configured edge rate limiting, reviewer-account evidence, B2 network dependency health, deployed runtime, or post-deploy controls.
-
-## Release And Rollback
-
-Preview release is blocked until `npm run hackathon:deploy:check` passes. Roll back immediately on secret exposure, uncontrolled anonymous requests, incorrect CORS, digest/manifest mismatch, cleanup failure rate above zero, or inability to complete the judge path twice consecutively.
-
-Rollback sequence:
-
-1. Set `JINGCI_PROVENANCE_ENABLED=NO` in both runtime layers; the public frontend contains only the same-origin path.
-2. Roll the frontend to the previous healthy Pages deployment.
-3. Stop the Python service revision and revoke its provider/B2 keys if compromise is possible.
-4. Inspect and remove owned `jingci-smoke/` or campaign-prefix objects.
-5. Re-run the base DirectorKit smoke to prove manual workflow continuity.
+Release remains blocked until Access and rate limiting are configured, deployment secrets are uploaded securely, the pinned preview deployment passes all smoke checks, and rollback is exercised. Public publication and Devpost submission remain separate human gates.

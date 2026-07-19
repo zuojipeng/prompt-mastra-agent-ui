@@ -46,7 +46,7 @@ PYTHONPATH=. .venv/bin/python tests/preview_http_service_smoke.py
 
 The preview bearer is an access-layer-to-service secret. Do not put it in the static frontend, judge instructions, screenshots, URLs, or evidence output.
 
-Run the authorized B2 transport and Genblaze pipeline smokes from a secure environment without placing secrets on the command line:
+The deployed Cloudflare preview verifies the retained source and writes one Jingci retained-source manifest per accepted request. The separate Python commands below remain recovery evidence tools and are not the deployed browser runtime. Run them only under a separate authorization and without placing secrets on the command line:
 
 ```bash
 PYTHONPATH=. .venv/bin/python -m jingci_spike.live_b2_smoke --live
