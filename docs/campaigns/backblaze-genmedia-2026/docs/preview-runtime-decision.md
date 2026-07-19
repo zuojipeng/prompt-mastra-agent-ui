@@ -117,6 +117,12 @@ The reviewed source is now frozen in `preview-runtime-plan.json` as the private 
 
 The custom B2 key has been independently reviewed for the bucket and `jingci-preview/` prefix needed by this runtime, but it remains local and must not be uploaded to Railway without a separate deployment approval. This closes source identity and local credential suitability only; public access, cloud secret configuration, and deployment remain blocked.
 
+## B2 Retry Policy
+
+All default live B2 construction now uses `NoRetryS3StorageBackend`. The subclass delegates the complete storage implementation to Genblaze and changes only the Botocore client retry envelope through `Config.merge()`, setting `total_max_attempts=1` in standard mode. This preserves Genblaze timeouts, checksum behavior, endpoint handling, preflight, upload, read-back, and error classification without a global monkeypatch or duplicate S3 implementation.
+
+Offline factories and explicitly injected test backends are unchanged. The runtime validator and unit tests fail if the subclass, live default factory, or one-total-attempt value drifts. This policy prevents an approved preview request from silently multiplying storage attempts; it does not authorize any request or deployment.
+
 ## Sources Reviewed
 
 - Cloudflare Pages Functions: https://developers.cloudflare.com/pages/functions/

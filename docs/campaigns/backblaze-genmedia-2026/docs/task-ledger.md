@@ -53,8 +53,22 @@ Status: in_progress
 | C-043 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Remove obsolete B2 administrator material | Exact rejected-key identity is revoked, active minimal-key identity is unchanged, local Master Key file is absent, and private cleanup evidence is secret-free | done |
 | C-044 | DevOps Agent + Operator Agent + Human owner | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Retain the reviewed Runway source in private B2 | Exact clean commit/source/key approval is consumed once; target absence, upload, read-back SHA-256, retained state, least-privilege scope, and no-retry transport are privately evidenced | done |
 | C-045 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Bind the retained source to the undeployed preview runtime plan | Exact source key, digest, size, lineage, visibility, and promotion commit are machine checked; handoff remains non-executable and cloud configuration stays blocked | done |
+| C-046 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Freeze the preview runtime B2 transport to one total attempt | Live B2 default factory preserves Genblaze behavior while Botocore is constrained to `total_max_attempts=1`; focused, mutation, and full regressions pass without network | done |
 
 ## Event Log
+
+### 2026-07-19 16:05 C-E054
+
+Type: REVIEWED
+From: Architecture Agent + Engineering Agent
+To: Security Agent + Code Review Agent + Test Agent + DevOps Agent + Hermes Orchestrator
+Task: C-046
+Gate: Architecture / Engineering / Security / Code Review / Test / DevOps
+Message: Replaced the one-off live-operation retry override with a tracked `NoRetryS3StorageBackend` that inherits Genblaze storage behavior and uses Botocore `Config.merge()` to set `total_max_attempts=1` in standard mode. The live B2 composition root now defaults to this backend, while offline and injected-test factories remain unchanged. Runtime validation rejects removal of the subclass, live default-factory drift, or an increased attempt count.
+Evidence: 10 focused Python tests, 6 focused runtime-plan tests, 173-test Python regression, 184-test Node regression, and deterministic runtime validator; no credentials, network, B2 operation, deployment, publication, or submission.
+Decision: PASS TRACKED NO-RETRY B2 TRANSPORT POLICY.
+Next owner: DevOps Agent + Security Agent + Human owner
+Close condition: Prepare the exact preview deployment configuration and smoke/rollback packet; creating resources, uploading secrets, and deploying still require a separate human approval.
 
 ### 2026-07-19 16:00 C-E053
 

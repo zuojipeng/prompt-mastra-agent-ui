@@ -12,6 +12,7 @@ const valid = {
   dockerfile: readFileSync(path.join(root, 'Dockerfile'), 'utf8'),
   runtimeSource: readFileSync(path.join(root, 'jingci_spike/runtime_service.py'), 'utf8'),
   b2Source: readFileSync(path.join(root, 'jingci_spike/b2_preview_executor.py'), 'utf8'),
+  b2ConfigSource: readFileSync(path.join(root, 'jingci_spike/b2_config.py'), 'utf8'),
   dependencyLock: readFileSync(path.join(root, 'requirements.lock'), 'utf8'),
 };
 
@@ -74,5 +75,16 @@ describe('hackathon preview runtime plan', () => {
     expect(errors).toContain('Dockerfile must not declare secret inputs');
     expect(errors).toContain('dependency lock must pin Genblaze');
     expect(errors).toContain('dependency is not exactly pinned: genblaze>=0.4.1');
+  });
+
+  it('rejects removal or widening of the B2 no-retry transport', () => {
+    const errors = evaluatePreviewRuntime({
+      ...valid,
+      b2ConfigSource: valid.b2ConfigSource
+        .replaceAll('NoRetryS3StorageBackend', 'RetryingS3StorageBackend')
+        .replace('"total_max_attempts": 1', '"total_max_attempts": 3'),
+    });
+    expect(errors).toContain('B2 live transport must use the reviewed no-retry backend');
+    expect(errors).toContain('B2 live transport must allow exactly one total attempt');
   });
 });

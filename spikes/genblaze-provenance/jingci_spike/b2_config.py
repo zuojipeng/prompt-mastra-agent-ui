@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping
 
+from botocore.config import Config as BotoConfig
 from genblaze_s3 import S3StorageBackend
 
 
@@ -40,6 +41,17 @@ class B2Config:
 BackendFactory = Callable[..., Any]
 
 
+class NoRetryS3StorageBackend(S3StorageBackend):
+    """Keep Genblaze's S3 behavior while making each request single-attempt."""
+
+    def _client_kwargs(self) -> dict[str, Any]:
+        kwargs = super()._client_kwargs()
+        kwargs["config"] = kwargs["config"].merge(
+            BotoConfig(retries={"total_max_attempts": 1, "mode": "standard"})
+        )
+        return kwargs
+
+
 def build_offline_backblaze_backend(
     config: B2Config,
     backend_factory: BackendFactory = S3StorageBackend.for_backblaze,
@@ -58,9 +70,9 @@ def build_offline_backblaze_backend(
 
 def build_live_backblaze_backend(
     config: B2Config,
-    backend_factory: BackendFactory = S3StorageBackend.for_backblaze,
+    backend_factory: BackendFactory = NoRetryS3StorageBackend.for_backblaze,
 ) -> Any:
-    """Construct a preflighted B2 backend without bucket-wide mutations."""
+    """Construct a single-attempt preflighted B2 backend without bucket mutations."""
 
     return backend_factory(
         config.bucket,

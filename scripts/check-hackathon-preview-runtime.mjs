@@ -33,7 +33,7 @@ const REQUIRED_VARIABLES = [
   'JINGCI_PREVIEW_SOURCE_MAX_BYTES',
 ];
 
-export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, dependencyLock }) {
+export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, b2ConfigSource, dependencyLock }) {
   const errors = [];
   if (plan?.schema_version !== 'jingci.preview-runtime-plan.v1') errors.push('invalid runtime plan schema');
   if (plan?.service_root !== SERVICE_ROOT) errors.push(`service_root must be ${SERVICE_ROOT}`);
@@ -75,6 +75,11 @@ export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSourc
   if (!runtimeSource.includes('JINGCI_PROVENANCE_STORAGE_MODE')) errors.push('runtime must require an explicit storage mode');
   if (!b2Source.includes('RUN_PREFIX = "jingci-preview/runs"')) errors.push('B2 writes must use the fixed preview run namespace');
   if (!b2Source.includes('wrapper.cleanup_owned()')) errors.push('B2 failures must clean owned objects');
+  if (
+    !b2ConfigSource.includes('class NoRetryS3StorageBackend(S3StorageBackend):') ||
+    !b2ConfigSource.includes('backend_factory: BackendFactory = NoRetryS3StorageBackend.for_backblaze')
+  ) errors.push('B2 live transport must use the reviewed no-retry backend');
+  if (!b2ConfigSource.includes('"total_max_attempts": 1')) errors.push('B2 live transport must allow exactly one total attempt');
   if (!dependencyLock.includes('genblaze==0.4.1')) errors.push('dependency lock must pin Genblaze');
   for (const line of dependencyLock.split('\n').filter(Boolean)) {
     if (!/^[a-zA-Z0-9_.-]+==[^=\s]+$/.test(line)) errors.push(`dependency is not exactly pinned: ${line}`);
@@ -88,8 +93,9 @@ function main() {
   const dockerfile = readFileSync(path.resolve(SERVICE_ROOT, 'Dockerfile'), 'utf8');
   const runtimeSource = readFileSync(path.resolve(SERVICE_ROOT, 'jingci_spike/runtime_service.py'), 'utf8');
   const b2Source = readFileSync(path.resolve(SERVICE_ROOT, 'jingci_spike/b2_preview_executor.py'), 'utf8');
+  const b2ConfigSource = readFileSync(path.resolve(SERVICE_ROOT, 'jingci_spike/b2_config.py'), 'utf8');
   const dependencyLock = readFileSync(path.resolve(SERVICE_ROOT, 'requirements.lock'), 'utf8');
-  const errors = evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, dependencyLock });
+  const errors = evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSource, b2Source, b2ConfigSource, dependencyLock });
   if (errors.length > 0) {
     console.error(`Preview runtime plan is invalid:\n- ${errors.join('\n- ')}`);
     return 1;

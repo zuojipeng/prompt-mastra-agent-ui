@@ -4,9 +4,18 @@ import hashlib
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+from botocore.config import Config as BotoConfig
+from genblaze_s3 import S3StorageBackend
 
 from jingci_spike.contract import ShotProvenanceJob
-from jingci_spike.b2_config import B2Config, build_offline_backblaze_backend
+from jingci_spike.b2_config import (
+    B2Config,
+    NoRetryS3StorageBackend,
+    build_live_backblaze_backend,
+    build_offline_backblaze_backend,
+)
 from jingci_spike.manifest_adapter import build_verified_manifest
 from jingci_spike.local_pipeline import execute_local_storage_pipeline
 
@@ -104,6 +113,21 @@ class ManifestAdapterTest(unittest.TestCase):
         self.assertEqual(observed["bucket"], "bucket")
         self.assertFalse(observed["preflight"])
         self.assertFalse(observed["auto_lifecycle"])
+
+    def test_live_b2_backend_defaults_to_single_attempt_transport(self) -> None:
+        default_factory = build_live_backblaze_backend.__defaults__[0]
+        self.assertIs(default_factory.__self__, NoRetryS3StorageBackend)
+
+        backend = NoRetryS3StorageBackend.__new__(NoRetryS3StorageBackend)
+        base_config = BotoConfig(connect_timeout=30, retries={"max_attempts": 3, "mode": "adaptive"})
+        with patch.object(S3StorageBackend, "_client_kwargs", return_value={"config": base_config}):
+            kwargs = backend._client_kwargs()
+
+        self.assertEqual(kwargs["config"].connect_timeout, 30)
+        self.assertEqual(
+            kwargs["config"].retries,
+            {"total_max_attempts": 1, "mode": "standard"},
+        )
 
 
 if __name__ == "__main__":
