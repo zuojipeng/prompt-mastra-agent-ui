@@ -1,6 +1,6 @@
 # B2 Credential Scope Attestation
 
-Status: live scope inspected and rejected; replacement least-privilege key required
+Status: replacement least-privilege key created, inspected, and attested
 
 Producer: Security Agent + Architecture Agent
 
@@ -41,8 +41,12 @@ The guarded adapter reads the attestation from an owner-only regular mode-0600 f
 - Making the attestation authorize execution: rejected because security review and mutation approval are separate human decisions.
 - Calling `b2_list_keys` with the same scoped key: rejected because it may lack `listKeys` and adding that capability would widen authority.
 
+## Live Resolution
+
+The 2026-07-18 read-only inspection authenticated and confirmed the intended bucket, region, and `jingci-preview/` prefix, but rejected the Backblaze `Read and Write` preset because it included unrelated bucket mutation authority.
+
+On 2026-07-19 the human owner authorized a custom replacement. Security/DevOps created a 30-day child key restricted to the same bucket and prefix with only `deleteFiles`, `listAllBucketNames`, `listBuckets`, `listFiles`, `readBuckets`, `readFiles`, and `writeFiles`. Child-key authorization matched that exact scope before the private project configuration changed. The owner-only passing inspection and 24-hour canonical attestation contain no secret or token and explicitly grant no execution authority.
+
 ## Remaining Gate
 
-The 2026-07-18 read-only inspection authenticated and confirmed the intended bucket, region, and `jingci-preview/` prefix. It did not pass least-privilege review. The Backblaze `Read and Write` preset returned required file operations together with unrelated authority including `writeBuckets`, `writeBucketEncryption`, `writeBucketLifecycleRules`, `writeBucketLogging`, `writeBucketNotifications`, and `writeBucketReplications`. The private mode-0600 rejection report contains only the approved non-secret scope fields and cannot authorize execution.
-
-The human owner must create a replacement key restricted to the same bucket and prefix with only the reviewed list/file capabilities. Security/DevOps must then perform one separately approved read-only inspection and produce a passing canonical attestation. Only after that may the human owner issue a separate clean-commit/source-bound one-attempt approval for B2 source retention.
+The obsolete broad application key and local Master Key file remain present because their deletion was outside the creation approval. Their cleanup needs a separate human decision. B2 source retention still requires a separate clean-commit/source-bound one-attempt mutation approval; the credential attestation cannot replace it.

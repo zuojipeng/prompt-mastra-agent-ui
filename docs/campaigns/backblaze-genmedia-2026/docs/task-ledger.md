@@ -46,11 +46,25 @@ Status: in_progress
 | C-036 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Operator Agent | Freeze the narrow live adapter and crash-recovery plan | Exact constraints, ordered gates, input classifications, all-false authority, conservative recovery, and prohibited actions are machine checked without environment or network access | done |
 | C-037 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Implement the guarded retained-source adapter without an execution surface | Safe private inputs, target-bound approval, delayed config, pre-consumption absence, stable errors, conservative evidence, and injected-evidence downgrade pass without credentials or network | done |
 | C-038 | Security Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent + Claims Review Agent | Bind retained-source execution to independently reviewable B2 credential scope | Canonical short-lived evidence binds bucket, region, prefix, key fingerprint, least privileges, and final private result without authorizing execution | done |
-| C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | A replacement key returns only the reviewed bucket/prefix/capabilities and a validated private attestation exists | blocked-human |
+| C-039 | Security Agent + DevOps Agent + Human owner | Test Agent + Claims Review Agent | Inspect the configured B2 key scope exactly once | A replacement key returns only the reviewed bucket/prefix/capabilities and a validated private attestation exists | done |
 | C-040 | Security Agent + Engineering Agent | Architecture Agent + Code Review Agent + Test Agent | Preserve rejected B2 scope as non-authorizing private evidence | Rejection report is canonical, secret-free, mode 0600, immutable, capability-complete, and cannot authorize execution | done |
 | C-041 | Security Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Classify the live rotated B2 key scope | Exact approved non-secret fields are retained privately and every excessive capability is identified without widening policy | done |
+| C-042 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Create and bind a custom least-privilege B2 runtime key | Thirty-day child key is bucket/prefix restricted, exact-capability inspected, locally configured, and represented by a passing non-authorizing scope attestation | done |
 
 ## Event Log
+
+### 2026-07-19 12:34 C-E050
+
+Type: REVIEWED
+From: Security Agent + DevOps Agent
+To: Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent + Human owner + Hermes Orchestrator
+Task: C-039 / C-042
+Gate: Production Credential / Least Privilege
+Message: Under the exact human approval, used the owner-only Master Key to create one 30-day child key restricted to bucket `jingci-genmedia-2026-zuojipeng` and prefix `jingci-preview/`. The child has only `deleteFiles`, `listAllBucketNames`, `listBuckets`, `listFiles`, `readBuckets`, `readFiles`, and `writeFiles`. A separate child authorization self-check matched the frozen scope before `.env.hackathon.local` was atomically updated. The canonical private inspection and 24-hour evidence-only attestation both pass. Two earlier pre-creation attempts stopped at administrator authorization and created nothing; the successful path used macOS SecureTransport after offline CA diagnosis.
+Evidence: Ignored owner-only mode-0600 creation record, passing inspection, and credential-scope attestation; Key ID represented only by SHA-256; exact configuration/hash match; no object operation, old-key deletion, deployment, secret/token persistence, publication, or submission.
+Decision: PASS LEAST-PRIVILEGE CREDENTIAL GATE. CREDENTIAL REVIEW DOES NOT AUTHORIZE SOURCE RETENTION.
+Next owner: Security Agent + Human owner + Hermes Orchestrator
+Close condition: Separately approve cleanup of the obsolete broad application key and local administrator credential file, then separately bind a clean commit/source/object target to the one-attempt retained-source mutation approval.
 
 ### 2026-07-18 19:16 C-E049
 
