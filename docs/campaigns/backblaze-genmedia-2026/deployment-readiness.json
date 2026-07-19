@@ -37,7 +37,8 @@
     "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
     "docs/campaigns/backblaze-genmedia-2026/docs/release-evidence-runbook.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
-    "docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json"
+    "docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json",
+    "docs/campaigns/backblaze-genmedia-2026/preview-deployment-packet.json"
   ],
   "blockers": [
     "reviewer_access_account",

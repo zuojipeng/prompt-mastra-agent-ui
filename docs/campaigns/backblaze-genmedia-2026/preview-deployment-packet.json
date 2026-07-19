@@ -1,0 +1,83 @@
+{
+  "schema_version": "jingci.preview-deployment-packet.v1",
+  "status": "blocked",
+  "release_commit": null,
+  "cloudflare_pages": {
+    "bindings": {
+      "CF_ACCESS_TEAM_DOMAIN": null,
+      "CF_ACCESS_AUD": null,
+      "PROVENANCE_SERVICE_URL": null,
+      "PROVENANCE_SERVICE_TOKEN": null,
+      "JINGCI_PROVENANCE_ENABLED": "YES"
+    },
+    "external_controls": {
+      "access_application": false,
+      "reviewer_policy": false,
+      "provenance_rate_limit": false
+    }
+  },
+  "railway": {
+    "service_root": "spikes/genblaze-provenance",
+    "variables": {
+      "PORT": null,
+      "JINGCI_PUBLIC_PREVIEW_MODE": "YES",
+      "JINGCI_PREVIEW_ALLOWED_ORIGIN": null,
+      "JINGCI_PREVIEW_BEARER_TOKEN": null,
+      "JINGCI_PREVIEW_MAX_CONCURRENCY": "2",
+      "JINGCI_PROVENANCE_ENABLED": "YES",
+      "JINGCI_PROVENANCE_STORAGE_MODE": "B2",
+      "B2_BUCKET": "jingci-genmedia-2026-zuojipeng",
+      "B2_REGION": "us-east-005",
+      "B2_KEY_ID": null,
+      "B2_APP_KEY": null,
+      "JINGCI_PREVIEW_SOURCE_KEY": "jingci-preview/source/runway-gen45-ca8ea95388d2.mp4",
+      "JINGCI_PREVIEW_SOURCE_SHA256": "ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6",
+      "JINGCI_PREVIEW_SOURCE_PROVIDER": "runway",
+      "JINGCI_PREVIEW_SOURCE_MODEL": "gen4.5",
+      "JINGCI_PREVIEW_SOURCE_MAX_BYTES": "1044064"
+    }
+  },
+  "secret_fields": [
+    "cloudflare_pages.bindings.PROVENANCE_SERVICE_TOKEN",
+    "railway.variables.JINGCI_PREVIEW_BEARER_TOKEN",
+    "railway.variables.B2_KEY_ID",
+    "railway.variables.B2_APP_KEY"
+  ],
+  "smoke_order": [
+    "health_200",
+    "unauthenticated_401",
+    "wrong_origin_denied",
+    "oversized_body_413",
+    "invalid_lineage_400",
+    "retained_source_digest_verified",
+    "asset_manifest_readback_verified",
+    "rate_limit_blocks_before_upstream",
+    "feature_disable_fallback",
+    "desktop_mobile_judge_path"
+  ],
+  "rollback_order": [
+    "disable_pages_gateway",
+    "disable_railway_provenance",
+    "rollback_pages_commit",
+    "stop_railway_service",
+    "revoke_secrets_if_compromised"
+  ],
+  "blockers": [
+    "reviewer_access_account",
+    "cloudflare_access_configuration",
+    "cloudflare_rate_limit_configuration",
+    "deployment_secret_configuration",
+    "campaign_preview_deployment",
+    "post_deploy_judge_smoke",
+    "human_release_approval"
+  ],
+  "authorization": {
+    "create_cloud_resources": false,
+    "configure_access": false,
+    "configure_rate_limit": false,
+    "upload_secrets": false,
+    "deploy": false,
+    "publish": false,
+    "submit_devpost": false
+  }
+}
