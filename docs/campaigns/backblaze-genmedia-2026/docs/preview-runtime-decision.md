@@ -111,6 +111,12 @@ This closes runtime packaging only. No Railway project, service, domain, variabl
 
 The B2 executor has also passed offline tests against an injected in-memory backend. That proves ownership, verification, lineage, and compensation logic but is not B2 network evidence.
 
+## Retained Source Binding
+
+The reviewed source is now frozen in `preview-runtime-plan.json` as the private object `jingci-preview/source/runway-gen45-ca8ea95388d2.mp4`, SHA-256 `ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6`, 1,044,064 bytes, with Runway `gen4.5` lineage. The runtime validator rejects any source key, digest, size, provider, model, visibility, or promotion-commit substitution and rejects claims that this binding is already configured in a deployment.
+
+The custom B2 key has been independently reviewed for the bucket and `jingci-preview/` prefix needed by this runtime, but it remains local and must not be uploaded to Railway without a separate deployment approval. This closes source identity and local credential suitability only; public access, cloud secret configuration, and deployment remain blocked.
+
 ## Sources Reviewed
 
 - Cloudflare Pages Functions: https://developers.cloudflare.com/pages/functions/

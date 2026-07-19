@@ -4,6 +4,16 @@ import { fileURLToPath } from 'node:url';
 
 const PLAN_PATH = 'docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json';
 const SERVICE_ROOT = 'spikes/genblaze-provenance';
+const REVIEWED_SOURCE = Object.freeze({
+  key: 'jingci-preview/source/runway-gen45-ca8ea95388d2.mp4',
+  sha256: 'ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6',
+  size_bytes: 1044064,
+  provider: 'runway',
+  model: 'gen4.5',
+  visibility: 'private',
+  promotion_commit: '9a0e875a87acb276eccbd0b975c5b25ed7235a59',
+  deployment_configured: false,
+});
 const REQUIRED_VARIABLES = [
   'PORT',
   'JINGCI_PUBLIC_PREVIEW_MODE',
@@ -29,6 +39,20 @@ export function evaluatePreviewRuntime({ plan, railway, dockerfile, runtimeSourc
   if (plan?.service_root !== SERVICE_ROOT) errors.push(`service_root must be ${SERVICE_ROOT}`);
   if (plan?.entrypoint !== 'python -m jingci_spike.runtime_service') errors.push('runtime entrypoint is not pinned');
   if (plan?.deployment_storage_mode !== 'B2') errors.push('deployment storage mode must be B2');
+  if (!plan?.reviewed_source || typeof plan.reviewed_source !== 'object') {
+    errors.push('reviewed source binding is required');
+  } else {
+    const sourceKeys = Object.keys(plan.reviewed_source).sort();
+    const expectedKeys = Object.keys(REVIEWED_SOURCE).sort();
+    if (JSON.stringify(sourceKeys) !== JSON.stringify(expectedKeys)) {
+      errors.push('reviewed source binding shape is invalid');
+    }
+    for (const [field, expected] of Object.entries(REVIEWED_SOURCE)) {
+      if (plan.reviewed_source[field] !== expected) {
+        errors.push(`reviewed source ${field} must match retained-source evidence`);
+      }
+    }
+  }
   const variableNames = plan?.required_variables?.map((item) => item?.name) ?? [];
   for (const name of REQUIRED_VARIABLES) {
     if (!variableNames.includes(name)) errors.push(`missing required variable declaration: ${name}`);
@@ -70,7 +94,7 @@ function main() {
     console.error(`Preview runtime plan is invalid:\n- ${errors.join('\n- ')}`);
     return 1;
   }
-  console.log(`Preview runtime plan is valid with ${REQUIRED_VARIABLES.length} declared variable names and no deployment authorization.`);
+  console.log(`Preview runtime plan is valid with one exact retained source, ${REQUIRED_VARIABLES.length} declared variable names, and no deployment authorization.`);
   return 0;
 }
 

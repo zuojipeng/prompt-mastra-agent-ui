@@ -31,6 +31,39 @@ describe('hackathon preview runtime plan', () => {
     expect(errors).toContain('authorization deploy must remain false');
   });
 
+  it('rejects retained-source substitution and false deployment state', () => {
+    const plan = structuredClone(valid.plan);
+    plan.reviewed_source.key = 'jingci-preview/source/another.mp4';
+    plan.reviewed_source.sha256 = '0'.repeat(64);
+    plan.reviewed_source.size_bytes = 1;
+    plan.reviewed_source.provider = 'another-provider';
+    plan.reviewed_source.model = 'another-model';
+    plan.reviewed_source.visibility = 'public';
+    plan.reviewed_source.promotion_commit = '0'.repeat(40);
+    plan.reviewed_source.deployment_configured = true;
+    const errors = evaluatePreviewRuntime({ ...valid, plan });
+    for (const field of [
+      'key',
+      'sha256',
+      'size_bytes',
+      'provider',
+      'model',
+      'visibility',
+      'promotion_commit',
+      'deployment_configured',
+    ]) {
+      expect(errors).toContain(`reviewed source ${field} must match retained-source evidence`);
+    }
+  });
+
+  it('rejects reviewed-source fields that are added outside the contract', () => {
+    const plan = structuredClone(valid.plan);
+    plan.reviewed_source.signed_url = 'https://example.invalid/private.mp4?token=secret';
+    expect(evaluatePreviewRuntime({ ...valid, plan })).toContain(
+      'reviewed source binding shape is invalid',
+    );
+  });
+
   it('rejects root execution, secret declarations, and floating dependencies', () => {
     const errors = evaluatePreviewRuntime({
       ...valid,

@@ -52,8 +52,22 @@ Status: in_progress
 | C-042 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Create and bind a custom least-privilege B2 runtime key | Thirty-day child key is bucket/prefix restricted, exact-capability inspected, locally configured, and represented by a passing non-authorizing scope attestation | done |
 | C-043 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Remove obsolete B2 administrator material | Exact rejected-key identity is revoked, active minimal-key identity is unchanged, local Master Key file is absent, and private cleanup evidence is secret-free | done |
 | C-044 | DevOps Agent + Operator Agent + Human owner | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Retain the reviewed Runway source in private B2 | Exact clean commit/source/key approval is consumed once; target absence, upload, read-back SHA-256, retained state, least-privilege scope, and no-retry transport are privately evidenced | done |
+| C-045 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Bind the retained source to the undeployed preview runtime plan | Exact source key, digest, size, lineage, visibility, and promotion commit are machine checked; handoff remains non-executable and cloud configuration stays blocked | done |
 
 ## Event Log
+
+### 2026-07-19 16:00 C-E053
+
+Type: REVIEWED
+From: Architecture Agent + DevOps Agent
+To: Security Agent + Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-045
+Gate: Architecture / DevOps / Code Review / Test / Claims Review
+Message: Bound the one retained private B2 source to the undeployed Railway runtime plan by exact key, SHA-256, 1,044,064-byte size, Runway `gen4.5` lineage, private visibility, and promotion commit. The validator rejects substitution, added signed-URL-like fields, or a false claim that deployment configuration already exists. Deployment readiness now distinguishes the proven local least-privilege key from the still-blocked cloud secret configuration. A full-test source-binding drift finding was repaired by regenerating the derived operator handoff, not by weakening validation.
+Evidence: 5 focused runtime-plan tests, 183-test Node regression, 172-test Python regression, runtime/deployment/handoff validators, release-evidence scan with zero secret findings.
+Decision: PASS RETAINED-SOURCE RUNTIME BINDING. DEPLOYMENT AND CLOUD SECRET CONFIGURATION REMAIN UNAUTHORIZED.
+Next owner: Architecture Agent + Engineering Agent + Security Agent
+Close condition: Freeze a tracked no-retry B2 transport policy for the preview runtime and test it without network before requesting any deployment approval.
 
 ### 2026-07-19 14:45 C-E052
 

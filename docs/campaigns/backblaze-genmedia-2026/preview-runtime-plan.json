@@ -5,6 +5,16 @@
   "entrypoint": "python -m jingci_spike.runtime_service",
   "healthcheck_path": "/health",
   "deployment_storage_mode": "B2",
+  "reviewed_source": {
+    "key": "jingci-preview/source/runway-gen45-ca8ea95388d2.mp4",
+    "sha256": "ca8ea95388d2e2f943f628ec6ca8bf9386baad8862b54ce26764675fa2b438f6",
+    "size_bytes": 1044064,
+    "provider": "runway",
+    "model": "gen4.5",
+    "visibility": "private",
+    "promotion_commit": "9a0e875a87acb276eccbd0b975c5b25ed7235a59",
+    "deployment_configured": false
+  },
   "required_variables": [
     { "name": "PORT", "classification": "platform-injected" },
     { "name": "JINGCI_PUBLIC_PREVIEW_MODE", "classification": "non-secret" },
