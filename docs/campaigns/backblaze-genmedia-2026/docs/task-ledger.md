@@ -50,8 +50,22 @@ Status: in_progress
 | C-040 | Security Agent + Engineering Agent | Architecture Agent + Code Review Agent + Test Agent | Preserve rejected B2 scope as non-authorizing private evidence | Rejection report is canonical, secret-free, mode 0600, immutable, capability-complete, and cannot authorize execution | done |
 | C-041 | Security Agent + DevOps Agent | Architecture Agent + Code Review Agent + Test Agent | Classify the live rotated B2 key scope | Exact approved non-secret fields are retained privately and every excessive capability is identified without widening policy | done |
 | C-042 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Create and bind a custom least-privilege B2 runtime key | Thirty-day child key is bucket/prefix restricted, exact-capability inspected, locally configured, and represented by a passing non-authorizing scope attestation | done |
+| C-043 | Security Agent + DevOps Agent + Human owner | Architecture Agent + Code Review Agent + Test Agent | Remove obsolete B2 administrator material | Exact rejected-key identity is revoked, active minimal-key identity is unchanged, local Master Key file is absent, and private cleanup evidence is secret-free | done |
 
 ## Event Log
+
+### 2026-07-19 12:48 C-E051
+
+Type: REVIEWED
+From: Security Agent + DevOps Agent
+To: Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent + Human owner + Hermes Orchestrator
+Task: C-043
+Gate: Production Credential / Revocation
+Message: Under two exact human approvals, authorized the Master Key and listed account keys to identify exactly one obsolete application key by the rejected inspection's Key ID SHA-256, `jingci-preview/` prefix, and dangerous bucket-mutation capability set while explicitly excluding the active minimal-key hash. The first delete attempt used v4 and stopped without deletion because Backblaze v4 deletion accepts only Multi-Bucket keys. After official API review and a new approval, v3 `b2_delete_key` removed the traditional single-Bucket key. Only after confirmed deletion was `.env.b2-admin.local` removed. The active project Key ID hash remained unchanged.
+Evidence: Ignored owner-only mode-0600 cleanup record; obsolete and active Key ID SHA-256 values are distinct; `obsolete_key_deleted=true`; `admin_config_removed=true`; secret/token/object/deployment fields false; active `.env.hackathon.local` mode 0600.
+Decision: PASS OBSOLETE-CREDENTIAL REVOCATION. NO ADMINISTRATOR CREDENTIAL REMAINS IN THE PROJECT DIRECTORY.
+Next owner: Hermes Orchestrator + Security Agent + DevOps Agent + Human owner
+Close condition: Freeze the clean source/commit/object target and obtain a separate one-attempt retained-source mutation approval; regenerate a short-lived scope attestation if the current 24-hour review expires first.
 
 ### 2026-07-19 12:34 C-E050
 

@@ -49,4 +49,4 @@ On 2026-07-19 the human owner authorized a custom replacement. Security/DevOps c
 
 ## Remaining Gate
 
-The obsolete broad application key and local Master Key file remain present because their deletion was outside the creation approval. Their cleanup needs a separate human decision. B2 source retention still requires a separate clean-commit/source-bound one-attempt mutation approval; the credential attestation cannot replace it.
+The obsolete broad application key was uniquely matched against its rejected Key ID SHA-256, prefix, and dangerous capability set, then revoked through the v3 API used for traditional single-Bucket keys. The active minimal-key hash remained unchanged and the local Master Key file was removed. B2 source retention still requires a separate clean-commit/source-bound one-attempt mutation approval; the credential attestation cannot replace it. If the 24-hour attestation expires first, Security/DevOps must regenerate it from a newly approved read-only child authorization.
