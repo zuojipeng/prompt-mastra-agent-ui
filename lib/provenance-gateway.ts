@@ -52,6 +52,15 @@ export interface ProvenanceGatewayOptions {
 
 class BodyLimitError extends Error {}
 
+class StorageOperationError extends Error {
+  constructor(
+    readonly operation: string,
+    readonly status?: number,
+  ) {
+    super(operation);
+  }
+}
+
 class AwsB2ObjectStore implements B2ObjectStore {
   private readonly client: AwsClient;
 
@@ -192,7 +201,7 @@ function sameBytes(left: Uint8Array, right: Uint8Array) {
 }
 
 async function requireOk(response: Response, operation: string) {
-  if (!response.ok) throw new Error(`${operation} failed`);
+  if (!response.ok) throw new StorageOperationError(operation, response.status);
   return response;
 }
 
@@ -350,7 +359,15 @@ export async function handleProvenanceGateway({
       randomUUID,
     });
     return jsonResponse(200, run, requestId);
-  } catch {
+  } catch (error) {
+    const failure = error instanceof StorageOperationError
+      ? { operation: error.operation, status: error.status }
+      : { operation: 'unexpected' };
+    console.error(JSON.stringify({
+      event: 'provenance_storage_failure',
+      request_id: requestId,
+      ...failure,
+    }));
     return errorResponse(502, 'storage_unavailable', requestId);
   }
 }
