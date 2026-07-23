@@ -1,0 +1,35 @@
+{
+  "schema_version": "jingci.preview-deployment-result.v1",
+  "status": "rolled_back_blocked",
+  "cloudflare_pages": {
+    "project": "jingci-genmedia-preview-2026",
+    "production_url": "https://jingci-genmedia-preview-2026.pages.dev",
+    "tested_commit": "5ab107f",
+    "tested_deployment_url": "https://89e718a5.jingci-genmedia-preview-2026.pages.dev",
+    "rollback_commit": "3189164f55480afff0bf972f732c66095854aff5",
+    "rollback_deployment_url": "https://e2791cd2.jingci-genmedia-preview-2026.pages.dev",
+    "feature_state": "disabled_fail_closed"
+  },
+  "observations": {
+    "production_access_unauthenticated": 302,
+    "preview_access_unauthenticated": 302,
+    "function_bundle_and_routes_present": true,
+    "authenticated_health_status": 200,
+    "authenticated_b2_run_status": 502,
+    "equivalent_local_worker_b2_run": "passed_once_no_retry",
+    "temporary_smoke_surface_removed": true
+  },
+  "limits": [
+    "The cloud B2 manifest transaction did not pass.",
+    "The local pass does not promote the cloud deployment claim.",
+    "The authenticated rollback response was not rechecked after browser access became unavailable.",
+    "No public release, video publication, Runway call, paid call, or Devpost submission was performed."
+  ],
+  "blockers": [
+    "explicit_post_risk_approval_to_reupload_b2_credentials",
+    "authenticated_cloud_b2_smoke",
+    "cloudflare_rate_limit_configuration",
+    "judge_path_e2e",
+    "human_release_approval"
+  ]
+}

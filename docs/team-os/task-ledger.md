@@ -820,6 +820,19 @@ Decision: CONTINUE TO RUNWAY SPEND GATE
 Next owner: Human owner + DevOps Agent
 Close condition: Approve at most one Runway gen4.5 five-second attempt capped at USD 0.60 before composing the live asset/manifest transaction.
 
+### 2026-07-23 00:20 JC-E054
+
+Type: DEPLOYED_TESTED_ROLLED_BACK
+From: DevOps Agent + Engineering Agent + Test Agent + Code Review Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: JC-T005
+Gate: Cloudflare Preview / Access / B2 / Rollback
+Message: Access protected production and hash deployments, authenticated health passed, and the cloud B2 transaction returned HTTP 502. One corrected no-retry local invocation of the same gateway and local credential passed. The cloud claim was rejected; the provenance flag was rotated away from exact `YES`, the temporary smoke page was removed, and rollback commit `3189164f55480afff0bf972f732c66095854aff5` was deployed.
+Evidence: `docs/campaigns/backblaze-genmedia-2026/preview-deployment-result.json`, test report, code review, 6 focused gateway tests, lint, production build, Access HTTP 302 checks.
+Decision: HUMAN GATE
+Next owner: Human owner
+Close condition: Explicit post-risk approval to resend the locally verified B2 credential to Cloudflare Pages, then one authenticated no-retry cloud smoke and judge-path validation.
+
 ## Review Index
 
 | Review ID | Task | Producer | Reviewer | Decision | Findings | Close Condition |
@@ -892,3 +905,4 @@ Close condition: Approve at most one Runway gen4.5 five-second attempt capped at
 | RV-JC-066 | JC-T005 | Architecture Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS retained-source runtime binding | Runtime plan pins exact source identity and rejects substitution, extra fields, public visibility, and false deployment state; derived handoff drift was repaired while execution remains false | Freeze and test the runtime's no-retry B2 transport policy before deployment approval |
 | RV-JC-067 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | PASS tracked no-retry B2 transport | Thin subclass preserves Genblaze client settings through `Config.merge`, live default factory is pinned, total attempts equal one, offline/injected paths remain stable, and mutation tests reject widening | Prepare a redacted deployment configuration and post-deploy evidence packet behind a separate human gate |
 | RV-JC-068 | JC-T005 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS redacted deployment packet | Four secrets and release commit are null; retained source, safe values, 10 smokes, 5 rollback steps, 7 blockers, and all-false authority are machine checked | Human approval is required before any Cloudflare/Railway resource, secret, or deployment action |
+| RV-JC-069 | JC-T005 | Engineering Agent + DevOps Agent | Code Review Agent + Test Agent + Claims Review Agent | CONDITIONAL PASS, release blocked and rolled back | Access and Function routing pass; cloud B2 returned HTTP 502 while one equivalent local transaction passed; credential equivalence and authenticated rollback response remain unverified | Human explicitly reapproves B2 credential re-upload, then one authenticated no-retry cloud smoke, rate limit, and judge-path E2E |

@@ -772,3 +772,16 @@ Evidence: E5 `docs/test-reports/2026-07-16-live-b2-smoke.md`; underlying Python 
 Decision: CONTINUE TO RUNWAY SPEND GATE
 Next owner: Human owner + DevOps Agent
 Close condition: Separately authorize one Runway gen4.5 five-second attempt capped at USD 0.60; B2 transport proof does not promote the combined asset/manifest claim.
+
+### 2026-07-23 00:20 C-E024
+
+Type: DEPLOYED_TESTED_ROLLED_BACK
+From: DevOps Agent + Engineering Agent + Test Agent + Code Review Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-048 / JC-T005
+Gate: Deployment / Access / Live B2 / Rollback / Claims
+Message: Cloudflare Pages production and hash deployments were protected by Access and authenticated health returned HTTP 200. The authenticated retained-source transaction returned HTTP 502. One corrected no-retry local invocation of the same gateway and local B2 credential then passed source digest verification plus manifest write/readback. The cloud claim was rejected, provenance was rotated away from exact `YES`, the temporary smoke page was removed, and rollback commit `3189164f55480afff0bf972f732c66095854aff5` was deployed.
+Evidence: `preview-deployment-result.json`, `docs/test-reports/2026-07-23-cloudflare-preview-deployment-smoke.md`, Cloudflare deployment route metadata, 6 focused gateway tests, lint, production build, anonymous Access HTTP 302 checks.
+Decision: ESCALATE EXACT CREDENTIAL REUPLOAD GATE
+Next owner: Human owner
+Close condition: Explicitly reapprove sending the locally verified B2 Key ID and application key to third-party Cloudflare Pages after this repeated-transfer risk is stated; then execute one authenticated no-retry cloud smoke, configure rate limiting, run judge-path E2E, and retain or roll back from evidence.
