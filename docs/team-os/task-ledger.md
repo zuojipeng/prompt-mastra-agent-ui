@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-16
+Last Updated: 2026-07-24
 
 ## Active Tasks
 
@@ -13,7 +13,7 @@ Last Updated: 2026-07-16
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Separately authorize one capped Runway attempt; scoped B2 transport smoke is complete |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Obtain a new one-attempt authenticated cloud smoke authorization for a DNS-capable environment; then complete rate limiting and judge-path E2E |
 
 ## Backlog
 
@@ -906,3 +906,4 @@ Close condition: Explicit post-risk approval to resend the locally verified B2 c
 | RV-JC-067 | JC-T005 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | PASS tracked no-retry B2 transport | Thin subclass preserves Genblaze client settings through `Config.merge`, live default factory is pinned, total attempts equal one, offline/injected paths remain stable, and mutation tests reject widening | Prepare a redacted deployment configuration and post-deploy evidence packet behind a separate human gate |
 | RV-JC-068 | JC-T005 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | PASS redacted deployment packet | Four secrets and release commit are null; retained source, safe values, 10 smokes, 5 rollback steps, 7 blockers, and all-false authority are machine checked | Human approval is required before any Cloudflare/Railway resource, secret, or deployment action |
 | RV-JC-069 | JC-T005 | Engineering Agent + DevOps Agent | Code Review Agent + Test Agent + Claims Review Agent | CONDITIONAL PASS, release blocked and rolled back | Access and Function routing pass; cloud B2 returned HTTP 502 while one equivalent local transaction passed; credential equivalence and authenticated rollback response remain unverified | Human explicitly reapproves B2 credential re-upload, then one authenticated no-retry cloud smoke, rate limit, and judge-path E2E |
+| RV-JC-070 | JC-T005 | DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | CONDITIONAL PASS, deployment private and release blocked | Pinned deployment and temporary Access lifecycle passed; the only smoke stopped at local DNS before HTTP, no retry occurred, and temporary policy/token/files were removed | Human separately authorizes one new no-retry smoke from a DNS-capable environment; then complete rate limit and judge-path E2E |

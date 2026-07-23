@@ -56,6 +56,7 @@ Status: in_progress
 | C-046 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Freeze the preview runtime B2 transport to one total attempt | Live B2 default factory preserves Genblaze behavior while Botocore is constrained to `total_max_attempts=1`; focused, mutation, and full regressions pass without network | done |
 | C-047 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | Build the redacted preview deployment packet | Cloudflare/Railway values, four null secrets, source binding, smoke order, rollback order, blockers, and all-false authority are cross-validated | done |
 | C-048 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Replace the paid Railway preview with a Cloudflare-native B2 runtime | Same-origin Access boundary, retained-source digest, one manifest write/read-back, compensation, privacy hashes, validators, full regression, build, and Worker bundle pass before cloud configuration | done |
+| C-049 | DevOps Agent + Operator Agent | Security Agent + Test Agent + Claims Review Agent + Human owner | Complete authenticated cloud B2 verification | One newly authorized no-retry request reaches the pinned Pages deployment from a DNS-capable environment, returns reviewable redacted evidence, and temporary identity is revoked | blocked |
 
 ## Event Log
 
@@ -785,3 +786,16 @@ Evidence: `preview-deployment-result.json`, `docs/test-reports/2026-07-23-cloudf
 Decision: ESCALATE EXACT CREDENTIAL REUPLOAD GATE
 Next owner: Human owner
 Close condition: Explicitly reapprove sending the locally verified B2 Key ID and application key to third-party Cloudflare Pages after this repeated-transfer risk is stated; then execute one authenticated no-retry cloud smoke, configure rate limiting, run judge-path E2E, and retain or roll back from evidence.
+
+### 2026-07-24 07:15 C-E025
+
+Type: DEPLOYED_SMOKE_UNREACHED_CLEANED
+From: DevOps Agent + Security Agent + Test Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-048 / JC-T005
+Gate: Deployment / Temporary Access / Live B2 / Claims
+Message: Re-uploaded the approved B2 secrets, enabled the guarded runtime, and deployed pinned commit `c8eb57cb04d9f1d66334623e7ebdf69258ae47f6` as deployment `97262b86-97fe-47ae-87f8-eefa9f0c20c9`. The single authenticated smoke invocation failed at local DNS before establishing HTTP and was not retried. The temporary Service Auth policy and service token were deleted, local temporary secret files were removed, and the original owner policy remains the only Access policy.
+Evidence: `preview-deployment-result.json`, `docs/test-reports/2026-07-24-cloudflare-authenticated-smoke-attempt.md`, Cloudflare success states for deployment and cleanup, one local DNS failure.
+Decision: BLOCK CLOUD CLAIM; KEEP PRIVATE DEPLOYMENT
+Next owner: Human owner + DevOps Agent
+Close condition: A new explicit one-attempt authorization permits an authenticated smoke from a DNS-capable environment; rate limiting and judge-path E2E must then pass before release consideration.
