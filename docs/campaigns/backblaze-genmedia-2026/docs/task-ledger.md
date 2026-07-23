@@ -58,8 +58,22 @@ Status: in_progress
 | C-048 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Replace the paid Railway preview with a Cloudflare-native B2 runtime | Same-origin Access boundary, retained-source digest, one manifest write/read-back, compensation, privacy hashes, validators, full regression, build, and Worker bundle pass before cloud configuration | done |
 | C-049 | DevOps Agent + Operator Agent | Security Agent + Test Agent + Claims Review Agent + Human owner | Complete authenticated cloud B2 verification | One newly authorized no-retry request reaches the pinned Pages deployment from a DNS-capable environment, returns reviewable redacted evidence, and temporary identity is revoked | blocked |
 | C-050 | Product Agent + UEAgent + Engineering Agent | Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Preserve truthful project-level provenance evidence | Mode-specific claims are accurate, preview hides private locations, a strict non-secret receipt survives restore/reload, and desktop/mobile regression passes | done |
+| C-051 | Product Agent + UEAgent + Engineering Agent | Architecture Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Carry sanitized provenance into project handoff artifacts | Execution checklist, project snapshot, and Operator handoff export full verification hashes with qualified mode labels, exclude internal lineage IDs, survive restore/reload, and pass real clipboard E2E | done |
 
 ## Event Log
+
+### 2026-07-24 07:52 C-E059
+
+Type: REVIEWED
+From: Product Agent + UEAgent + Architecture Agent + Engineering Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-051
+Gate: Product / UE / Architecture / Engineering / Security / Claims / Code Review / Test
+Message: Added the existing sanitized receipt to all three project handoff exports without adding a new store, route, DTO, or readiness blocker. Full hashes and evidence limits are copied; object locations and internal parent Job IDs are not. Async completion now appends to the latest saved project and refuses cross-project completion.
+Evidence: Agent run, code review, test report, 194-test regression, production build, desktop/mobile real-clipboard and restore/reload E2E.
+Decision: PASS LOCAL HANDOFF SLICE; KEEP CLOUD CLAIM BLOCKED.
+Next owner: Claims Review Agent + Product Agent
+Close condition: Reconcile stale campaign status artifacts into one generated public status summary without mutating human-approved claims hashes; C-049 still requires separate human authorization.
 
 ### 2026-07-24 07:35 C-E058
 

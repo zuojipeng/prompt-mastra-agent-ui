@@ -10,7 +10,11 @@ import {
   rankPlatformFirstPassShots,
   resolvePlatformCapability,
 } from './platform-capabilities';
-import type { PlatformCalibrationEvidence, ProjectWorkspaceIteration } from './project-workspace';
+import type {
+  PlatformCalibrationEvidence,
+  ProjectProvenanceReceipt,
+  ProjectWorkspaceIteration,
+} from './project-workspace';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 
@@ -23,6 +27,7 @@ export type DirectorKitExportContext = {
   generatedAt?: string;
   projectIterations?: ProjectWorkspaceIteration[];
   platformCalibrations?: PlatformCalibrationEvidence[];
+  provenanceReceipts?: Readonly<Record<number, ProjectProvenanceReceipt>>;
 };
 
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
@@ -64,6 +69,24 @@ const CALIBRATION_NEXT_ACTION_LABELS: Record<PlatformCalibrationEvidence['nextAc
   skip_platform: '暂跳过该平台',
 };
 
+const PROVENANCE_MODE_COPY: Record<ProjectProvenanceReceipt['mode'], {
+  label: string;
+  qualification: string;
+}> = {
+  fixture: {
+    label: '离线契约',
+    qualification: '不代表真实生成或 B2 上传',
+  },
+  local: {
+    label: '本地集成',
+    qualification: '确定性测试 Provider + 内存存储；没有外部 AI 媒体调用或 B2 操作',
+  },
+  preview: {
+    label: '受保护预览',
+    qualification: '保留素材摘要与 manifest 回读；不证明特定 Cloudflare 部署已通过 smoke，也不代表本次调用 Runway 或 Genblaze',
+  },
+};
+
 function label(value: string) {
   return EXPORT_LABELS[value] ?? value;
 }
@@ -74,6 +97,22 @@ function getShotStatusLabel(context: DirectorKitExportContext, shotId: number) {
 
 function getResultNote(context: DirectorKitExportContext, shotId: number) {
   return context.shotResultNotes[shotId]?.trim();
+}
+
+function getProvenanceReceipt(context: DirectorKitExportContext, shotId: number) {
+  return context.provenanceReceipts?.[shotId];
+}
+
+function buildReceiptLines(receipt: ProjectProvenanceReceipt, prefix = '') {
+  const mode = PROVENANCE_MODE_COPY[receipt.mode];
+  return [
+    `${prefix}最近有效存证回执：${mode.label}｜${receipt.provider} / ${receipt.model}｜Attempt ${receipt.attempt}`,
+    `${prefix}Asset SHA-256：${receipt.assetSha256}`,
+    `${prefix}Manifest Hash：${receipt.manifestHash}`,
+    `${prefix}验证时间：${receipt.verifiedAt}`,
+    `${prefix}回执语义：最近一次成功验证，可能早于最新执行`,
+    `${prefix}证据范围：${mode.qualification}`,
+  ].filter(Boolean);
 }
 
 export function summarizeShotExecution(kit: DirectorKit, context: DirectorKitExportContext) {
@@ -160,6 +199,7 @@ export function buildExecutionChecklist(kit: DirectorKit, context: DirectorKitEx
   const execution = summarizeShotExecution(kit, context);
   const shotLines = (kit.shotCards ?? []).map((card) => {
     const resultNote = getResultNote(context, card.shotId);
+    const receipt = getProvenanceReceipt(context, card.shotId);
     return [
       `## 镜头 ${card.shotId}｜${card.duration}｜${getShotStatusLabel(context, card.shotId)}`,
       `目的：${card.purpose}`,
@@ -168,6 +208,7 @@ export function buildExecutionChecklist(kit: DirectorKit, context: DirectorKitEx
       `生成模式：${label(card.generationMode)}`,
       `风险：${label(card.riskLevel)}｜${(card.riskTags ?? []).join('、') || '无'}`,
       resultNote ? `素材/备注：${resultNote}` : '',
+      ...(receipt ? buildReceiptLines(receipt) : []),
       card.fixSuggestion ? `补救：${card.fixSuggestion}` : '',
     ].filter(Boolean).join('\n');
   });
@@ -261,6 +302,16 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
       `- 下一步：${CALIBRATION_NEXT_ACTION_LABELS[calibration.nextAction]}`,
     ].filter(Boolean).join('\n'),
   );
+  const provenanceLines = (kit.shotCards ?? []).flatMap((card) => {
+    const receipt = getProvenanceReceipt(context, card.shotId);
+    if (!receipt) return [];
+    return [
+      [
+        `### 镜头 ${card.shotId}｜最近有效回执`,
+        ...buildReceiptLines(receipt, '- '),
+      ].join('\n'),
+    ];
+  });
 
   return [
     '# 镜词项目快照',
@@ -291,6 +342,9 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
     calibrationLines.length > 0 ? '## 平台校准证据' : '',
     calibrationLines.join('\n\n'),
     calibrationLines.length > 0 ? '' : '',
+    provenanceLines.length > 0 ? '## 存证回执' : '',
+    provenanceLines.join('\n\n'),
+    provenanceLines.length > 0 ? '' : '',
     iterationLines.length > 0 ? '## 迭代记录' : '',
     iterationLines.join('\n\n'),
     iterationLines.length > 0 ? '' : '',
@@ -313,6 +367,9 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
 export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKitExportContext) {
   const execution = summarizeShotExecution(kit, context);
   const acceptance = summarizeOperatorHandoffAcceptance(kit, context);
+  const provenanceReceiptCount = (kit.shotCards ?? []).filter(
+    (card) => Boolean(getProvenanceReceipt(context, card.shotId)),
+  ).length;
   const latestCalibrations = (context.platformCalibrations ?? []).slice(0, 5);
   const validatedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'validated');
   const rejectedCalibrations = latestCalibrations.filter((calibration) => calibration.outcome === 'rejected');
@@ -330,10 +387,12 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
   );
   const shotLines = (kit.shotCards ?? []).map((card) => {
     const resultNote = getResultNote(context, card.shotId);
+    const receipt = getProvenanceReceipt(context, card.shotId);
     return [
       `- 镜头 ${card.shotId}｜${getShotStatusLabel(context, card.shotId)}｜${label(card.generationMode)}｜${label(card.riskLevel)}`,
       `  目的：${card.purpose}`,
       resultNote ? `  素材/备注：${resultNote}` : '  素材/备注：待补充',
+      ...(receipt ? buildReceiptLines(receipt, '  ') : []),
       card.fixSuggestion ? `  异常处理：${card.fixSuggestion}` : '',
     ].filter(Boolean).join('\n');
   });
@@ -366,7 +425,8 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
     `出片进度：${execution.completed}/${execution.total}（${execution.progress}%）`,
     `状态分布：未生成 ${execution.pending}｜已生成 ${execution.generated}｜翻车 ${execution.failed}｜可用 ${execution.usable}`,
     `平台校准：共 ${context.platformCalibrations?.length ?? 0} 条｜已验证 ${validatedCalibrations.length}｜未通过 ${rejectedCalibrations.length}`,
-    `交接验收：${acceptance.ready ? '可交接' : `需补 ${acceptance.blockingIssueCount} 项证据`}`,
+    provenanceReceiptCount > 0 ? `存证回执：${provenanceReceiptCount}/${kit.shotCards?.length ?? 0} 个镜头` : '',
+    `制作交接验收：${acceptance.ready ? '可交接' : `需补 ${acceptance.blockingIssueCount} 项证据`}`,
     '',
     '## Operator 下一步',
     nextActionCounts.expand_full_queue > 0 ? `- ${nextActionCounts.expand_full_queue} 条校准建议扩展到全片队列。` : '',

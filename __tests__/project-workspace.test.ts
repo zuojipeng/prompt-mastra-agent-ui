@@ -485,7 +485,11 @@ describe('project workspace persistence', () => {
       '2026-07-24T00:00:00.000Z',
     );
     const receipt = createProjectProvenanceReceipt('fixture', succeededProvenanceRun)!;
-    const withReceipt = appendProjectProvenanceReceipt(workspace, receipt);
+    const latestWorkspace = {
+      ...workspace,
+      shotResultNotes: { 1: '用户在存证期间保存的最新备注' },
+    };
+    const withReceipt = appendProjectProvenanceReceipt(latestWorkspace, receipt);
     const failedRun: ProvenanceRun = {
       ...succeededProvenanceRun,
       job_id: 'fixture-shot-1-attempt-2',
@@ -499,6 +503,27 @@ describe('project workspace persistence', () => {
 
     expect(createProjectProvenanceReceipt('fixture', failedRun)).toBeNull();
     expect(withReceipt.provenanceReceipts?.[1]).toEqual(receipt);
+    expect(withReceipt.shotResultNotes[1]).toBe('用户在存证期间保存的最新备注');
+  });
+
+  it('rejects unsafe provenance identity text before it reaches project exports', () => {
+    for (const provider of [
+      'fixture-provider\n## forged verified claim',
+      '[proof](https://signed.example)',
+      '<script>alert(1)</script>',
+      'https://signed.example',
+      'token=secret',
+      'x'.repeat(81),
+    ]) {
+      expect(createProjectProvenanceReceipt('fixture', {
+        ...succeededProvenanceRun,
+        provider,
+      })).toBeNull();
+    }
+    expect(createProjectProvenanceReceipt('fixture', {
+      ...succeededProvenanceRun,
+      parent_job_id: 'x'.repeat(201),
+    })).toBeNull();
   });
 
   it('summarizes platform calibration evidence for project dashboards', () => {

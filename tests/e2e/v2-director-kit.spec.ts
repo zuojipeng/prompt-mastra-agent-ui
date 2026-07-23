@@ -1,6 +1,14 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 
 const creative = '废土小镇里，一个旧清洁机器人守护红裙人偶';
+const fixtureAssetSha256 = '76dfe3b390a8d7218a9597c15183ca453e032b7f5d0af36c97f3362c34a640ad';
+const fixtureManifestHash = '0844e2ea42a6f63855caa156a19df28885c42a574a097394f2978ae1cd96e73e';
+
+async function readClipboard(page: Page) {
+  return page.evaluate(() => (
+    window as typeof window & { __jingciClipboardText?: string }
+  ).__jingciClipboardText ?? '');
+}
 
 const directorKitResponse = {
   success: true,
@@ -104,6 +112,19 @@ const directorKitResponse = {
 async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
   let calls = 0;
   const cloudProjects = new Map<string, Record<string, unknown>>();
+
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          (
+            window as typeof window & { __jingciClipboardText?: string }
+          ).__jingciClipboardText = text;
+        },
+      },
+    });
+  });
 
   await page.route('**/api/projects', async (route: Route) => {
     const request = route.request();
@@ -416,10 +437,26 @@ test.describe('V2 DirectorKit browser flow', () => {
     }
     await page.getByRole('button', { name: '复制执行清单' }).click();
     await expect(page.getByText('执行清单已复制')).toBeVisible();
+    const checklistClipboard = await readClipboard(page);
+    expect(checklistClipboard).toContain('最近有效存证回执：离线契约');
+    expect(checklistClipboard).toContain(fixtureAssetSha256);
+    expect(checklistClipboard).toContain(fixtureManifestHash);
+    expect(checklistClipboard).not.toContain('fixture-shot-1-attempt-2');
     await page.getByRole('button', { name: '复制项目快照' }).click();
     await expect(page.getByText('项目快照已复制')).toBeVisible();
+    const snapshotClipboard = await readClipboard(page);
+    expect(snapshotClipboard).toContain('## 存证回执');
+    expect(snapshotClipboard).toContain(fixtureAssetSha256);
+    expect(snapshotClipboard).toContain(fixtureManifestHash);
+    expect(snapshotClipboard).not.toContain('fixture-shot-1-attempt-2');
     await page.getByRole('button', { name: '复制交接说明' }).click();
     await expect(page.getByText('交接说明已复制')).toBeVisible();
+    const handoffClipboard = await readClipboard(page);
+    expect(handoffClipboard).toContain('存证回执：1/1 个镜头');
+    expect(handoffClipboard).toContain('最近有效存证回执：离线契约');
+    expect(handoffClipboard).toContain(fixtureAssetSha256);
+    expect(handoffClipboard).toContain(fixtureManifestHash);
+    expect(handoffClipboard).not.toContain('fixture-shot-1-attempt-2');
     if (isMobile) {
       await page.getByRole('button', { name: '复制当前镜头 Prompt' }).click();
       await expect(page.getByText('当前镜头 Prompt 已复制')).toBeVisible();
@@ -546,6 +583,13 @@ test.describe('V2 DirectorKit browser flow', () => {
         'Seedance 生成链接：demo-shot-1',
       );
     }
+
+    await page.getByRole('button', { name: '复制项目快照' }).click();
+    const restoredSnapshot = await readClipboard(page);
+    expect(restoredSnapshot).toContain('## 存证回执');
+    expect(restoredSnapshot).toContain(fixtureAssetSha256);
+    expect(restoredSnapshot).toContain(fixtureManifestHash);
+    expect(restoredSnapshot).not.toContain('fixture-shot-1-attempt-1');
   });
 
   test('validation and retry recovery preserve input', async ({ page }) => {

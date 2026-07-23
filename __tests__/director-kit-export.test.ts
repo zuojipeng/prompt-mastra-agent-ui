@@ -150,6 +150,19 @@ const context: DirectorKitExportContext = {
       nextAction: 'expand_full_queue',
     },
   ],
+  provenanceReceipts: {
+    1: {
+      shotId: 1,
+      mode: 'fixture',
+      provider: 'genblaze-fixture',
+      model: 'local-proof',
+      attempt: 3,
+      parentJobId: 'fixture-shot-1-attempt-2',
+      assetSha256: 'a'.repeat(64),
+      manifestHash: 'b'.repeat(64),
+      verifiedAt: '2026-07-24T00:00:03.000Z',
+    },
+  },
 };
 
 describe('director kit export builders', () => {
@@ -208,6 +221,9 @@ describe('director kit export builders', () => {
     expect(checklist).toContain('进度：2/2（100%）');
     expect(checklist).toContain('## 镜头 1｜5s｜已生成');
     expect(checklist).toContain('素材/备注：Seedance 链接：shot-1');
+    expect(checklist).toContain('最近有效存证回执：离线契约｜genblaze-fixture / local-proof｜Attempt 3');
+    expect(checklist).toContain('回执语义：最近一次成功验证，可能早于最新执行');
+    expect(checklist).toContain('证据范围：不代表真实生成或 B2 上传');
     expect(checklist).toContain('## 镜头 2｜7s｜翻车');
   });
 
@@ -228,6 +244,10 @@ describe('director kit export builders', () => {
     expect(snapshot).toContain('- 可复用设置：5s, cinematic, low motion');
     expect(snapshot).toContain('- 素材链接：https://example.com/shot-1');
     expect(snapshot).toContain('- 下一步：扩展到全片队列');
+    expect(snapshot).toContain('## 存证回执');
+    expect(snapshot).toContain('### 镜头 1｜最近有效回执');
+    expect(snapshot).toContain(`- Asset SHA-256：${'a'.repeat(64)}`);
+    expect(snapshot).toContain(`- Manifest Hash：${'b'.repeat(64)}`);
     expect(snapshot).toContain('## 下一步');
   });
 
@@ -242,11 +262,14 @@ describe('director kit export builders', () => {
 
     expect(handoff).toContain('# 镜词 Operator 交接说明');
     expect(handoff).toContain('平台校准：共 1 条｜已验证 1｜未通过 0');
-    expect(handoff).toContain('交接验收：可交接');
+    expect(handoff).toContain('存证回执：1/2 个镜头');
+    expect(handoff).toContain('制作交接验收：可交接');
     expect(handoff).toContain('- 1 条校准建议扩展到全片队列。');
     expect(handoff).toContain('## 逐镜头交接');
     expect(handoff).toContain('- 镜头 1｜已生成｜文生视频｜低风险');
     expect(handoff).toContain('素材/备注：Seedance 链接：shot-1');
+    expect(handoff).toContain('最近有效存证回执：离线契约｜genblaze-fixture / local-proof｜Attempt 3');
+    expect(handoff).not.toContain('fixture-shot-1-attempt-2');
     expect(handoff).toContain('## 最近平台校准证据');
     expect(handoff).toContain('- Seedance｜镜头 1｜已验证');
     expect(handoff).toContain('可复用设置：5s, cinematic, low motion');
@@ -259,6 +282,63 @@ describe('director kit export builders', () => {
     expect(handoff).toContain('平台校准：共 0 条｜已验证 0｜未通过 0');
     expect(handoff).toContain('- 先执行推荐平台首轮镜头，并回填平台校准结果。');
     expect(handoff).not.toContain('## 最近平台校准证据');
+  });
+
+  it('keeps legacy exports unchanged when no provenance receipt exists', () => {
+    const withoutReceipts = { ...context, provenanceReceipts: {} };
+
+    expect(buildExecutionChecklist(kit, withoutReceipts)).not.toContain('最近有效存证回执：');
+    expect(buildProjectSnapshot(kit, withoutReceipts)).not.toContain('## 存证回执');
+    expect(buildOperatorHandoffNotes(kit, withoutReceipts)).not.toContain('最近有效存证回执：');
+    expect(summarizeOperatorHandoffAcceptance(kit, withoutReceipts).ready).toBe(true);
+  });
+
+  it('ignores provenance receipts that do not belong to the current DirectorKit', () => {
+    const withOrphanReceipt: DirectorKitExportContext = {
+      ...context,
+      provenanceReceipts: {
+        ...context.provenanceReceipts,
+        999: {
+          ...context.provenanceReceipts![1],
+          shotId: 999,
+          provider: 'orphan-provider',
+        },
+      },
+    };
+
+    expect(buildExecutionChecklist(kit, withOrphanReceipt)).not.toContain('orphan-provider');
+    expect(buildProjectSnapshot(kit, withOrphanReceipt)).not.toContain('orphan-provider');
+    expect(buildOperatorHandoffNotes(kit, withOrphanReceipt)).not.toContain('orphan-provider');
+  });
+
+  it.each([
+    ['fixture', '离线契约', '不代表真实生成或 B2 上传'],
+    ['local', '本地集成', '没有外部 AI 媒体调用或 B2 操作'],
+    ['preview', '受保护预览', '不证明特定 Cloudflare 部署已通过 smoke'],
+  ] as const)('qualifies %s provenance without exporting internal job ids', (mode, modeLabel, qualification) => {
+    const exportContext: DirectorKitExportContext = {
+      ...context,
+      provenanceReceipts: {
+        1: {
+          ...context.provenanceReceipts![1],
+          mode,
+          parentJobId: 'internal-job-id-must-not-export',
+        },
+      },
+    };
+    const outputs = [
+      buildExecutionChecklist(kit, exportContext),
+      buildProjectSnapshot(kit, exportContext),
+      buildOperatorHandoffNotes(kit, exportContext),
+    ];
+
+    outputs.forEach((output) => {
+      expect(output).toContain(`最近有效存证回执：${modeLabel}`);
+      expect(output).toContain(qualification);
+      expect(output).not.toContain('internal-job-id-must-not-export');
+      expect(output).not.toContain('s3://');
+      expect(output).not.toContain('authorization token');
+    });
   });
 
   it('builds a platform feed pack', () => {

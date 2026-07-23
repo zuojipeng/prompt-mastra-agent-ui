@@ -698,6 +698,7 @@ export function ChatBox() {
     generatedAt,
     projectIterations: workspace?.iterations ?? [],
     platformCalibrations: workspace?.platformCalibrations ?? [],
+    provenanceReceipts: workspace?.provenanceReceipts ?? {},
   });
 
   const buildShotPrompt = (card: ShotCard) => {
@@ -734,7 +735,9 @@ export function ChatBox() {
         setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
         const receipt = createProjectProvenanceReceipt(provenanceTransportMode, run);
         if (receipt) {
-          const baseWorkspace = createLocalProjectWorkspace(
+          const persistedWorkspace = loadLocalProjectWorkspace();
+          if (persistedWorkspace && persistedWorkspace.id !== request.project_id) return;
+          const baseWorkspace = persistedWorkspace ?? createLocalProjectWorkspace(
             {
               creativeInput: input,
               targetDuration,

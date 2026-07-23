@@ -164,6 +164,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isSafeReceiptIdentity(value: unknown, maxLength: number): value is string {
+  return (
+    typeof value === 'string'
+    && value.length > 0
+    && value.length <= maxLength
+    && /^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(value)
+  );
+}
+
+function isSafeReceiptParentId(value: unknown): value is string {
+  return (
+    typeof value === 'string'
+    && value.length > 0
+    && value.length <= 200
+    && /^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(value)
+  );
+}
+
 function isTargetDuration(value: unknown): value is DirectorKitTargetDuration {
   return typeof value === 'string' && DIRECTOR_KIT_TARGET_DURATIONS.includes(value as DirectorKitTargetDuration);
 }
@@ -243,14 +261,12 @@ function isProjectProvenanceReceipt(value: unknown): value is ProjectProvenanceR
     && Number.isInteger(value.shotId)
     && value.shotId > 0
     && PROVENANCE_MODES.includes(value.mode as ProvenanceTransportMode)
-    && typeof value.provider === 'string'
-    && value.provider.length > 0
-    && typeof value.model === 'string'
-    && value.model.length > 0
+    && isSafeReceiptIdentity(value.provider, 80)
+    && isSafeReceiptIdentity(value.model, 80)
     && typeof value.attempt === 'number'
     && Number.isInteger(value.attempt)
     && value.attempt > 0
-    && (value.parentJobId === null || (typeof value.parentJobId === 'string' && value.parentJobId.length > 0))
+    && (value.parentJobId === null || isSafeReceiptParentId(value.parentJobId))
     && typeof value.assetSha256 === 'string'
     && /^[a-f0-9]{64}$/.test(value.assetSha256)
     && typeof value.manifestHash === 'string'
@@ -437,7 +453,7 @@ export function createProjectProvenanceReceipt(
   run: ProvenanceRun,
 ): ProjectProvenanceReceipt | null {
   if (run.status !== 'succeeded' || !run.result) return null;
-  return {
+  const receipt: ProjectProvenanceReceipt = {
     shotId: run.shot_id,
     mode,
     provider: run.provider,
@@ -448,6 +464,7 @@ export function createProjectProvenanceReceipt(
     manifestHash: run.result.manifest.canonical_hash,
     verifiedAt: run.updated_at,
   };
+  return isProjectProvenanceReceipt(receipt) ? receipt : null;
 }
 
 export function appendProjectProvenanceReceipt(
