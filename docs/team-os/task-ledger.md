@@ -13,7 +13,7 @@ Last Updated: 2026-07-24
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Obtain a new one-attempt authenticated cloud smoke authorization for a DNS-capable environment; then complete rate limiting and judge-path E2E |
+| JC-T005 | Backblaze campaign provenance vertical slice | in_progress | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Hermes | Product / Architecture / Engineering / Test | E2 brief and architecture, E3 strict contract, regression tests and build | Project-safe provenance receipt and truthful preview copy passed; obtain a new one-attempt authenticated cloud smoke authorization from a DNS-capable environment before promoting the cloud claim |
 
 ## Backlog
 
@@ -24,6 +24,19 @@ Last Updated: 2026-07-24
 | JC-B003 | Evidence-aware Agent run surface | P2 | Team OS should become visible to maintainers without leaking into end-user UI | Internal docs show capabilities, evidence IDs, reviews, and blockers for each slice |
 
 ## Event Log
+
+### 2026-07-24 07:35 T-C050
+
+Type: REVIEWED
+From: Product Agent + UEAgent + Engineering Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005 / C-050
+Gate: Product / UE / Engineering / Security / Claims / Code Review / Test
+Message: Added a strict non-secret provenance receipt that survives Projects restore and reload, corrected mode-specific claims, and hid protected-preview B2 locations. Desktop/mobile failure recovery and restore flows passed.
+Evidence: E3 implementation, 188 tests, production build, desktop/mobile Playwright screenshots, code review and test report.
+Decision: CONTINUE WITH CLOUD CLAIM BLOCKED.
+Next owner: Human owner + DevOps Agent
+Close condition: Only a separately authorized authenticated cloud smoke from a DNS-capable environment can advance C-049.
 
 ### 2026-06-29 10:00 T001
 

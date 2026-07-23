@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appendProjectProvenanceReceipt,
   appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   createPlatformCalibrationEvidence,
+  createProjectProvenanceReceipt,
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectTitle,
@@ -17,6 +19,7 @@ import {
   type LocalProjectWorkspace,
 } from '@/lib/project-workspace';
 import type { DirectorKit } from '@/lib/director-kit-contract';
+import type { ProvenanceRun } from '@/lib/provenance-run-contract';
 
 function createStorage() {
   const values = new Map<string, string>();
@@ -109,6 +112,35 @@ const kit: DirectorKit = {
     alternativeShots: ['使用背影或剪影镜头'],
     backupStrategies: ['先生成主角参考图'],
   },
+};
+
+const succeededProvenanceRun: ProvenanceRun = {
+  schema_version: 'jingci.provenance-run.v1',
+  job_id: 'fixture-shot-1-attempt-1',
+  project_id: 'project-1',
+  shot_id: 1,
+  parent_job_id: null,
+  attempt: 1,
+  status: 'succeeded',
+  provider: 'fixture-provider',
+  model: 'fixture-model',
+  modality: 'video',
+  created_at: '2026-07-24T00:00:00.000Z',
+  updated_at: '2026-07-24T00:00:01.000Z',
+  result: {
+    asset: {
+      url: 's3://private-bucket/jingci-preview/source/private.mp4',
+      media_type: 'video/mp4',
+      sha256: 'a'.repeat(64),
+      size_bytes: 1_044_064,
+    },
+    manifest: {
+      uri: 's3://private-bucket/jingci-preview/manifests/private.json',
+      canonical_hash: 'b'.repeat(64),
+      verified: true,
+    },
+  },
+  error: null,
 };
 
 describe('project workspace persistence', () => {
@@ -396,6 +428,79 @@ describe('project workspace persistence', () => {
     });
   });
 
+  it('persists only a sanitized provenance receipt and restores it with the project', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: { 1: 'generated' },
+        shotResultNotes: { 1: '初版可用' },
+      },
+      null,
+      '2026-07-24T00:00:00.000Z',
+    );
+    const receipt = createProjectProvenanceReceipt('preview', succeededProvenanceRun);
+
+    expect(receipt).not.toBeNull();
+    const updated = appendProjectProvenanceReceipt(workspace, receipt!);
+    expect(saveLocalProjectWorkspace(updated, storage)).toBe(true);
+
+    const serialized = JSON.stringify(updated);
+    expect(serialized).not.toContain('private-bucket');
+    expect(serialized).not.toContain('private.mp4');
+    expect(serialized).not.toContain('private.json');
+    expect(loadLocalProjectWorkspace(storage)?.provenanceReceipts?.[1]).toEqual({
+      shotId: 1,
+      mode: 'preview',
+      provider: 'fixture-provider',
+      model: 'fixture-model',
+      attempt: 1,
+      parentJobId: null,
+      assetSha256: 'a'.repeat(64),
+      manifestHash: 'b'.repeat(64),
+      verifiedAt: '2026-07-24T00:00:01.000Z',
+    });
+  });
+
+  it('does not create a receipt for failed evidence or erase a prior verified receipt', () => {
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-07-24T00:00:00.000Z',
+    );
+    const receipt = createProjectProvenanceReceipt('fixture', succeededProvenanceRun)!;
+    const withReceipt = appendProjectProvenanceReceipt(workspace, receipt);
+    const failedRun: ProvenanceRun = {
+      ...succeededProvenanceRun,
+      job_id: 'fixture-shot-1-attempt-2',
+      parent_job_id: succeededProvenanceRun.job_id,
+      attempt: 2,
+      status: 'failed',
+      updated_at: '2026-07-24T00:00:02.000Z',
+      result: null,
+      error: 'Fixture provider timeout',
+    };
+
+    expect(createProjectProvenanceReceipt('fixture', failedRun)).toBeNull();
+    expect(withReceipt.provenanceReceipts?.[1]).toEqual(receipt);
+  });
+
   it('summarizes platform calibration evidence for project dashboards', () => {
     const storage = createStorage();
     const workspace = createLocalProjectWorkspace(
@@ -566,6 +671,40 @@ describe('project workspace persistence', () => {
       JSON.stringify({
         ...workspace,
         platformCalibrations: [{ id: 'bad', outcome: 'unknown' }],
+      }),
+    );
+
+    expect(loadLocalProjectWorkspace(storage)).toBeNull();
+  });
+
+  it('rejects provenance receipts containing private transport fields', () => {
+    const storage = createStorage();
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-07-24T00:00:00.000Z',
+    );
+    const receipt = createProjectProvenanceReceipt('preview', succeededProvenanceRun)!;
+    storage.setItem(
+      'jingci-current-project',
+      JSON.stringify({
+        ...workspace,
+        provenanceReceipts: {
+          1: {
+            ...receipt,
+            assetUrl: succeededProvenanceRun.result?.asset.url,
+          },
+        },
       }),
     );
 

@@ -1,12 +1,12 @@
 # Judge Access Runbook
 
-Status: executable draft. URLs and credentials remain intentionally blank until approved deployment.
+Status: protected-preview draft. Deployment exists, but the authenticated cloud B2 path and public judge handoff are not verified.
 
 ## Reviewer Entry
 
-- Campaign app URL: **BLOCKED — deployment not authorized**
-- Test account/access instructions: **BLOCKED — human account gate**
-- Repository commit: **BLOCKED — pin after release candidate**
+- Protected preview URL: `https://97262b86.jingci-genmedia-preview-2026.pages.dev`
+- Test account/access instructions: **BLOCKED — owner-only Cloudflare Access; no judge credential issued**
+- Deployed repository commit: `c8eb57cb04d9f1d66334623e7ebdf69258ae47f6`
 - Public demo video: **BLOCKED — record after live evidence**
 
 ## Expected Judge Path (Under 3 Minutes)
@@ -15,11 +15,11 @@ Status: executable draft. URLs and credentials remain intentionally blank until 
 2. Enter the wasteland robot idea, run creative diagnosis, and choose one reconstruction.
 3. Generate the DirectorKit and select shot 1.
 4. Run provenance once and wait for a terminal state.
-5. Confirm provider/model, asset location, SHA-256, manifest location, canonical hash, and Verified state.
+5. Confirm source attribution, SHA-256, canonical manifest hash, and the mode-specific verified state. The protected preview must label object locations as private rather than display raw B2 keys.
 6. Retry once and confirm attempt 2 retains the parent run.
-7. Open Projects and confirm the shot evidence remains attached to the project handoff.
+7. Open Projects, restore the project, and confirm the sanitized shot receipt remains attached after reload.
 
-The final judge path must show `B2`/production evidence labeling. Fixture or Local adapter labels are fallback evidence only and cannot close the live judging claim.
+The final judge path must show protected-preview retained-source labeling and a successful authenticated cloud smoke. Fixture or Local adapter labels are fallback evidence only and cannot close the cloud judging claim.
 
 ## Pre-Release Commands
 

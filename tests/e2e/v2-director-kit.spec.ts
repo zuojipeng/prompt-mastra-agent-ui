@@ -308,7 +308,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     const responsePromise = page.waitForResponse((response) => (
       response.url().endsWith('/v1/provenance-runs') && response.request().method() === 'POST'
     ));
-    await provenancePanel.getByRole('button', { name: '运行存证演示' }).click();
+    await provenancePanel.getByRole('button', { name: '运行本地集成验证' }).click();
     const response = await responsePromise;
     expect(response.status()).toBe(200);
     const payload = await response.json() as {
@@ -320,10 +320,10 @@ test.describe('V2 DirectorKit browser flow', () => {
     expect(payload.result?.manifest?.uri).toMatch(/^memory:\/\/jingci-spike\//);
     expect(payload.result?.manifest?.verified).toBe(true);
 
-    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
+    await expect(provenancePanel.getByRole('status')).toContainText('本地集成已验证');
     await expect(provenancePanel).toContainText('jingci-local-video / local-proof');
     await expect(provenancePanel).toContainText('memory://jingci-spike/');
-    await expect(provenancePanel.getByText('Verified')).toBeVisible();
+    await expect(provenancePanel.getByText('Local integration verified')).toBeVisible();
     await provenancePanel.screenshot({
       path: `output/playwright/provenance-local-${isMobile ? 'mobile' : 'desktop'}.png`,
     });
@@ -381,18 +381,22 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('交接状态：需补证据')).toBeVisible();
     const provenancePanel = page.getByRole('region', { name: '镜头 1 生成存证' });
     await expect(provenancePanel.getByText('Fixture')).toBeVisible();
-    await expect(provenancePanel.getByText(/未写入真实存储/)).toBeVisible();
-    await provenancePanel.getByRole('button', { name: '运行存证演示' }).click();
-    await expect(provenancePanel.getByRole('button', { name: '执行中...' })).toBeDisabled();
-    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
-    await expect(provenancePanel.getByText('Verified')).toBeVisible();
+    await expect(provenancePanel.getByText(/未调用外部服务或写入真实存储/)).toBeVisible();
+    await provenancePanel.getByRole('button', { name: '运行离线契约演示' }).click();
+    await expect(provenancePanel.getByRole('status')).toContainText('离线契约已验证');
+    await expect(provenancePanel.getByText('Fixture contract verified')).toBeVisible();
     await expect(provenancePanel).toContainText('fixture.invalid/backblaze-b2/assets');
+    await expect(provenancePanel.getByText('项目存证回执')).toBeVisible();
+    await expect(provenancePanel).toContainText('genblaze-fixture / local-proof · Attempt 1');
     await provenancePanel.getByRole('button', { name: '验证失败恢复' }).click();
     await expect(provenancePanel.getByRole('alert')).toContainText('Fixture provider timeout');
+    await expect(provenancePanel.getByText('项目存证回执')).toBeVisible();
+    await expect(provenancePanel).toContainText('genblaze-fixture / local-proof · Attempt 1');
     await provenancePanel.getByRole('button', { name: '重试并保留来源' }).click();
     await expect(provenancePanel.getByText('fixture-shot-1-attempt-2')).toBeVisible();
     await expect(provenancePanel).toContainText('Attempt');
-    await expect(provenancePanel.getByRole('status')).toContainText('存证已验证');
+    await expect(provenancePanel.getByRole('status')).toContainText('离线契约已验证');
+    await expect(provenancePanel).toContainText('genblaze-fixture / local-proof · Attempt 3');
     await provenancePanel.screenshot({
       path: `output/playwright/provenance-${isMobile ? 'mobile' : 'desktop'}.png`,
     });
@@ -477,6 +481,11 @@ test.describe('V2 DirectorKit browser flow', () => {
 
     if (isMobile) {
       await page.getByRole('button', { name: /Execute/ }).click();
+    }
+    const provenancePanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+    await provenancePanel.getByRole('button', { name: '运行离线契约演示' }).click();
+    await expect(provenancePanel.getByText('项目存证回执')).toBeVisible();
+    if (isMobile) {
       await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
     } else {
       await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
@@ -504,6 +513,12 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: /废土小镇里/ }).first().click();
     await expect(page.getByText('已恢复最近项目')).toBeVisible();
     await expect(page.getByRole('heading', { name: /导演执行包/ })).toBeVisible();
+    if (isMobile) {
+      await page.getByRole('button', { name: /Execute/ }).click();
+    }
+    const restoredPanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+    await expect(restoredPanel.getByText('项目存证回执')).toBeVisible();
+    await expect(restoredPanel).toContainText('genblaze-fixture / local-proof · Attempt 1');
     await page.waitForFunction(() => window.localStorage.getItem('jingci-current-project')?.includes('demo-shot-1'));
 
     await page.reload();
@@ -513,12 +528,18 @@ test.describe('V2 DirectorKit browser flow', () => {
 
     if (isMobile) {
       await page.getByRole('button', { name: /Execute/ }).click();
+      const reloadedPanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+      await expect(reloadedPanel.getByText('项目存证回执')).toBeVisible();
+      await expect(reloadedPanel).toContainText('genblaze-fixture / local-proof · Attempt 1');
       await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
       await expect(page.getByText('100%')).toBeVisible();
       await expect(page.getByPlaceholder('记录平台链接、文件名或失败原因...')).toHaveValue(
         'Seedance 生成链接：demo-shot-1',
       );
     } else {
+      const reloadedPanel = page.getByRole('region', { name: '镜头 1 生成存证' });
+      await expect(reloadedPanel.getByText('项目存证回执')).toBeVisible();
+      await expect(reloadedPanel).toContainText('genblaze-fixture / local-proof · Attempt 1');
       await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
       await expect(page.getByText('100%')).toBeVisible();
       await expect(page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...')).toHaveValue(

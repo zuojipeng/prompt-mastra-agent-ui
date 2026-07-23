@@ -46,10 +46,12 @@ import {
 } from '@/lib/provenance-run-contract';
 import {
   appendPlatformCalibrationEvidence,
+  appendProjectProvenanceReceipt,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   createPlatformCalibrationEvidence,
+  createProjectProvenanceReceipt,
   createProjectWorkspaceIteration,
   deleteLocalProjectWorkspace,
   deriveProjectWorkspaceIterationDigest,
@@ -730,6 +732,26 @@ export function ChatBox() {
       };
       const updateRun = (run: ProvenanceRun) => {
         setProvenanceRuns((current) => ({ ...current, [card.shotId]: run }));
+        const receipt = createProjectProvenanceReceipt(provenanceTransportMode, run);
+        if (receipt) {
+          const baseWorkspace = createLocalProjectWorkspace(
+            {
+              creativeInput: input,
+              targetDuration,
+              targetType,
+              v2State,
+              directorKit,
+              selectedVersionIndex,
+              selectedShotId: card.shotId,
+              shotExecutionStatus,
+              shotResultNotes,
+              provenanceReceipts: workspace?.provenanceReceipts,
+            },
+            workspace,
+            receipt.verifiedAt,
+          );
+          persistProjectWorkspace(appendProjectProvenanceReceipt(baseWorkspace, receipt));
+        }
       };
       if (provenanceTransportMode !== 'fixture') {
         await runProvenanceHttp({ request, onUpdate: updateRun });
@@ -1961,6 +1983,7 @@ export function ChatBox() {
               <ShotProvenancePanel
                 shotId={selectedShot.shotId}
                 run={provenanceRuns[selectedShot.shotId] ?? null}
+                receipt={workspace?.provenanceReceipts?.[selectedShot.shotId] ?? null}
                 busy={provenanceBusyShotId === selectedShot.shotId}
                 mode={provenanceTransportMode}
                 onRun={(outcome) => handleRunProvenance(selectedShot, outcome)}
@@ -1976,6 +1999,7 @@ export function ChatBox() {
               shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
               resultNote={selectedShot ? shotResultNotes[selectedShot.shotId] ?? '' : ''}
               provenanceRun={selectedShot ? provenanceRuns[selectedShot.shotId] ?? null : null}
+              provenanceReceipt={selectedShot ? workspace?.provenanceReceipts?.[selectedShot.shotId] ?? null : null}
               provenanceBusy={selectedShot ? provenanceBusyShotId === selectedShot.shotId : false}
               provenanceMode={provenanceTransportMode}
               onCopyShotPrompt={handleCopyShotPrompt}

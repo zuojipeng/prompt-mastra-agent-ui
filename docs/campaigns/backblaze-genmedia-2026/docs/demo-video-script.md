@@ -48,7 +48,7 @@ Voiceover:
 
 > A failed generation stays recoverable. Retrying increments the attempt and preserves the parent run, so the useful result never loses its creative history.
 
-Screen: Show failure recovery, retry, parent run, and attempt 2.
+Screen: Show the offline Fixture's verified attempt 1, failed attempt 2, recovered attempt 3, parent run, and the project-safe receipt. The receipt contains hashes and lineage only; it does not retain object URLs.
 
 Rehearsal rule: this failure path uses the visibly labeled offline `Fixture`. State that it proves UI recovery and lineage semantics, not provider reliability.
 
@@ -62,7 +62,7 @@ Local rehearsal replacement:
 
 > The live design will turn temporary provider output into an auditable production asset. Today, the local proof verifies the contract and keeps its limitations visible.
 
-Screen: Show project readiness and feedback calibration briefly.
+Screen: Open Projects, restore the project, and show that the sanitized receipt remains attached after reload. Then show project readiness and feedback calibration briefly.
 
 ## 2:28–2:35 — Close
 

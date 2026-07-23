@@ -57,8 +57,22 @@ Status: in_progress
 | C-047 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | Build the redacted preview deployment packet | Cloudflare/Railway values, four null secrets, source binding, smoke order, rollback order, blockers, and all-false authority are cross-validated | done |
 | C-048 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Replace the paid Railway preview with a Cloudflare-native B2 runtime | Same-origin Access boundary, retained-source digest, one manifest write/read-back, compensation, privacy hashes, validators, full regression, build, and Worker bundle pass before cloud configuration | done |
 | C-049 | DevOps Agent + Operator Agent | Security Agent + Test Agent + Claims Review Agent + Human owner | Complete authenticated cloud B2 verification | One newly authorized no-retry request reaches the pinned Pages deployment from a DNS-capable environment, returns reviewable redacted evidence, and temporary identity is revoked | blocked |
+| C-050 | Product Agent + UEAgent + Engineering Agent | Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Preserve truthful project-level provenance evidence | Mode-specific claims are accurate, preview hides private locations, a strict non-secret receipt survives restore/reload, and desktop/mobile regression passes | done |
 
 ## Event Log
+
+### 2026-07-24 07:35 C-E058
+
+Type: REVIEWED
+From: Product Agent + UEAgent + Engineering Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: C-050
+Gate: Product / UE / Engineering / Security / Claims / Code Review / Test
+Message: Replaced ambiguous provenance copy with mode-specific truth labels, hid raw private B2 locations in protected preview mode, and added an exact-schema project receipt that retains only provider/model, attempt/parent lineage, hashes, and verification time. Failed evidence cannot overwrite the last verified receipt; restored and reloaded projects recover the receipt on desktop and mobile.
+Evidence: `docs/agent-runs/2026-07-24-provenance-receipt.md`, code review, test report, 188-test regression, production build, focused desktop/mobile Playwright evidence.
+Decision: PASS LOCAL SLICE; KEEP CLOUD CLAIM BLOCKED.
+Next owner: Human owner + DevOps Agent
+Close condition: C-049 still requires a newly authorized no-retry authenticated smoke from a DNS-capable environment; no retry, deployment mutation, publication, or submission was performed here.
 
 ### 2026-07-19 17:32 C-E057
 

@@ -46,14 +46,17 @@ The relevant campaign work begins at commit `3e42c78` and is isolated on `spike/
 ## Architecture
 
 ```text
-DirectorKit selected shot
-  -> versioned provenance request
-  -> Python Genblaze pipeline
-  -> Runway gen4.5 (private generation verified)
-  -> Genblaze ObjectStorageSink
-  -> Backblaze B2 asset + manifest (separate recovery verification)
-  -> strict verified run record
-  -> selected-shot evidence and retry lineage
+Historical generation evidence:
+Runway gen4.5 -> private five-second MP4
+
+Separate recovery verification:
+verified MP4 -> Python Genblaze pipeline -> ObjectStorageSink
+  -> temporary B2 asset + manifest -> read-back verification -> scoped cleanup
+
+Current protected preview:
+DirectorKit selected shot -> same-origin Cloudflare Pages Function
+  -> retained private B2 source digest check -> retained-source manifest read-back
+  -> strict verified run record -> sanitized project receipt
 ```
 
 ## Built With
@@ -68,4 +71,4 @@ Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's
 
 ## Current Blockers
 
-The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. Public campaign deployment, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.
+The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. A private Cloudflare deployment exists behind owner-only Access, but its authenticated cloud B2 transaction was not reached during the one authorized smoke attempt. Public judge access, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.

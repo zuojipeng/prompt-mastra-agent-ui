@@ -8,6 +8,8 @@ import {
   DIRECTOR_KIT_TARGET_TYPES,
 } from './director-kit-contract';
 import type { ShotExecutionStatus } from './director-kit-export';
+import type { ProvenanceTransportMode } from './provenance-http-client';
+import type { ProvenanceRun } from './provenance-run-contract';
 
 export const LOCAL_PROJECT_WORKSPACE_KEY = 'jingci-current-project';
 export const LOCAL_PROJECT_WORKSPACE_LIBRARY_KEY = 'jingci-project-library';
@@ -54,6 +56,18 @@ export type PlatformCalibrationEvidence = {
   nextAction: PlatformCalibrationNextAction;
 };
 
+export type ProjectProvenanceReceipt = {
+  shotId: number;
+  mode: ProvenanceTransportMode;
+  provider: string;
+  model: string;
+  attempt: number;
+  parentJobId: string | null;
+  assetSha256: string;
+  manifestHash: string;
+  verifiedAt: string;
+};
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -71,6 +85,7 @@ export type LocalProjectWorkspace = {
   shotResultNotes: Record<number, string>;
   iterations?: ProjectWorkspaceIteration[];
   platformCalibrations?: PlatformCalibrationEvidence[];
+  provenanceReceipts?: Record<number, ProjectProvenanceReceipt>;
 };
 
 export type LocalProjectWorkspaceSummary = {
@@ -103,6 +118,7 @@ export type LocalProjectWorkspaceInput = Pick<
   | 'selectedShotId'
   | 'shotExecutionStatus'
   | 'shotResultNotes'
+  | 'provenanceReceipts'
 >;
 
 type WorkspaceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -119,6 +135,18 @@ const CALIBRATION_NEXT_ACTION_VALUES: PlatformCalibrationNextAction[] = [
 ];
 const PROJECT_ITERATION_LIMIT = 8;
 const PLATFORM_CALIBRATION_LIMIT = 12;
+const PROVENANCE_MODES: ProvenanceTransportMode[] = ['fixture', 'local', 'preview'];
+const PROVENANCE_RECEIPT_KEYS = [
+  'shotId',
+  'mode',
+  'provider',
+  'model',
+  'attempt',
+  'parentJobId',
+  'assetSha256',
+  'manifestHash',
+  'verifiedAt',
+] as const;
 
 function getBrowserStorage() {
   if (typeof window === 'undefined') return null;
@@ -202,6 +230,49 @@ function isPlatformCalibrationEvidence(value: unknown): value is PlatformCalibra
 function normalizePlatformCalibrations(value: unknown): PlatformCalibrationEvidence[] {
   if (!Array.isArray(value)) return [];
   return value.filter(isPlatformCalibrationEvidence).slice(0, PLATFORM_CALIBRATION_LIMIT);
+}
+
+function isProjectProvenanceReceipt(value: unknown): value is ProjectProvenanceReceipt {
+  if (!isRecord(value)) return false;
+  const keys = Object.keys(value).sort();
+  const expectedKeys = [...PROVENANCE_RECEIPT_KEYS].sort();
+  return (
+    keys.length === expectedKeys.length
+    && keys.every((key, index) => key === expectedKeys[index])
+    && typeof value.shotId === 'number'
+    && Number.isInteger(value.shotId)
+    && value.shotId > 0
+    && PROVENANCE_MODES.includes(value.mode as ProvenanceTransportMode)
+    && typeof value.provider === 'string'
+    && value.provider.length > 0
+    && typeof value.model === 'string'
+    && value.model.length > 0
+    && typeof value.attempt === 'number'
+    && Number.isInteger(value.attempt)
+    && value.attempt > 0
+    && (value.parentJobId === null || (typeof value.parentJobId === 'string' && value.parentJobId.length > 0))
+    && typeof value.assetSha256 === 'string'
+    && /^[a-f0-9]{64}$/.test(value.assetSha256)
+    && typeof value.manifestHash === 'string'
+    && /^[a-f0-9]{64}$/.test(value.manifestHash)
+    && typeof value.verifiedAt === 'string'
+    && !Number.isNaN(Date.parse(value.verifiedAt))
+  );
+}
+
+function isProjectProvenanceReceiptRecord(
+  value: unknown,
+): value is Record<number, ProjectProvenanceReceipt> {
+  if (!isRecord(value)) return false;
+  return Object.entries(value).every(([shotId, receipt]) => (
+    /^\d+$/.test(shotId)
+    && isProjectProvenanceReceipt(receipt)
+    && receipt.shotId === Number(shotId)
+  ));
+}
+
+function normalizeProvenanceReceipts(value: unknown): Record<number, ProjectProvenanceReceipt> {
+  return isProjectProvenanceReceiptRecord(value) ? value : {};
 }
 
 function isDirectorKit(value: unknown): value is DirectorKit {
@@ -361,6 +432,38 @@ export function appendPlatformCalibrationEvidence(
   };
 }
 
+export function createProjectProvenanceReceipt(
+  mode: ProvenanceTransportMode,
+  run: ProvenanceRun,
+): ProjectProvenanceReceipt | null {
+  if (run.status !== 'succeeded' || !run.result) return null;
+  return {
+    shotId: run.shot_id,
+    mode,
+    provider: run.provider,
+    model: run.model,
+    attempt: run.attempt,
+    parentJobId: run.parent_job_id,
+    assetSha256: run.result.asset.sha256,
+    manifestHash: run.result.manifest.canonical_hash,
+    verifiedAt: run.updated_at,
+  };
+}
+
+export function appendProjectProvenanceReceipt(
+  workspace: LocalProjectWorkspace,
+  receipt: ProjectProvenanceReceipt,
+): LocalProjectWorkspace {
+  return {
+    ...workspace,
+    updatedAt: receipt.verifiedAt,
+    provenanceReceipts: {
+      ...(workspace.provenanceReceipts ?? {}),
+      [receipt.shotId]: receipt,
+    },
+  };
+}
+
 export function createLocalProjectWorkspace(
   input: LocalProjectWorkspaceInput,
   existing?: LocalProjectWorkspace | null,
@@ -373,6 +476,9 @@ export function createLocalProjectWorkspace(
     ...input,
     iterations: normalizeIterations(existing?.iterations),
     platformCalibrations: normalizePlatformCalibrations(existing?.platformCalibrations),
+    provenanceReceipts: normalizeProvenanceReceipts(
+      input.provenanceReceipts ?? existing?.provenanceReceipts,
+    ),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
@@ -398,7 +504,8 @@ export function isLocalProjectWorkspace(value: unknown): value is LocalProjectWo
     (value.iterations === undefined ||
       (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration))) &&
     (value.platformCalibrations === undefined ||
-      (Array.isArray(value.platformCalibrations) && value.platformCalibrations.every(isPlatformCalibrationEvidence)))
+      (Array.isArray(value.platformCalibrations) && value.platformCalibrations.every(isPlatformCalibrationEvidence))) &&
+    (value.provenanceReceipts === undefined || isProjectProvenanceReceiptRecord(value.provenanceReceipts))
   );
 }
 

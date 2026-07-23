@@ -5,6 +5,7 @@ import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
 import type { ProvenanceRun } from '@/lib/provenance-run-contract';
 import type { ProvenanceTransportMode } from '@/lib/provenance-http-client';
+import type { ProjectProvenanceReceipt } from '@/lib/project-workspace';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
 import { ShotProvenancePanel } from './ShotProvenancePanel';
@@ -16,6 +17,7 @@ export function DirectorKitShotInspector({
   shotExecutionOptions,
   resultNote,
   provenanceRun,
+  provenanceReceipt,
   provenanceBusy,
   provenanceMode,
   onCopyShotPrompt,
@@ -30,6 +32,7 @@ export function DirectorKitShotInspector({
   shotExecutionOptions: ShotExecutionOption[];
   resultNote: string;
   provenanceRun: ProvenanceRun | null;
+  provenanceReceipt: ProjectProvenanceReceipt | null;
   provenanceBusy: boolean;
   provenanceMode: ProvenanceTransportMode;
   onCopyShotPrompt: (card: ShotCard) => void;
@@ -79,6 +82,7 @@ export function DirectorKitShotInspector({
       <ShotProvenancePanel
         shotId={shot.shotId}
         run={provenanceRun}
+        receipt={provenanceReceipt}
         busy={provenanceBusy}
         mode={provenanceMode}
         embedded
