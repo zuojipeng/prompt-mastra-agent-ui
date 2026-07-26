@@ -869,3 +869,16 @@ Evidence: `preview-deployment-result.json`, `docs/test-reports/2026-07-24-cloudf
 Decision: BLOCK CLOUD CLAIM; KEEP PRIVATE DEPLOYMENT
 Next owner: Human owner + DevOps Agent
 Close condition: A new explicit one-attempt authorization permits an authenticated smoke from a DNS-capable environment; rate limiting and judge-path E2E must then pass before release consideration.
+
+### 2026-07-26 22:01 C-E026
+
+Type: IDENTITY_PREFLIGHT_FAILED_CLEANED
+From: DevOps Agent + Security Agent + Test Agent + Code Review Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-049 / C-054 / JC-T005
+Gate: Access Identity / Live B2 / Claims
+Message: The temporary Service Auth policy was correctly attached to the wildcard Pages application, survived outer save and reload, passed bidirectional membership, and reported exact usage count one. The single authorized identity-only health GET still returned HTTP 302 text/html instead of HTTP 200 JSON. No business POST or B2 operation ran. The policy, token, and local private files were deleted without retry.
+Evidence: `docs/test-reports/2026-07-26-cloudflare-access-identity-health-preflight.md`, matching agent run and review, valid private preflight attestation before execution.
+Decision: BLOCK BUSINESS POST; REQUIRE READ-ONLY ACCESS DIAGNOSIS
+Next owner: Security Agent + DevOps Agent + Human owner
+Close condition: Separately authorize a read-only inspection of Cloudflare Access decision evidence for the pinned hash hostname; after the cause is repaired, issue a new bounded identity-only health preflight before any business POST.

@@ -76,6 +76,13 @@ The machine-checked plan is
 `npm run hackathon:access:preflight`. The plan grants no cloud configuration,
 identity GET, business POST, B2, deployment, publication, or submission authority.
 
+Observed on 2026-07-26: the repaired attachment procedure passed outer-save,
+reload, bidirectional membership, and exact-one usage checks, but the single
+identity-only health GET still returned HTTP 302. The temporary policy and token
+were revoked. Before another identity request, inspect Access decision evidence
+for the pinned hash hostname and verify header acceptance without sending a
+business POST or touching B2.
+
 1. `GET /health` returns 200 with service version and mode but no secret/config values.
 2. An unauthenticated provenance request is denied.
 3. An allowed reviewer session succeeds; a disallowed origin receives no CORS permission.
