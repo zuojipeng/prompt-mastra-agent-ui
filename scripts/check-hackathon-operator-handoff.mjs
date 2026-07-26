@@ -4,8 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { evaluateDemo } from './check-hackathon-demo.mjs';
-import { evaluateDeployment } from './check-hackathon-deployment.mjs';
+import { evaluateDeployment, isDeploymentStrictReady } from './check-hackathon-deployment.mjs';
 import { evaluateLiveVerification } from './check-hackathon-live-verification.mjs';
+import { evaluatePreviewDeploymentResult } from './check-hackathon-preview-deployment-result.mjs';
 import { evaluateSubmission } from './check-hackathon-submission.mjs';
 
 const CAMPAIGN_DIR = 'docs/campaigns/backblaze-genmedia-2026';
@@ -17,6 +18,7 @@ const SOURCE_FILES = {
   deployment: `${CAMPAIGN_DIR}/deployment-readiness.json`,
   demo: `${CAMPAIGN_DIR}/demo-rehearsal.json`,
   live: `${CAMPAIGN_DIR}/live-verification-plan.json`,
+  preview: `${CAMPAIGN_DIR}/preview-deployment-result.json`,
 };
 const STAGE_ORDER = [
   'registration_terms',
@@ -79,7 +81,8 @@ export function buildOperatorHandoff(sources = loadSources()) {
     recoveredEvidenceReady;
   const claimsApproved = liveComplete && hasClaimsApproval &&
     !submissionBlockers.has('live_claims_promotion_approval') && liveClaimsAsserted;
-  const deployed = sources.deployment.payload.status === 'ready' && sources.deployment.payload.blockers?.length === 0;
+  const deploymentResult = evaluateDeployment(sources.deployment.payload, () => true);
+  const deployed = isDeploymentStrictReady(sources.deployment.payload, deploymentResult);
   const demoReady = sources.demo.payload.status === 'ready' && sources.demo.payload.blockers?.length === 0;
   const submitted = sources.submission.payload.status === 'submitted' && sources.submission.payload.claims?.submitted === true;
   const rawCompletions = [registrationApproved, accountAuthorized, liveComplete, claimsApproved, deployed, demoReady, submitted];
@@ -112,6 +115,7 @@ export function buildOperatorHandoff(sources = loadSources()) {
       deployment: sources.deployment.payload.blockers?.length ?? 0,
       demo: sources.demo.payload.blockers?.length ?? 0,
       live: sources.live.payload.blockers?.length ?? 0,
+      preview: sources.preview.payload.blockers?.length ?? 0,
     },
     plan_only_commands: PLAN_ONLY_COMMANDS,
     execution_allowed: false,
@@ -132,6 +136,7 @@ export function evaluateOperatorHandoff(handoff, sources = loadSources(), artifa
     evaluateDeployment(sources.deployment.payload, artifactExists),
     evaluateDemo(sources.demo.payload, artifactExists),
     evaluateLiveVerification(sources.live.payload, sources.campaign.payload, artifactExists),
+    evaluatePreviewDeploymentResult(sources.preview.payload),
   ];
   if (sourceResults.some((result) => result.errors.length > 0)) errors.push('source_gate_invalid');
   if (handoff.schema_version !== SCHEMA_VERSION) errors.push('schema_version_invalid');

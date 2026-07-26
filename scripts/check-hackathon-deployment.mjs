@@ -23,7 +23,9 @@ export function evaluateDeployment(payload, artifactExists = existsSync) {
   const errors = [];
   if (!payload || typeof payload !== 'object') return { errors: ['deployment payload must be an object'], blockers: [] };
   if (payload.schema_version !== SCHEMA_VERSION) errors.push(`schema_version must be ${SCHEMA_VERSION}`);
-  if (!['design', 'preview-ready', 'deployed'].includes(payload.status)) errors.push('status must be design, preview-ready, or deployed');
+  if (!['design', 'deployed-blocked', 'preview-ready', 'deployed'].includes(payload.status)) {
+    errors.push('status must be design, deployed-blocked, preview-ready, or deployed');
+  }
   if (!payload.access_model) errors.push('access_model is required');
   for (const control of REQUIRED_CONTROLS) {
     if (typeof payload.controls?.[control] !== 'string') errors.push(`control ${control} is required`);
@@ -39,6 +41,18 @@ export function evaluateDeployment(payload, artifactExists = existsSync) {
   const blockers = Array.isArray(payload.blockers) ? payload.blockers.filter((value) => typeof value === 'string') : [];
   if (Array.isArray(payload.blockers) && blockers.length !== payload.blockers.length) {
     errors.push('blockers must contain only strings');
+  }
+  if (payload.status === 'deployed-blocked') {
+    if (blockers.length === 0) errors.push('deployed-blocked deployment requires at least one blocker');
+    if (!/^https:\/\//.test(payload.frontend?.campaign_url ?? '')) {
+      errors.push('deployed-blocked requires HTTPS frontend campaign_url');
+    }
+    if (!/^https:\/\//.test(payload.provenance_service?.public_url ?? '')) {
+      errors.push('deployed-blocked requires HTTPS provenance service URL');
+    }
+    if (!/^[0-9a-f]{40}$/.test(payload.frontend?.commit ?? '')) {
+      errors.push('deployed-blocked requires a pinned 40-character commit');
+    }
   }
   if (payload.status === 'preview-ready' || payload.status === 'deployed') {
     if (blockers.length > 0) errors.push(`${payload.status} deployment cannot contain blockers`);
@@ -69,7 +83,7 @@ function main() {
     return 1;
   }
   if (result.blockers.length > 0) {
-    console.log(`Deployment design is structurally valid with ${result.blockers.length} open blockers:`);
+    console.log(`Deployment status ${payload.status} is structurally valid with ${result.blockers.length} open blockers:`);
     for (const blocker of result.blockers) console.log(`- ${blocker}`);
     return strict ? 1 : 0;
   }

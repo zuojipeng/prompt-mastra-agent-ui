@@ -1,32 +1,32 @@
 {
   "schema_version": "jingci.hackathon-deployment-readiness.v1",
-  "status": "design",
+  "status": "deployed-blocked",
   "frontend": {
     "runtime": "Cloudflare Pages static export",
     "project": "jingci-genmedia-preview-2026",
     "project_created": true,
-    "campaign_url": null,
-    "commit": null
+    "campaign_url": "https://jingci-genmedia-preview-2026.pages.dev",
+    "commit": "c8eb57cb04d9f1d66334623e7ebdf69258ae47f6"
   },
   "provenance_service": {
     "runtime": "Cloudflare Pages Function with direct signed B2 access",
-    "public_url": null,
-    "current_mode": "cloudflare-b2-worker-locally-verified-not-deployed"
+    "public_url": "https://jingci-genmedia-preview-2026.pages.dev/api/provenance",
+    "current_mode": "deployed-behind-access-authenticated-smoke-unreached"
   },
-  "access_model": "Cloudflare Access reviewer identity policy with JWT validation in the same-origin Pages Function",
+  "access_model": "Cloudflare Access owner boundary; judge and reviewer identity path pending",
   "controls": {
     "exact_origin_cors": "implemented-code-same-origin",
-    "reviewer_authentication": "implemented-code-unconfigured-cloudflare-access-jwt",
+    "reviewer_authentication": "owner-access-present-anonymous-302-temporary-service-token-revoked",
     "edge_rate_limit": "planned-external-cloudflare-rule",
     "request_schema_and_size_limit": "implemented-code-64kb-worker-boundary",
     "concurrency_and_timeout_limit": "edge-rate-limit-pending-worker-has-bounded-input-and-source",
-    "server_side_secrets": "implemented-code-bindings-unconfigured",
-    "bucket_scoped_credentials": "verified-local-least-privilege-not-configured-in-cloud",
+    "server_side_secrets": "configured-encrypted-pages-bindings",
+    "bucket_scoped_credentials": "verified-local-least-privilege-and-configured-in-cloud",
     "private_b2_objects": "verified-retained-source-private-readback",
     "provider_and_url_allowlist": "implemented-retained-source-provider-model-and-b2-endpoint",
     "structured_redacted_logs": "implemented-code",
-    "health_and_dependency_checks": "verified-worker-health-and-locked-sigv4-dependency",
-    "rollback_feature_flag": "implemented-code",
+    "health_and_dependency_checks": "bundle-present-local-pass-historical-cloud-health-200-current-authenticated-smoke-unreached",
+    "rollback_feature_flag": "implemented-code-and-rollback-deployment-recorded",
     "retention_and_cleanup": "implemented-worker-owned-manifest-compensation"
   },
   "artifacts": [
@@ -40,15 +40,15 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/release-evidence-runbook.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
     "docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json",
-    "docs/campaigns/backblaze-genmedia-2026/preview-deployment-packet.json"
+    "docs/campaigns/backblaze-genmedia-2026/preview-deployment-packet.json",
+    "docs/campaigns/backblaze-genmedia-2026/preview-deployment-result.json",
+    "docs/test-reports/2026-07-24-cloudflare-authenticated-smoke-attempt.md"
   ],
   "blockers": [
-    "reviewer_access_account",
-    "cloudflare_access_configuration",
+    "new_explicit_approval_for_one_authenticated_cloud_b2_smoke",
+    "judge_access_identity_or_policy",
     "cloudflare_rate_limit_configuration",
-    "deployment_secret_configuration",
-    "campaign_preview_deployment",
-    "post_deploy_judge_smoke",
+    "judge_path_e2e",
     "human_release_approval"
   ]
 }

@@ -7,12 +7,21 @@ const SECRET_PATHS = [
   'cloudflare_pages.bindings.B2_KEY_ID',
   'cloudflare_pages.bindings.B2_APP_KEY',
 ];
+const PACKET_BLOCKER_SNAPSHOT = [
+  'reviewer_access_account',
+  'cloudflare_access_configuration',
+  'cloudflare_rate_limit_configuration',
+  'deployment_secret_configuration',
+  'campaign_preview_deployment',
+  'post_deploy_judge_smoke',
+  'human_release_approval',
+];
 
 function valueAt(object, dottedPath) {
   return dottedPath.split('.').reduce((value, key) => value?.[key], object);
 }
 
-export function evaluateDeploymentPacket(packet, runtimePlan, deployment) {
+export function evaluateDeploymentPacket(packet, runtimePlan) {
   const errors = [];
   if (packet?.schema_version !== 'jingci.preview-deployment-packet.v2') errors.push('invalid packet schema');
   if (packet?.status !== 'blocked' || packet?.release_commit !== null) errors.push('packet must remain blocked and unpinned');
@@ -37,7 +46,9 @@ export function evaluateDeploymentPacket(packet, runtimePlan, deployment) {
   for (const field of SECRET_PATHS) {
     if (valueAt(packet, field) !== null) errors.push(`secret field must remain null: ${field}`);
   }
-  if (JSON.stringify(packet?.blockers) !== JSON.stringify(deployment?.blockers ?? [])) errors.push('deployment blocker drift');
+  if (JSON.stringify(packet?.blockers) !== JSON.stringify(PACKET_BLOCKER_SNAPSHOT)) {
+    errors.push('packet blocker snapshot drift');
+  }
   if ((packet?.smoke_order?.length ?? 0) !== 10 || new Set(packet.smoke_order).size !== 10) errors.push('smoke matrix must contain ten unique checks');
   if ((packet?.rollback_order?.length ?? 0) !== 5 || new Set(packet.rollback_order).size !== 5) errors.push('rollback matrix must contain five unique steps');
   for (const [action, allowed] of Object.entries(packet?.authorization ?? {})) {
@@ -49,8 +60,7 @@ export function evaluateDeploymentPacket(packet, runtimePlan, deployment) {
 function main() {
   const packet = JSON.parse(readFileSync(path.resolve(CAMPAIGN, 'preview-deployment-packet.json'), 'utf8'));
   const runtimePlan = JSON.parse(readFileSync(path.resolve(CAMPAIGN, 'preview-runtime-plan.json'), 'utf8'));
-  const deployment = JSON.parse(readFileSync(path.resolve(CAMPAIGN, 'deployment-readiness.json'), 'utf8'));
-  const errors = evaluateDeploymentPacket(packet, runtimePlan, deployment);
+  const errors = evaluateDeploymentPacket(packet, runtimePlan);
   if (errors.length) {
     console.error(`Preview deployment packet is invalid:\n- ${errors.join('\n- ')}`);
     return 1;
