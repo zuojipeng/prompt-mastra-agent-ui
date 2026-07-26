@@ -83,6 +83,27 @@ were revoked. Before another identity request, inspect Access decision evidence
 for the pinned hash hostname and verify header acceptance without sending a
 business POST or touching B2.
 
+Read-only diagnosis later on 2026-07-26 found no matching service-authentication
+event after removing the new log view's default service-auth exclusion, and the
+legacy log agreed. The hash hostname matches only the wildcard application; the
+apex application does not shadow it, and no custom single-header service-token
+mode is configured. Classify the failure as an unaccepted service-token request,
+not as Pages Function or B2 evidence. Because the temporary token and request
+material were deleted, do not claim whether the precise defect was malformed
+header capture or a mismatched credential pair.
+
+For the next separately authorized identity-only preflight:
+
+1. Create one fresh token and capture Client ID and Client Secret by their
+   explicit labels, never by display order.
+2. Bind a secret-free token identity digest into the policy selection,
+   attachment attestation, and request preparation evidence.
+3. Keep credential material only in a mode-0600 temporary file and verify the two
+   values are non-empty and distinct without printing them.
+4. Send exactly one standard-header health GET with redirects disabled.
+5. Require exact HTTP 200 JSON; otherwise clean up and stop without a business
+   POST.
+
 1. `GET /health` returns 200 with service version and mode but no secret/config values.
 2. An unauthenticated provenance request is denied.
 3. An allowed reviewer session succeeds; a disallowed origin receives no CORS permission.

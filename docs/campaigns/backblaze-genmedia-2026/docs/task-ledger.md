@@ -882,3 +882,16 @@ Evidence: `docs/test-reports/2026-07-26-cloudflare-access-identity-health-prefli
 Decision: BLOCK BUSINESS POST; REQUIRE READ-ONLY ACCESS DIAGNOSIS
 Next owner: Security Agent + DevOps Agent + Human owner
 Close condition: Separately authorize a read-only inspection of Cloudflare Access decision evidence for the pinned hash hostname; after the cause is repaired, issue a new bounded identity-only health preflight before any business POST.
+
+### 2026-07-26 22:32 C-E027
+
+Type: READ_ONLY_DIAGNOSIS_COMPLETE
+From: Security Agent + DevOps Agent + Test Agent + Code Review Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-049 / JC-T005
+Gate: Access Identity / Claims
+Message: Removed the new Access log view's default service-auth exclusion and inspected both new and legacy logs without changing cloud state or contacting the preview. Neither view contained a service-authentication event for the failed preflight. The hash hostname matches only the wildcard application; the apex application does not shadow it, and the wildcard application has no custom single-header token mode. Evidence therefore narrows the failure to an unaccepted service-token request but cannot distinguish malformed header capture from a mismatched credential pair after secure cleanup.
+Evidence: `docs/test-reports/2026-07-26-cloudflare-access-readonly-diagnosis.md`, matching agent run and code review, Cloudflare Access application targets and authentication-log views.
+Decision: KEEP BUSINESS POST BLOCKED; REQUIRE FRESH IDENTITY PREFLIGHT
+Next owner: DevOps Agent + Security Agent + Human owner
+Close condition: Under a new explicit one-attempt authorization, create and bind one fresh token across labeled credential capture, policy selection, attachment attestation, and exactly one redirect-disabled identity-only health GET; require exact HTTP 200 JSON before requesting any business POST.
