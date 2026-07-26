@@ -895,3 +895,16 @@ Evidence: `docs/test-reports/2026-07-26-cloudflare-access-readonly-diagnosis.md`
 Decision: KEEP BUSINESS POST BLOCKED; REQUIRE FRESH IDENTITY PREFLIGHT
 Next owner: DevOps Agent + Security Agent + Human owner
 Close condition: Under a new explicit one-attempt authorization, create and bind one fresh token across labeled credential capture, policy selection, attachment attestation, and exactly one redirect-disabled identity-only health GET; require exact HTTP 200 JSON before requesting any business POST.
+
+### 2026-07-26 22:47 C-E028
+
+Type: LABELED_IDENTITY_PREFLIGHT_FAILED_CLEANED
+From: DevOps Agent + Security Agent + Test Agent + Code Review Agent + Claims Review Agent
+To: Hermes Orchestrator + Human owner
+Task: C-049 / JC-T005
+Gate: Access Identity / Live B2 / Claims
+Message: Created one fresh temporary service token, captured Client ID and Client Secret by their explicit labels, validated a secret-free pair digest, selected the same named token in a 15-minute Service Auth policy, and confirmed exact application usage one. The only redirect-disabled identity health GET still returned HTTP 302 to Access login with an empty body. No business POST, Pages Function evidence, or B2 operation occurred. The policy was detached and deleted, the token was deleted, and all local temporary credential and response files were removed without retry.
+Evidence: `docs/test-reports/2026-07-26-cloudflare-access-labeled-identity-preflight.md`, matching agent run and code review, HTTP 302 response classification, Cloudflare cleanup success states.
+Decision: KEEP BUSINESS POST BLOCKED; DO NOT REPEAT IDENTICAL TOKEN FLOW
+Next owner: Security Agent + DevOps Agent + Human owner
+Close condition: Obtain materially new Cloudflare decision evidence or a reviewed configuration repair that explains service-token rejection before authorizing any further identity request; exact HTTP 200 JSON remains mandatory before a business POST.

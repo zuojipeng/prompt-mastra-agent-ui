@@ -104,6 +104,13 @@ For the next separately authorized identity-only preflight:
 5. Require exact HTTP 200 JSON; otherwise clean up and stop without a business
    POST.
 
+The labeled-capture preflight later on 2026-07-26 completed all five steps but
+still returned HTTP 302 to Access login with an empty body. Its policy was
+detached and deleted, its service token was deleted, and all local temporary
+files were removed. Do not repeat this identical token flow. Before another
+identity request, require materially new Cloudflare decision evidence or a
+reviewed configuration repair; the exact HTTP 200 JSON gate remains unchanged.
+
 1. `GET /health` returns 200 with service version and mode but no secret/config values.
 2. An unauthenticated provenance request is denied.
 3. An allowed reviewer session succeeds; a disallowed origin receives no CORS permission.
