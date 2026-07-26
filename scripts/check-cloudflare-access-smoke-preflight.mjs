@@ -1,4 +1,13 @@
-import { lstatSync, readFileSync } from 'node:fs';
+import {
+  closeSync,
+  constants,
+  fstatSync,
+  lstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+} from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -206,16 +215,37 @@ export function evaluateAccessAttachmentAttestation(attestation, plan, now = new
   return { errors };
 }
 
-function readPrivateAttestation(file) {
+export function readPrivateAccessAttachmentAttestation(file) {
   const absolute = path.resolve(file);
-  const stat = lstatSync(absolute);
-  if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('attestation_file_type_invalid');
-  if ((stat.mode & 0o777) !== 0o600) throw new Error('attestation_file_mode_invalid');
-  if (stat.nlink !== 1) throw new Error('attestation_file_link_count_invalid');
-  if (typeof process.getuid === 'function' && stat.uid !== process.getuid()) {
-    throw new Error('attestation_file_owner_invalid');
+  if (realpathSync.native(absolute) !== absolute) throw new Error('attestation_path_symlink_invalid');
+  const pathStat = lstatSync(absolute);
+  if (!pathStat.isFile() || pathStat.isSymbolicLink()) {
+    throw new Error('attestation_file_type_invalid');
   }
-  return JSON.parse(readFileSync(absolute, 'utf8'));
+  const descriptor = openSync(absolute, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const before = fstatSync(descriptor);
+    if (!before.isFile()) throw new Error('attestation_file_type_invalid');
+    if ((before.mode & 0o777) !== 0o600) throw new Error('attestation_file_mode_invalid');
+    if (before.nlink !== 1) throw new Error('attestation_file_link_count_invalid');
+    if (typeof process.getuid === 'function' && before.uid !== process.getuid()) {
+      throw new Error('attestation_file_owner_invalid');
+    }
+    const bytes = readFileSync(descriptor);
+    const after = fstatSync(descriptor);
+    if (before.dev !== after.dev
+      || before.ino !== after.ino
+      || before.size !== after.size
+      || before.mtimeMs !== after.mtimeMs) {
+      throw new Error('attestation_file_changed_during_read');
+    }
+    return {
+      payload: JSON.parse(bytes.toString('utf8')),
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+    };
+  } finally {
+    closeSync(descriptor);
+  }
 }
 
 function main() {
@@ -228,8 +258,9 @@ function main() {
       result.errors.push('attestation_path_required');
     } else {
       try {
+        const attestation = readPrivateAccessAttachmentAttestation(file);
         result.errors.push(
-          ...evaluateAccessAttachmentAttestation(readPrivateAttestation(file), plan).errors,
+          ...evaluateAccessAttachmentAttestation(attestation.payload, plan).errors,
         );
       } catch (error) {
         result.errors.push(error instanceof Error ? error.message : 'attestation_read_failed');

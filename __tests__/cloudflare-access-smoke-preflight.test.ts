@@ -1,9 +1,19 @@
+import {
+  chmodSync,
+  linkSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import path from 'node:path';
 import plan from '../docs/campaigns/backblaze-genmedia-2026/cloudflare-access-smoke-preflight-plan.json';
 import { describe, expect, it } from 'vitest';
 
 import {
   evaluateAccessAttachmentAttestation,
   evaluateAccessSmokePreflight,
+  readPrivateAccessAttachmentAttestation,
 } from '../scripts/check-cloudflare-access-smoke-preflight.mjs';
 
 const observedAt = '2026-07-26T13:00:00.000Z';
@@ -83,6 +93,44 @@ describe('Cloudflare Access smoke preflight plan', () => {
     expect(errors).toContain('attestation_target_binding_invalid');
     expect(errors).toContain('attestation_access_identity_invalid');
     expect(errors).toContain('secret_material_forbidden');
+  });
+
+  it('reads one owner-only regular file and returns its digest', () => {
+    const directory = mkdtempSync(path.join('/private/tmp', 'jingci-access-attestation-'));
+    const file = path.join(directory, 'attestation.json');
+    try {
+      writeFileSync(file, JSON.stringify(attestation()), { mode: 0o600 });
+      const result = readPrivateAccessAttachmentAttestation(file);
+      expect(result.payload).toEqual(attestation());
+      expect(result.sha256).toMatch(/^[0-9a-f]{64}$/);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects permissive mode, hard links, and symlink paths', () => {
+    const directory = mkdtempSync(path.join('/private/tmp', 'jingci-access-attestation-'));
+    const file = path.join(directory, 'attestation.json');
+    const hardLink = path.join(directory, 'attestation-hardlink.json');
+    const symlink = path.join(directory, 'attestation-symlink.json');
+    try {
+      writeFileSync(file, JSON.stringify(attestation()), { mode: 0o600 });
+      chmodSync(file, 0o644);
+      expect(() => readPrivateAccessAttachmentAttestation(file))
+        .toThrow('attestation_file_mode_invalid');
+
+      chmodSync(file, 0o600);
+      linkSync(file, hardLink);
+      expect(() => readPrivateAccessAttachmentAttestation(file))
+        .toThrow('attestation_file_link_count_invalid');
+      rmSync(hardLink);
+
+      symlinkSync(file, symlink);
+      expect(() => readPrivateAccessAttachmentAttestation(symlink))
+        .toThrow('attestation_path_symlink_invalid');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('rejects missing attachment evidence and business authority widening', () => {

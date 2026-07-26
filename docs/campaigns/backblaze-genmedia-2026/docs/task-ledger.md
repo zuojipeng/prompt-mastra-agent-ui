@@ -73,7 +73,7 @@ To: Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
 Task: C-049 / C-054 / JC-T005
 Gate: Architecture / Access / Security / Code Review / Test / Claims
 Message: Converted the unattached Service Auth failure into a no-network preflight contract. The ordered gate now requires saving the outer Access application, reloading it, proving bidirectional application-policy membership and exactly one application usage, then passing a separately authorized identity-only health GET before any fresh business POST approval may be requested. The contract requires a future private mode-0600 attestation bound to the pinned project, deployment, commit, method, and path; it must expire within 15 minutes, separate observer and reviewer, record no secrets, and grant no execution authority.
-Evidence: `cloudflare-access-smoke-preflight-plan.json`, validator, 6 focused positive/negative tests, 31-file / 207-test regression, ESLint, production build, updated judge runbook, independent Architecture/Security release red-team review.
+Evidence: `cloudflare-access-smoke-preflight-plan.json`, validator, 8 focused positive/negative tests including mode/hard-link/symlink rejection, 31-file / 209-test regression, ESLint, production build, updated judge runbook, independent Architecture/Security release red-team review.
 Decision: PASS OFFLINE PREFLIGHT CONTRACT; KEEP C-049 AND ALL CLOUD ACTIONS BLOCKED.
 Next owner: Human owner + DevOps Agent + Security Agent
 Close condition: Under a separate approval, configure a temporary identity, produce and independently review a passing private attestation plus identity-only health evidence, revoke on any mismatch, then separately request one no-retry business POST.

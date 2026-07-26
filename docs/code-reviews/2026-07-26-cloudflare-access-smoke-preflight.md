@@ -24,6 +24,8 @@ the HTTP 302 attempt.
    authority remains false.
 8. HTTP 302, stale evidence, membership mismatch, target drift, secret material,
    or self-review fails closed.
+9. Private attestation loading rejects permissive mode, hard links, symlink paths,
+   ownership drift, and file identity changes during the read.
 
 ## Residual Risk
 

@@ -21,11 +21,11 @@ Status: PASS OFFLINE / NO CLOUD EXECUTION
 | Secret-bearing evidence | REJECTED |
 | Business POST authority widening | REJECTED |
 
-Focused result: 1 file / 6 tests passed.
+Focused result: 1 file / 8 tests passed.
 
 ## Regression
 
-- Full Vitest regression: 31 files / 207 tests passed.
+- Full Vitest regression: 31 files / 209 tests passed.
 - ESLint passed.
 - Next.js production build passed.
 - Deployment readiness, operator handoff, campaign status, and preflight validators passed.
