@@ -14,7 +14,7 @@
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
-      "sha256": "a8c38b935717dee7c372c7716a6315d4f55bf1d62452024fd2584444f7b51a0d"
+      "sha256": "07a1c920606b5f5f8f0b0dc846621bc94c36fee4b46201322e22f181f963740e"
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",

@@ -55,6 +55,27 @@ PYTHONPATH=. .venv/bin/python -m jingci_spike.live_genblaze_b2_smoke --live
 
 ## Post-Deploy Smoke
 
+Before consuming any one-shot business POST approval, validate the identity boundary
+in this exact order:
+
+1. Add the reusable Service Auth policy to the target Access application.
+2. Save the policy, then save the outer Access application.
+3. Reload the target application and confirm the policy is still visible.
+4. Confirm the reusable policy reports exactly one application using it.
+5. Execute only the separately authorized `GET /api/provenance/health`. This route
+   checks configuration but performs no B2 object operation.
+6. Require HTTP 200, JSON content type, and exact body
+   `{"status":"ok","mode":"cloudflare-b2-preview"}`.
+7. Treat HTTP 302, missing policy, usage count other than one, or body mismatch as
+   a hard stop. Revoke the temporary identity and do not send the business POST.
+8. After identity preflight passes, obtain a fresh explicit approval for exactly
+   one no-retry business POST.
+
+The machine-checked plan is
+`cloudflare-access-smoke-preflight-plan.json`. Validate it with
+`npm run hackathon:access:preflight`. The plan grants no cloud configuration,
+identity GET, business POST, B2, deployment, publication, or submission authority.
+
 1. `GET /health` returns 200 with service version and mode but no secret/config values.
 2. An unauthenticated provenance request is denied.
 3. An allowed reviewer session succeeds; a disallowed origin receives no CORS permission.

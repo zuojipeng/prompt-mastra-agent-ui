@@ -56,13 +56,27 @@ Status: in_progress
 | C-046 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent + DevOps Agent | Freeze the preview runtime B2 transport to one total attempt | Live B2 default factory preserves Genblaze behavior while Botocore is constrained to `total_max_attempts=1`; focused, mutation, and full regressions pass without network | done |
 | C-047 | DevOps Agent + Security Agent | Architecture Agent + Code Review Agent + Test Agent + Claims Review Agent | Build the redacted preview deployment packet | Cloudflare/Railway values, four null secrets, source binding, smoke order, rollback order, blockers, and all-false authority are cross-validated | done |
 | C-048 | Architecture Agent + Engineering Agent + DevOps Agent | Security Agent + Code Review Agent + Test Agent + Claims Review Agent | Replace the paid Railway preview with a Cloudflare-native B2 runtime | Same-origin Access boundary, retained-source digest, one manifest write/read-back, compensation, privacy hashes, validators, full regression, build, and Worker bundle pass before cloud configuration | done |
-| C-049 | DevOps Agent + Operator Agent | Security Agent + Test Agent + Claims Review Agent + Human owner | Complete authenticated cloud B2 verification | One newly authorized no-retry request reaches the pinned Pages deployment from a DNS-capable environment, returns reviewable redacted evidence, and temporary identity is revoked | blocked |
+| C-049 | DevOps Agent + Operator Agent | Security Agent + Test Agent + Claims Review Agent + Human owner | Complete authenticated cloud B2 verification | A fresh, bidirectional, post-reload Access attachment attestation and identity-only health preflight pass before one newly authorized no-retry request reaches the pinned Pages Function, returns reviewable redacted evidence, and temporary identity is revoked | blocked |
 | C-050 | Product Agent + UEAgent + Engineering Agent | Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Preserve truthful project-level provenance evidence | Mode-specific claims are accurate, preview hides private locations, a strict non-secret receipt survives restore/reload, and desktop/mobile regression passes | done |
 | C-051 | Product Agent + UEAgent + Engineering Agent | Architecture Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Carry sanitized provenance into project handoff artifacts | Execution checklist, project snapshot, and Operator handoff export full verification hashes with qualified mode labels, exclude internal lineage IDs, survive restore/reload, and pass real clipboard E2E | done |
 | C-052 | Product Agent + Claims Review Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Reconcile campaign status into one generated summary | Deployment facts, readiness blockers, handoff stage, and claims authority are machine validated without changing approved claims or historical evidence snapshots | done |
 | C-053 | DevOps Agent + Security Agent + Test Agent | Code Review Agent + Claims Review Agent | Execute one newly approved authenticated Cloudflare-to-B2 smoke and revoke temporary identity | Exactly one POST is classified without overclaiming, no retry occurs, temporary policy/token/files are removed, and the cloud claim remains blocked unless the Pages Function and B2 are proven | done |
+| C-054 | Architecture Agent + DevOps Agent + Security Agent | Code Review Agent + Test Agent + Claims Review Agent | Prevent unattached Access policy from consuming another one-shot business approval | A no-network, all-authority-false plan requires outer application save, post-save reload, bidirectional attachment evidence, exact usage count, identity-only health, short-lived independent review, and separate business approval | done |
 
 ## Event Log
+
+### 2026-07-26 21:40 C-E062
+
+Type: REVIEWED
+From: Architecture Agent + DevOps Agent + Security Agent
+To: Code Review Agent + Test Agent + Claims Review Agent + Hermes Orchestrator
+Task: C-049 / C-054 / JC-T005
+Gate: Architecture / Access / Security / Code Review / Test / Claims
+Message: Converted the unattached Service Auth failure into a no-network preflight contract. The ordered gate now requires saving the outer Access application, reloading it, proving bidirectional application-policy membership and exactly one application usage, then passing a separately authorized identity-only health GET before any fresh business POST approval may be requested. The contract requires a future private mode-0600 attestation bound to the pinned project, deployment, commit, method, and path; it must expire within 15 minutes, separate observer and reviewer, record no secrets, and grant no execution authority.
+Evidence: `cloudflare-access-smoke-preflight-plan.json`, validator, 6 focused positive/negative tests, 31-file / 207-test regression, ESLint, production build, updated judge runbook, independent Architecture/Security release red-team review.
+Decision: PASS OFFLINE PREFLIGHT CONTRACT; KEEP C-049 AND ALL CLOUD ACTIONS BLOCKED.
+Next owner: Human owner + DevOps Agent + Security Agent
+Close condition: Under a separate approval, configure a temporary identity, produce and independently review a passing private attestation plus identity-only health evidence, revoke on any mismatch, then separately request one no-retry business POST.
 
 ### 2026-07-26 21:20 C-E061
 

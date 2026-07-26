@@ -26,6 +26,7 @@
     "hackathon:deploy:check": "node scripts/check-hackathon-deployment.mjs --strict",
     "hackathon:runtime:check": "node scripts/check-hackathon-preview-runtime.mjs",
     "hackathon:deploy:result": "node scripts/check-hackathon-preview-deployment-result.mjs",
+    "hackathon:access:preflight": "node scripts/check-cloudflare-access-smoke-preflight.mjs",
     "hackathon:deploy:packet": "node scripts/check-hackathon-deployment-packet.mjs",
     "hackathon:runtime:smoke": "bash scripts/smoke-hackathon-preview-runtime.sh",
     "hackathon:evidence": "node scripts/collect-hackathon-evidence.mjs",

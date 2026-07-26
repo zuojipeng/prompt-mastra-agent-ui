@@ -1,0 +1,72 @@
+{
+  "schema_version": "jingci.cloudflare-access-smoke-preflight-plan.v1",
+  "status": "blocked",
+  "execution_allowed": false,
+  "target": {
+    "pages_project": "jingci-genmedia-preview-2026",
+    "access_application": "jingci-genmedia-preview-2026 - Cloudflare Pages",
+    "access_application_id_sha256": "8d5527022c3d0cea6ae94d458331143be74e264f1974511d112b044924687368",
+    "hostname_scope": "*.jingci-genmedia-preview-2026.pages.dev",
+    "deployment_id": "97262b86-97fe-47ae-87f8-eefa9f0c20c9",
+    "commit": "c8eb57cb04d9f1d66334623e7ebdf69258ae47f6",
+    "health_method": "GET",
+    "health_path": "/api/provenance/health",
+    "business_method": "POST",
+    "business_path": "/api/provenance/v1/provenance-runs"
+  },
+  "ordered_gates": [
+    "create_temporary_service_token",
+    "create_reusable_service_auth_policy",
+    "add_policy_to_target_application",
+    "save_outer_access_application",
+    "reload_target_application",
+    "verify_policy_visible_after_reload",
+    "verify_policy_usage_count_exactly_one",
+    "run_identity_only_health_get",
+    "revoke_temporary_identity_if_preflight_fails",
+    "obtain_fresh_business_post_approval"
+  ],
+  "required_preflight_evidence": {
+    "policy_action": "service_auth",
+    "policy_visible_after_application_reload": true,
+    "policy_application_usage_count": 1,
+    "health_status": 200,
+    "health_content_type": "application/json",
+    "health_body": {
+      "status": "ok",
+      "mode": "cloudflare-b2-preview"
+    },
+    "health_b2_operation_expected": false,
+    "business_post_attempted": false,
+    "temporary_identity_cleanup_confirmed": false,
+    "fresh_business_post_approval_present": false
+  },
+  "attachment_attestation": {
+    "schema_version": "jingci.cloudflare-access-attachment-attestation.v1",
+    "purpose": "authenticated_b2_smoke_preflight",
+    "private_file_mode": "0600",
+    "max_validity_seconds": 900,
+    "require_post_save_reload": true,
+    "require_bidirectional_membership": true,
+    "require_distinct_observer_and_reviewer": true,
+    "approval_must_bind_attestation_sha256": true
+  },
+  "fail_closed_conditions": {
+    "policy_missing_after_reload": "stop_and_revoke",
+    "policy_application_usage_count_not_one": "stop_and_revoke",
+    "health_redirect_302": "stop_and_revoke",
+    "health_status_not_200": "stop_and_revoke",
+    "health_body_mismatch": "stop_and_revoke",
+    "fresh_business_post_approval_missing": "stop_before_business_post"
+  },
+  "authorization": {
+    "create_service_token": false,
+    "configure_access_policy": false,
+    "identity_only_health_get": false,
+    "business_post": false,
+    "b2_object_operation": false,
+    "deploy": false,
+    "publish": false,
+    "submit_devpost": false
+  }
+}

@@ -41,8 +41,10 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md",
     "docs/campaigns/backblaze-genmedia-2026/preview-runtime-plan.json",
     "docs/campaigns/backblaze-genmedia-2026/preview-deployment-packet.json",
+    "docs/campaigns/backblaze-genmedia-2026/cloudflare-access-smoke-preflight-plan.json",
     "docs/campaigns/backblaze-genmedia-2026/preview-deployment-result.json",
-    "docs/test-reports/2026-07-24-cloudflare-authenticated-smoke-attempt.md"
+    "docs/test-reports/2026-07-24-cloudflare-authenticated-smoke-attempt.md",
+    "docs/test-reports/2026-07-26-cloudflare-access-smoke-preflight.md"
   ],
   "blockers": [
     "new_explicit_approval_for_one_authenticated_cloud_b2_smoke",
