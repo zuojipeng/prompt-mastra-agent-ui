@@ -32,8 +32,17 @@ export function evaluatePreviewDeploymentResult(payload) {
   if (payload.observations?.preview_access_unauthenticated !== 302) {
     errors.push('preview_access_observation_invalid');
   }
-  if (payload.observations?.authenticated_b2_run_status !== 'not_reached_dns_resolution_failed') {
+  if (payload.observations?.authenticated_b2_run_status !== 302) {
     errors.push('authenticated_b2_status_invalid');
+  }
+  if (payload.observations?.authenticated_pages_function_reached !== false) {
+    errors.push('authenticated_pages_function_reached_must_be_false');
+  }
+  if (payload.observations?.authenticated_b2_operation_observed !== false) {
+    errors.push('authenticated_b2_operation_observed_must_be_false');
+  }
+  if (payload.observations?.access_service_policy_attachment !== 'not_persisted_zero_apps') {
+    errors.push('access_service_policy_attachment_invalid');
   }
   if (payload.observations?.authenticated_b2_run_attempts !== 1
     || payload.observations?.authenticated_b2_run_retried !== false) {
@@ -62,7 +71,7 @@ function main() {
     console.error(`Preview deployment result is invalid:\n- ${result.errors.join('\n- ')}`);
     return 1;
   }
-  console.log('Preview deployment result is valid: deployed behind Access, authenticated cloud B2 smoke unreached.');
+  console.log('Preview deployment result is valid: Access returned 302 before the Pages Function; cloud B2 smoke remains unverified.');
   return 0;
 }
 

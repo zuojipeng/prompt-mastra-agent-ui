@@ -66,7 +66,10 @@ function sources() {
       observations: {
         production_access_unauthenticated: 302,
         preview_access_unauthenticated: 302,
-        authenticated_b2_run_status: 'not_reached_dns_resolution_failed',
+        authenticated_b2_run_status: 302,
+        authenticated_pages_function_reached: false,
+        authenticated_b2_operation_observed: false,
+        access_service_policy_attachment: 'not_persisted_zero_apps',
         authenticated_b2_run_attempts: 1,
         authenticated_b2_run_retried: false,
         temporary_smoke_surface_removed: true,

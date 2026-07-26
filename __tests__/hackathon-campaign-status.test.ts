@@ -16,7 +16,8 @@ describe('hackathon campaign status summary', () => {
     expect(evaluateCampaignStatusSummary(summary).errors).toEqual([]);
     expect(summary).toContain('Current stage: **Protected preview verification**');
     expect(summary).toContain('Preview runtime: **deployed-blocked**');
-    expect(summary).toContain('Current authenticated cloud B2 smoke reached HTTP: **no**');
+    expect(summary).toContain('Current authenticated cloud B2 smoke reached HTTP: **yes**');
+    expect(summary).toContain('Current authenticated cloud B2 smoke reached the Pages Function: **no**');
     expect(summary).toContain('Claims approval grants deployment authority: **no**');
     expect(summary).not.toMatch(/https?:\/\//);
     expect(summary).not.toMatch(/[a-f0-9]{40,}/);
@@ -53,7 +54,8 @@ describe('hackathon campaign status summary', () => {
         observations: {
           production_access_unauthenticated: 302,
           preview_access_unauthenticated: 302,
-          authenticated_b2_run_status: 'not_reached_dns_resolution_failed',
+          authenticated_b2_run_status: 302,
+          authenticated_pages_function_reached: false,
         },
       },
       claims: {

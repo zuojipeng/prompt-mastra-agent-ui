@@ -18,7 +18,10 @@
     "historical_authenticated_health_status": 200,
     "authenticated_health_status_for_tested_deployment": "not_run",
     "historical_authenticated_b2_run_status": 502,
-    "authenticated_b2_run_status": "not_reached_dns_resolution_failed",
+    "authenticated_b2_run_status": 302,
+    "authenticated_pages_function_reached": false,
+    "authenticated_b2_operation_observed": false,
+    "access_service_policy_attachment": "not_persisted_zero_apps",
     "authenticated_b2_run_attempts": 1,
     "authenticated_b2_run_retried": false,
     "equivalent_local_worker_b2_run": "passed_once_no_retry",
@@ -28,9 +31,9 @@
     "local_temporary_secret_files_removed": true
   },
   "limits": [
-    "The 2026-07-24 authenticated smoke did not establish an HTTP connection because the execution environment could not resolve the Pages hostname.",
-    "The absence of an HTTP response is not evidence about Cloudflare Access, the Pages Function, or B2 behavior.",
-    "The one-attempt authorization was consumed and no retry was performed.",
+    "The 2026-07-26 authenticated smoke reached Cloudflare and received HTTP 302, but the temporary Service Auth policy showed zero attached applications after save.",
+    "The response came from the Access boundary before the Pages Function; no B2 object operation was observed.",
+    "The latest one-attempt authorization was consumed and no retry was performed.",
     "The local pass does not promote the cloud deployment claim.",
     "No public release, video publication, Runway call, paid call, or Devpost submission was performed."
   ],

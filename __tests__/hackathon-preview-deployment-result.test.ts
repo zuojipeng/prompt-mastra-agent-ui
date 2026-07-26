@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { evaluatePreviewDeploymentResult } from '../scripts/check-hackathon-preview-deployment-result.mjs';
 
 describe('hackathon preview deployment result', () => {
-  it('accepts the bounded no-retry DNS failure record', () => {
+  it('accepts the bounded no-retry Access redirect record', () => {
     expect(evaluatePreviewDeploymentResult(preview).errors).toEqual([]);
   });
 
@@ -12,12 +12,14 @@ describe('hackathon preview deployment result', () => {
     const changed = JSON.parse(JSON.stringify(preview));
     changed.status = 'verified';
     changed.observations.authenticated_b2_run_retried = true;
+    changed.observations.authenticated_pages_function_reached = true;
     changed.observations.temporary_access_service_token_revoked = false;
     changed.blockers = [];
 
     const { errors } = evaluatePreviewDeploymentResult(changed);
     expect(errors).toContain('preview_result_status_invalid');
     expect(errors).toContain('authenticated_b2_attempt_boundary_invalid');
+    expect(errors).toContain('authenticated_pages_function_reached_must_be_false');
     expect(errors).toContain('temporary_access_service_token_revoked_must_be_true');
     expect(errors).toContain('preview_result_blockers_invalid');
   });

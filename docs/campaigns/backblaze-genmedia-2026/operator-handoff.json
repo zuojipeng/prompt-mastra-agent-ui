@@ -26,7 +26,7 @@
     },
     "preview": {
       "file": "docs/campaigns/backblaze-genmedia-2026/preview-deployment-result.json",
-      "sha256": "5bbce906a33de5c6f12f470d8889196af12266df3550c1687587b9b7d2130eac"
+      "sha256": "160daa821e2ff3b0d8a9adb291f2c0852993191e294f387e875759dc9760d985"
     }
   },
   "stage_order": [

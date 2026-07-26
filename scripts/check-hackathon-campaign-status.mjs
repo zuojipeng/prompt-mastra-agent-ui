@@ -65,6 +65,8 @@ export function buildCampaignStatusSummary(sources = loadSources()) {
   const authenticatedCloudSmokeReachedHttp = Number.isInteger(
     sources.preview.observations.authenticated_b2_run_status,
   );
+  const authenticatedPagesFunctionReached =
+    sources.preview.observations.authenticated_pages_function_reached === true;
 
   return [
     '# Backblaze GenAI Media Campaign Status',
@@ -85,6 +87,7 @@ export function buildCampaignStatusSummary(sources = loadSources()) {
     '- Private Runway generation and B2 recovery evidence may be described only with the approved mandatory qualification.',
     `- Protected preview deployed behind Access: **${yesNo(previewProtected)}**.`,
     `- Current authenticated cloud B2 smoke reached HTTP: **${yesNo(authenticatedCloudSmokeReachedHttp)}**.`,
+    `- Current authenticated cloud B2 smoke reached the Pages Function: **${yesNo(authenticatedPagesFunctionReached)}**.`,
     '- The local equivalent pass does not promote the Cloudflare deployment claim.',
     '',
     '## Open Gates',

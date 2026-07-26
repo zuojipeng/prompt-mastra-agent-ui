@@ -60,8 +60,22 @@ Status: in_progress
 | C-050 | Product Agent + UEAgent + Engineering Agent | Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Preserve truthful project-level provenance evidence | Mode-specific claims are accurate, preview hides private locations, a strict non-secret receipt survives restore/reload, and desktop/mobile regression passes | done |
 | C-051 | Product Agent + UEAgent + Engineering Agent | Architecture Agent + Security Agent + Claims Review Agent + Code Review Agent + Test Agent | Carry sanitized provenance into project handoff artifacts | Execution checklist, project snapshot, and Operator handoff export full verification hashes with qualified mode labels, exclude internal lineage IDs, survive restore/reload, and pass real clipboard E2E | done |
 | C-052 | Product Agent + Claims Review Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Reconcile campaign status into one generated summary | Deployment facts, readiness blockers, handoff stage, and claims authority are machine validated without changing approved claims or historical evidence snapshots | done |
+| C-053 | DevOps Agent + Security Agent + Test Agent | Code Review Agent + Claims Review Agent | Execute one newly approved authenticated Cloudflare-to-B2 smoke and revoke temporary identity | Exactly one POST is classified without overclaiming, no retry occurs, temporary policy/token/files are removed, and the cloud claim remains blocked unless the Pages Function and B2 are proven | done |
 
 ## Event Log
+
+### 2026-07-26 21:20 C-E061
+
+Type: AUTHENTICATED_SMOKE_FUNCTION_UNREACHED_CLEANED
+From: DevOps Agent + Security Agent + Test Agent
+To: Code Review Agent + Claims Review Agent + Hermes Orchestrator + Human owner
+Task: C-049 / C-053 / JC-T005
+Gate: Temporary Access / Live B2 / Claims
+Message: Used the newly approved one-attempt authority to send exactly one POST to the pinned Pages deployment. Cloudflare returned HTTP 302 before the Pages Function because the reusable Service Auth policy showed zero attached applications after save. No B2 operation was observed and no retry occurred. The temporary policy and service token were deleted and verified absent; five local temporary files were removed.
+Evidence: `preview-deployment-result.json`, `docs/test-reports/2026-07-26-cloudflare-authenticated-smoke-attempt.md`, Agent run, code review, Cloudflare zero-usage and post-delete absence checks.
+Decision: KEEP C-049 BLOCKED; REJECT CLOUD B2 SUCCESS CLAIM.
+Next owner: Human owner + DevOps Agent
+Close condition: Correct and verify the wildcard application policy attachment, then obtain a new explicit one-attempt approval. Rate limiting, judge-path E2E, and release approval remain separate gates.
 
 ### 2026-07-26 20:15 C-E060
 

@@ -15,7 +15,8 @@
 - Claims packet: **approved** for Devpost draft and final demo copy only.
 - Private Runway generation and B2 recovery evidence may be described only with the approved mandatory qualification.
 - Protected preview deployed behind Access: **yes**.
-- Current authenticated cloud B2 smoke reached HTTP: **no**.
+- Current authenticated cloud B2 smoke reached HTTP: **yes**.
+- Current authenticated cloud B2 smoke reached the Pages Function: **no**.
 - The local equivalent pass does not promote the Cloudflare deployment claim.
 
 ## Open Gates
