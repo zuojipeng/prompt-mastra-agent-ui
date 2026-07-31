@@ -6,8 +6,8 @@ Status: LOCAL FINAL DRAFT / PUBLICATION REVIEW
 ## Captured Evidence
 
 - Visual reel: `artifacts/demo/jingci-genmedia-final-draft.mp4`
-- Format: H.264/AAC MP4, 1280×720, 147 seconds, English voiceover and English subtitle track
-- SHA-256: `85dfde49118b69e4aef67f285d4fd5b71bf458fe1893166590a0ea14885f0bd0`
+- Format: H.264/AAC MP4, 1280×720, 147 seconds, English voiceover, visible burned-in English and Chinese captions, and an English soft-caption track
+- SHA-256: `886f4c448e8e2c4650d1dcefcf05140af582f65c5ce53070df8b9b2f6d4d69b1`
 - Local desktop: `output/playwright/hackathon-rehearsal-local-desktop.png`
 - Local mobile: `output/playwright/hackathon-rehearsal-local-mobile.png`
 - Fixture failure/retry desktop: `output/playwright/provenance-desktop.png`
@@ -28,7 +28,7 @@ The MP4 is the local publication-review candidate and remains Git-ignored. It is
 ## Publication Boundary
 
 - The local MP4 may be reviewed by the owner but is not authorized for upload yet.
-- When approved, upload both the MP4 and the tracked SRT so captions are visible on the public platform.
+- When approved, upload the MP4 and optionally attach the tracked SRT as a selectable accessibility track. Caption visibility no longer depends on player controls.
 - Do not show the private task, signed provider URL, B2 object keys, account console, or credentials.
 - Do not claim an atomic Runway-to-B2 transaction, public B2 serving, durable retention, or general provider reliability.
 
@@ -38,4 +38,5 @@ The MP4 is the local publication-review candidate and remains Git-ignored. It is
 - The provider segment and separate B2 recovery card are visually distinct.
 - The Fixture panel remains visibly labeled and centered without exposing private evidence.
 - No credentials, account identifiers, signed URLs, object keys, or personal data appear.
-- English narration completes before the 147-second endpoint; an English subtitle track is present.
+- English narration completes before the 147-second endpoint. Ten contiguous bilingual cues are burned into the image for all 147 seconds, and an English soft-caption track remains available.
+- Visual caption checkpoints passed at 00:05, 01:05, 01:22, 01:53, and 02:18 with legible Chinese glyphs, correct wrapping, and no overflow.

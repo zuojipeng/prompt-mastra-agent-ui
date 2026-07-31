@@ -16,6 +16,7 @@ const runwayVideo = path.resolve('artifacts/demo/jingci-runway-gen45-20260717.mp
 const retryImage = path.resolve('output/playwright/provenance-desktop.png');
 const voiceoverFile = path.resolve('docs/campaigns/backblaze-genmedia-2026/docs/final-video-voiceover.txt');
 const captionsFile = path.resolve('docs/campaigns/backblaze-genmedia-2026/docs/final-video-captions.srt');
+const bilingualCaptionsFile = path.resolve('docs/campaigns/backblaze-genmedia-2026/docs/final-video-bilingual-captions.json');
 const creative = '废土小镇里，一个旧清洁机器人守护红裙人偶';
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,6 +38,27 @@ async function renderSlide(page, body, output) {
       .url{font-size:18px;color:#67e8f9;margin-top:22px}
     </style></head><body><main>${body}</main></body></html>`);
   await page.screenshot({ path: output });
+}
+
+function escapeHtml(value) {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+
+async function renderCaption(page, caption, output) {
+  await page.setContent(`<!doctype html>
+    <html><head><meta charset="utf-8"><style>
+      *{box-sizing:border-box} html,body{margin:0;width:1280px;height:720px;background:transparent}
+      body{font-family:Inter,"PingFang SC","Microsoft YaHei",ui-sans-serif,system-ui,sans-serif;letter-spacing:0}
+      main{height:100%;display:flex;align-items:flex-end;justify-content:center;padding:0 70px 30px}
+      .caption{width:1140px;background:rgba(5,12,20,.88);border-left:4px solid #22d3ee;padding:12px 18px 13px;
+        box-shadow:0 8px 28px rgba(0,0,0,.35)}
+      .en{color:#fff;font-size:22px;line-height:1.28;font-weight:650;text-align:center}
+      .zh{color:#a5f3fc;font-size:20px;line-height:1.3;font-weight:600;text-align:center;margin-top:5px}
+    </style></head><body><main><div class="caption">
+      <div class="en">${escapeHtml(caption.en)}</div>
+      <div class="zh">${escapeHtml(caption.zh)}</div>
+    </div></main></body></html>`);
+  await page.screenshot({ path: output, omitBackground: true });
 }
 
 async function recordPublicFlow(browser) {
@@ -88,9 +110,25 @@ async function recordPublicFlow(browser) {
 
 async function main() {
   await mkdir(outputDir, { recursive: true });
-  if (process.env.REUSE_FINAL_DRAFT_CAPTURE !== '1') {
-    const browser = await chromium.launch();
-    try {
+  const bilingualCaptions = JSON.parse(await readFile(bilingualCaptionsFile, 'utf8'));
+  if (!Array.isArray(bilingualCaptions) || bilingualCaptions.length === 0) {
+    throw new Error('Bilingual captions must be a non-empty array');
+  }
+  let expectedStart = 0;
+  for (const caption of bilingualCaptions) {
+    if (caption.start !== expectedStart || !Number.isInteger(caption.end) || caption.end <= caption.start) {
+      throw new Error('Bilingual captions must be contiguous and increasing');
+    }
+    if (typeof caption.en !== 'string' || typeof caption.zh !== 'string' || !caption.en || !caption.zh) {
+      throw new Error('Every bilingual caption requires English and Chinese text');
+    }
+    expectedStart = caption.end;
+  }
+  if (expectedStart !== 147) throw new Error('Bilingual captions must cover the full 147-second render');
+  const captionFiles = bilingualCaptions.map((_, index) => path.join(outputDir, `caption-${String(index).padStart(2, '0')}.png`));
+  const browser = await chromium.launch();
+  try {
+    if (process.env.REUSE_FINAL_DRAFT_CAPTURE !== '1') {
       await recordPublicFlow(browser);
       const slideContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
       const page = await slideContext.newPage();
@@ -109,14 +147,32 @@ async function main() {
       <div class="rule"></div><div class="url">jingci-genmedia-judge-demo-2026.pages.dev</div>
       `, closingSlide);
       await slideContext.close();
-    } finally {
-      await browser.close();
     }
+    const captionContext = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const captionPage = await captionContext.newPage();
+    for (const [index, caption] of bilingualCaptions.entries()) {
+      await renderCaption(captionPage, caption, captionFiles[index]);
+    }
+    await captionContext.close();
+  } finally {
+    await browser.close();
   }
 
   const voiceover = await readFile(voiceoverFile, 'utf8');
   run('/usr/bin/say', ['-v', 'Daniel', '-r', '165', '-o', narration, voiceover]);
   await rm(finalVideo, { force: true });
+  const captionInputs = captionFiles.flatMap((file) => ['-loop', '1', '-i', file]);
+  const narrationIndex = 5 + captionFiles.length;
+  const softCaptionIndex = narrationIndex + 1;
+  let captionFilter = '[base]';
+  for (const [index, caption] of bilingualCaptions.entries()) {
+    const inputIndex = 5 + index;
+    const outputLabel = `captioned${index}`;
+    captionFilter += `[${inputIndex}:v]format=rgba[caption${index}];` +
+      `${index === 0 ? '[base]' : `[captioned${index - 1}]`}[caption${index}]` +
+      `overlay=0:0:enable='between(t,${caption.start},${caption.end})'[${outputLabel}];`;
+  }
+  const videoLabel = `[captioned${bilingualCaptions.length - 1}]`;
   run('/usr/local/bin/ffmpeg', [
     '-y',
     '-i', flowVideo,
@@ -124,6 +180,7 @@ async function main() {
     '-loop', '1', '-i', evidenceSlide,
     '-loop', '1', '-i', retryImage,
     '-loop', '1', '-i', closingSlide,
+    ...captionInputs,
     '-i', narration,
     '-i', captionsFile,
     '-filter_complex',
@@ -132,9 +189,10 @@ async function main() {
     `[2:v]scale=1280:720,fps=30,trim=duration=32,setpts=PTS-STARTPTS[v2];` +
     `[3:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:#081019,fps=30,trim=duration=18,setpts=PTS-STARTPTS[v3];` +
     `[4:v]scale=1280:720,fps=30,trim=duration=22,setpts=PTS-STARTPTS[v4];` +
-    `[v0][v1][v2][v3][v4]concat=n=5:v=1:a=0[video];` +
-    `[5:a]aresample=48000,apad,atrim=duration=147[audio]`,
-    '-map', '[video]', '-map', '[audio]', '-map', '6:0',
+    `[v0][v1][v2][v3][v4]concat=n=5:v=1:a=0[base];` +
+    `${captionFilter.slice('[base]'.length)}` +
+    `[${narrationIndex}:a]aresample=48000,apad,atrim=duration=147[audio]`,
+    '-map', videoLabel, '-map', '[audio]', '-map', `${softCaptionIndex}:0`,
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
     '-c:a', 'aac', '-b:a', '160k', '-c:s', 'mov_text', '-metadata:s:s:0', 'language=eng',
     '-movflags', '+faststart', '-t', '147', finalVideo,

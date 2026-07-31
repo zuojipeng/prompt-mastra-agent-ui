@@ -2,7 +2,7 @@
 
 Storyboard target: **2:35**. Current local publication-review render: **2:27**.
 
-Status: local publication-review candidate. Exact rendered narration and timing are tracked in `final-video-voiceover.txt` and `final-video-captions.srt`; publication remains separately gated.
+Status: local publication-review candidate. Exact rendered narration and timing are tracked in `final-video-voiceover.txt`, `final-video-captions.srt`, and `final-video-bilingual-captions.json`. The MP4 has visible burned-in English and Chinese captions and retains the English soft-caption track; publication remains separately gated.
 
 ## 0:00–0:15 — Problem
 
@@ -75,7 +75,7 @@ Screen: End on the verified selected-shot panel and product name.
 ## Recording Gate
 
 - Final runtime is below 2:55, leaving upload/transcode margin below the three-minute rule.
-- English voiceover or accurate English subtitles are present.
+- English voiceover, visible burned-in English and Chinese captions, and an English soft-caption track are present.
 - No third-party music, trademarks, private URLs, tokens, account IDs, or personal data appear.
 - Final footage distinguishes the generated Runway output from the separate Genblaze-to-B2 recovery verification and shows no private evidence.
 - Video is publicly visible on YouTube, Vimeo, or Youku before the link is added to Devpost.

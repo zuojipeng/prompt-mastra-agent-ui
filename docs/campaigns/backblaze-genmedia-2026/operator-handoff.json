@@ -18,7 +18,7 @@
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
-      "sha256": "3a600a63277fc271fc407b6bde2717039c3431b7bec110b2a159b0236406c29f"
+      "sha256": "c62405a7c8b7c6f28852c2b7293ac225b43aa0722823ae7d7e402b6fac39df00"
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",

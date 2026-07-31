@@ -1,0 +1,62 @@
+[
+  {
+    "start": 0,
+    "end": 12,
+    "en": "AI video workflows often lose the link between the creative plan, model run, generated asset, and successful retry.",
+    "zh": "AI 视频工作流常常丢失创意方案、模型运行、生成资产与成功重试之间的联系。"
+  },
+  {
+    "start": 12,
+    "end": 30,
+    "en": "Jingci diagnoses generation risks before model spend, then offers safe, stylish, and cinematic directions.",
+    "zh": "镜词在消耗模型额度前诊断生成风险，并给出安全、风格化和电影感方向。"
+  },
+  {
+    "start": 30,
+    "end": 45,
+    "en": "DirectorKit turns the selected direction into a shot-level execution package.",
+    "zh": "DirectorKit 将选定方向转换为逐镜头执行包。"
+  },
+  {
+    "start": 45,
+    "end": 60,
+    "en": "This public judge demo uses deterministic local data: no external model call and no cloud write.",
+    "zh": "公开评审 Demo 使用确定性本地数据：不调用外部模型，也不写入云端。"
+  },
+  {
+    "start": 60,
+    "end": 75,
+    "en": "Runway gen4.5 generated this five-second 1280x720 H.264 shot during an approved private verification.",
+    "zh": "Runway gen4.5 在获批的私有验证中生成了这段 5 秒、1280×720 的 H.264 镜头。"
+  },
+  {
+    "start": 75,
+    "end": 91,
+    "en": "Separately, Genblaze stored the MP4 and provenance manifest in private Backblaze B2 and verified both after read-back.",
+    "zh": "在独立验证中，Genblaze 将 MP4 和存证清单写入私有 Backblaze B2，并在回读后完成校验。"
+  },
+  {
+    "start": 91,
+    "end": 107,
+    "en": "These were two evidence-preserving phases, not one atomic transaction. The scoped B2 test objects were deleted.",
+    "zh": "这是两个保留证据的阶段，并非一次原子事务；限定范围内的 B2 测试对象已删除。"
+  },
+  {
+    "start": 107,
+    "end": 116,
+    "en": "The visible retry path is an offline Fixture.",
+    "zh": "画面中的重试路径是离线 Fixture。"
+  },
+  {
+    "start": 116,
+    "end": 125,
+    "en": "It proves product recovery and parent-lineage behavior, not general provider reliability.",
+    "zh": "它证明产品恢复和父级谱系行为，不代表服务商的普遍可靠性。"
+  },
+  {
+    "start": 125,
+    "end": 147,
+    "en": "Jingci Provenance Vault: direct the shot, generate it, prove it, and improve the next run.",
+    "zh": "镜词存证库：指导镜头、完成生成、验证证据，并改进下一次创作。"
+  }
+]

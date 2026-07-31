@@ -30,6 +30,7 @@
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-video-script.md",
     "docs/campaigns/backblaze-genmedia-2026/docs/final-video-voiceover.txt",
     "docs/campaigns/backblaze-genmedia-2026/docs/final-video-captions.srt",
+    "docs/campaigns/backblaze-genmedia-2026/docs/final-video-bilingual-captions.json",
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-rehearsal-report.md",
     "artifacts/demo/jingci-genmedia-final-draft.mp4",
     "output/playwright/hackathon-rehearsal-local-desktop.png",
