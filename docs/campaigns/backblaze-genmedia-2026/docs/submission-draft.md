@@ -35,7 +35,7 @@ On July 16, 2026, one authorized live B2 transport smoke uploaded a small object
 - DeepSeek `deepseek-chat`: primary structured DirectorKit generation in the existing backend.
 - OpenAI `gpt-4.1-mini`: JSON text-generation fallback in the existing backend.
 - `jingci-local-video` / `local-proof`: deterministic Genblaze integration provider used only for credential-free pipeline testing; it is not an external AI media model.
-- Runway `gen4.5`: generated one privately verified five-second 1280x720 H.264 output. The exact evidence-bounded claim is approved for Devpost draft and final demo copy; video publication, deployment, and final submission remain separately gated.
+- Runway `gen4.5`: generated one privately verified five-second 1280x720 H.264 output. The exact evidence-bounded claim was published in the final demo and submitted to Devpost only after separate explicit human approvals.
 
 ## Significant Update During The Submission Period
 
@@ -71,4 +71,4 @@ Campaign slice: Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze
 
 ## Final Submission Boundary
 
-The narrow private Runway and B2 recovery claims use the mandatory qualification in `claims-promotion-review.md`. The public judge app, public under-three-minute video, and public campaign-branch reviewer handoff are anonymously verified. The human owner explicitly approved final submission in the active task. The protected Cloudflare preview remains separate and its repeated identity-only preflights did not reach the Pages Function; do not repeat that identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Status must remain `ready` and `claims.submitted` must remain false until Devpost returns a reviewable submission confirmation.
+The narrow private Runway and B2 recovery claims use the mandatory qualification in `claims-promotion-review.md`. The public judge app, public under-three-minute video, and public campaign-branch reviewer handoff are anonymously verified. The human owner explicitly accepted the final Devpost terms and authorized one submission in the active task. Devpost redirected to the public project page, which returned anonymous HTTP 200, so status is `submitted` and `claims.submitted` is true. The protected Cloudflare preview remains separate and its repeated identity-only preflights did not reach the Pages Function; do not repeat that identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair.

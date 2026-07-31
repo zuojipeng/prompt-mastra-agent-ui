@@ -4,14 +4,15 @@ import readiness from '../docs/campaigns/backblaze-genmedia-2026/submission-read
 import { evaluateSubmission, isSubmissionStrictReady } from '../scripts/check-hackathon-submission.mjs';
 
 describe('hackathon submission readiness', () => {
-  it('accepts final readiness after reviewer handoff and human approval', () => {
+  it('accepts the confirmed submitted state after reviewer handoff and human approval', () => {
     const result = evaluateSubmission(readiness, () => true);
 
     expect(result.errors).toEqual([]);
     expect(result.blockers).not.toContain('public_campaign_deployment');
     expect(result.blockers).not.toContain('public_demo_video');
     expect(result.blockers).toEqual([]);
-    expect(readiness.status).toBe('ready');
+    expect(readiness.status).toBe('submitted');
+    expect(readiness.claims.submitted).toBe(true);
     expect(isSubmissionStrictReady(readiness, result)).toBe(true);
   });
 
@@ -22,7 +23,7 @@ describe('hackathon submission readiness', () => {
       blockers: [],
       working_app_url: null,
       public_demo_video_url: null,
-      claims: { ...readiness.claims, public_campaign_deployment: false },
+      claims: { ...readiness.claims, public_campaign_deployment: false, submitted: false },
     }, () => true);
 
     expect(result.errors).toContain('ready submission requires working_app_url');
@@ -31,7 +32,12 @@ describe('hackathon submission readiness', () => {
   });
 
   it('does not treat a blocker-free draft label as strict readiness', () => {
-    const draft = { ...readiness, status: 'draft' as const, blockers: [] };
+    const draft = {
+      ...readiness,
+      status: 'draft' as const,
+      blockers: [],
+      claims: { ...readiness.claims, submitted: false },
+    };
     const result = evaluateSubmission(draft, () => true);
 
     expect(result.errors).toEqual([]);

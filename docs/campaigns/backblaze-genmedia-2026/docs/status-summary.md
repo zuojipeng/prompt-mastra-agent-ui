@@ -5,9 +5,9 @@
 
 ## Current State
 
-- Overall: **BLOCKED**
-- Current stage: **Final submission**
-- Completed ordered stages: **6/7**
+- Overall: **COMPLETE**
+- Current stage: **Complete**
+- Completed ordered stages: **7/7**
 - Preview runtime: **deployed-blocked**
 - Public zero-network judge demo deployed: **yes**
 

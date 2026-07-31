@@ -68,8 +68,22 @@ Status: in_progress
 | C-058 | Operator Agent + UEAgent | Claims Review Agent + Code Review Agent + Test Agent | Produce the final local demo-video candidate | Under-three-minute MP4 contains public product footage, approved Runway and recovery wording, explicit Fixture lineage, English voiceover, visible bilingual captions, and no private identifiers | done |
 | C-059 | Operator Agent + Claims Review Agent | Test Agent + Code Review Agent + Human owner | Publish and independently verify the final demo video | Human-approved MP4 is public, under three minutes, anonymously playable at 1280×720 with audio, visibly bilingual, privacy-reviewed, and not submitted to Devpost | done |
 | C-060 | Operator Agent + DevOps Agent | Claims Review Agent + Test Agent + Human owner | Close reviewer handoff and authorize final submission | Public campaign branch and README are anonymously verified, strict readiness is green, human approval is explicit, and submitted remains false until platform confirmation | done |
+| C-061 | Operator Agent + Human owner | Claims Review Agent + Test Agent + DevOps Agent | Submit the reviewed Devpost entry exactly once | Final terms are explicitly accepted by the human owner, Devpost redirects to the public project page, anonymous HTTP returns 200, and machine status is submitted | done |
 
 ## Event Log
+
+### 2026-07-31 22:01 C-E069
+
+Type: DEVPOST_SUBMISSION_CONFIRMED
+From: Human owner + Operator Agent
+To: Claims Review Agent + Test Agent + DevOps Agent + Hermes Orchestrator
+Task: C-061 / JC-T005
+Gate: Human Legal Confirmation / Final Submission / Release
+Message: The human owner explicitly confirmed agreement to the displayed Official Rules and Devpost Terms of Service. Operator Agent checked the single terms control and clicked the single Submit project action once. Devpost redirected from the finalization form to the public Jingci Provenance Vault project page; anonymous HTTP returned 200.
+Evidence: explicit human confirmation in the active task, checked final terms state before submission, post-submit public project URL, anonymous HTTP 200, and strict machine gates.
+Decision: SUBMITTED; CAMPAIGN DELIVERY GATE COMPLETE
+Next owner: Ops Agent
+Close condition: Monitor organizer communications and preserve the submitted public URLs and evidence; do not create new paid calls or mutate the entry without a new reviewed task.
 
 ### 2026-07-31 21:51 C-E068
 

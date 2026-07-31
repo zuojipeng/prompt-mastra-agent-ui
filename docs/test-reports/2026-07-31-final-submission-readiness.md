@@ -2,7 +2,7 @@
 
 Date: 2026-07-31
 
-Status: PASS / READY, NOT SUBMITTED
+Status: PASS / SUBMITTED
 
 - Public repository: `https://github.com/zuojipeng/prompt-mastra-agent-ui`
 - Reviewer branch: `https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance`
@@ -15,4 +15,4 @@ Status: PASS / READY, NOT SUBMITTED
 - Strict submission readiness: PASS (`ready`, zero blockers)
 - Focused submission/handoff/status tests: 11/11 PASS
 
-The campaign branch is an explicit reviewer handoff, so merging the hackathon spike into the product's default branch is not required. `claims.submitted` remains false until Devpost returns confirmation.
+The campaign branch is an explicit reviewer handoff, so merging the hackathon spike into the product's default branch is not required. After explicit human acceptance of the final terms and authorization, Devpost redirected to the public project page and anonymous HTTP returned 200. `claims.submitted` is now true.

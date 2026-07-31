@@ -1,6 +1,6 @@
 {
   "schema_version": "jingci.hackathon-submission-readiness.v1",
-  "status": "ready",
+  "status": "submitted",
   "project_name": "Jingci Provenance Vault",
   "deadline_utc": "2026-08-03T21:00:00Z",
   "repository_url": "https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance",
@@ -13,13 +13,13 @@
     "live_ai_media_provider": true,
     "live_b2_upload_readback": true,
     "public_campaign_deployment": true,
-    "submitted": false
+    "submitted": true
   },
   "providers": [
     { "name": "DeepSeek", "model": "deepseek-chat", "role": "DirectorKit structured text generation" },
     { "name": "OpenAI", "model": "gpt-4.1-mini", "role": "DirectorKit JSON fallback" },
     { "name": "Jingci deterministic provider", "model": "local-proof", "role": "Credential-free Genblaze pipeline test; not an external AI media model" },
-    { "name": "Runway", "model": "gen4.5", "role": "Generated one privately verified 5-second shot; evidence-bounded draft/demo wording approved, while publication and submission remain human-gated" }
+    { "name": "Runway", "model": "gen4.5", "role": "Generated one privately verified 5-second shot; evidence-bounded wording was published and submitted only after explicit human approval" }
   ],
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/submission-draft.md",

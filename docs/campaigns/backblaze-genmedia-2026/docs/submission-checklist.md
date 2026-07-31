@@ -10,7 +10,7 @@
 - [x] Provider/model disclosures complete
 - [x] E2E and fallback demo evidence complete
 - [x] Human Gate B final submission approval recorded in the active task
-- [ ] Platform confirmation captured before status becomes SUBMITTED
+- [x] Platform confirmation captured; public project page returned HTTP 200
 
 Deadline execution order: `deadline-sprint.md`. Do not spend another loop on the identical Cloudflare temporary Service Token flow unless new decision evidence or a reviewed configuration repair exists.
 

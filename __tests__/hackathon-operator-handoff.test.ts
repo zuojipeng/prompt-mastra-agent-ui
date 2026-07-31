@@ -88,11 +88,13 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('advances the repository handoff to final submission after the public demo', () => {
+  it('closes the repository handoff after confirmed final submission', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('final_submission');
-    expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
+    expect(handoff.status).toBe('complete');
+    expect(handoff.current_stage).toBeNull();
+    expect(handoff.stages.filter((stage) => stage.status === 'complete')).toHaveLength(7);
+    expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(0);
     expect(handoff.execution_allowed).toBe(false);
   });
 

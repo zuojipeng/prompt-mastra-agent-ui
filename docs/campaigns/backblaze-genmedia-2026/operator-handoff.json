@@ -1,6 +1,6 @@
 {
   "schema_version": "jingci.hackathon-operator-handoff.v1",
-  "status": "blocked",
+  "status": "complete",
   "campaign_id": "devpost-30205",
   "deadline_utc": "2026-08-03T21:00:00Z",
   "source_bindings": {
@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "db355e3e99663cfa50d6f802e795e3335be28e42f928a03f2f017e96fb823ca2"
+      "sha256": "97a583ceb465920bc4cf8ed85afad719da3b5d8455bae64cb9e32a66d1a95840"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -38,7 +38,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "final_submission",
+  "current_stage": null,
   "stages": [
     {
       "id": "registration_terms",
@@ -78,7 +78,7 @@
     },
     {
       "id": "final_submission",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner",
       "required_evidence": "Final approval and Devpost submission confirmation"
     }
