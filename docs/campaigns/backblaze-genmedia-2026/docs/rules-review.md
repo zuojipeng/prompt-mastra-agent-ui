@@ -2,7 +2,7 @@
 
 Producer: Opportunity Scout Agent
 Reviewer: Operator Agent
-Reviewed: 2026-07-14T00:28:13+08:00
+Reviewed: 2026-07-31T19:20:48+08:00
 
 | Field | Decision | Note | Evidence |
 | --- | --- | --- | --- |
@@ -17,6 +17,7 @@ Reviewed: 2026-07-14T00:28:13+08:00
 ## Refreshed Submission Constraints
 
 - Submission closes August 3, 2026 at 5:00 PM Eastern Time (`2026-08-03T21:00:00Z`).
+- Beijing deadline: August 4, 2026 at 5:00 AM (`GMT+8`). The official page still showed `Join hackathon` on July 31; the human owner already completed registration on July 16, so the remaining gate is final submission rather than registration.
 - The app must remain free and accessible through the judging period ending August 11, 2026 at 5:00 PM Eastern Time.
 - The repository must include source, assets, setup instructions, and reviewer access. The current repository is public, but the campaign branch is not yet the default branch.
 - The description must explain features, B2 and Genblaze usage, and every AI provider and model used.

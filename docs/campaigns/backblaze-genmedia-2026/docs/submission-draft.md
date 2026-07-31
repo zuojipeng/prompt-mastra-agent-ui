@@ -18,7 +18,7 @@ Jingci turns one creative idea into a DirectorKit: a feasibility diagnosis, thre
 
 The Python adapter uses Genblaze's official `SyncProvider`, `Pipeline`, `ObjectStorageSink`, and `StorageBackend` extension points. The credential-free proof executes a deterministic provider, stores exact media bytes and a separate canonical manifest through an in-memory backend, and returns a strict `jingci.provenance-run.v1` record to the browser.
 
-The judge preview uses a smaller Cloudflare Pages Function instead of exposing or hosting the Python process. It verifies the one retained private Runway asset directly in B2, stores one read-back retained-source manifest per reviewer run, and persists prompt hashes rather than raw prompts. This browser path does not claim to invoke Runway or Genblaze again; the approved private recovery evidence below proves the separate Genblaze-to-B2 composition.
+The judge-preview design uses a smaller Cloudflare Pages Function instead of exposing or hosting the Python process. A later, separately approved source-promotion step retained one private copy of the verified Runway MP4 in B2 for this preview path. The Function is designed to verify that retained source, store one read-back retained-source manifest per reviewer run, and persist prompt hashes rather than raw prompts. This browser path does not claim to invoke Runway or Genblaze again; the approved private recovery evidence below proves the separate Genblaze-to-B2 composition. The retained preview source is not one of the two temporary recovery-verification objects described below.
 
 A second no-network integration test composes the production Runway Genblaze adapter with a scripted fake Runway client and a B2-shaped in-memory backend. Fixture media passes through an injected probe gate, Genblaze `Pipeline`, and `ObjectStorageSink`; the test reads back and verifies the content-addressed asset and canonical manifest, then removes its owned storage objects and temporary local media.
 
@@ -35,7 +35,7 @@ On July 16, 2026, one authorized live B2 transport smoke uploaded a small object
 - DeepSeek `deepseek-chat`: primary structured DirectorKit generation in the existing backend.
 - OpenAI `gpt-4.1-mini`: JSON text-generation fallback in the existing backend.
 - `jingci-local-video` / `local-proof`: deterministic Genblaze integration provider used only for credential-free pipeline testing; it is not an external AI media model.
-- Runway `gen4.5`: generated one privately verified five-second 1280x720 H.264 output. Public use of this claim remains subject to the claims-promotion gate.
+- Runway `gen4.5`: generated one privately verified five-second 1280x720 H.264 output. The exact evidence-bounded claim is approved for Devpost draft and final demo copy; video publication, deployment, and final submission remain separately gated.
 
 ## Significant Update During The Submission Period
 
@@ -61,7 +61,7 @@ DirectorKit selected shot -> same-origin Cloudflare Pages Function
 
 ## Built With
 
-Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's S3-compatible API, Cloudflare Worker and D1, Vitest, and Playwright.
+Campaign slice: Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's S3-compatible API, Cloudflare Pages Functions, Vitest, and Playwright. The existing Jingci product also uses a separate Cloudflare Worker and D1 backend for DirectorKit features.
 
 ## Links To Complete
 
@@ -71,4 +71,4 @@ Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze, Backblaze B2's
 
 ## Current Blockers
 
-The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. A private Cloudflare deployment exists behind owner-only Access, but its authenticated cloud B2 transaction was not reached during the one authorized smoke attempt. Public judge access, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.
+The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. A private Cloudflare deployment exists behind owner-only Access, but repeated identity-only preflights did not reach the Pages Function; no business POST or B2 operation ran in those attempts. Do not repeat the identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Public judge access, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.
