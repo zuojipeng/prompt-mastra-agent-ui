@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "e7b673008e2383152ac57cc3dea7e392bd681cad158b9258bb9c0bb7fbef10ba"
+      "sha256": "a2d3534a33969dc9e80acf84e7ec01a80fce7feed7e5d1603aeb4457654710c8"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -38,7 +38,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "preview_deployment",
+  "current_stage": "final_demo",
   "stages": [
     {
       "id": "registration_terms",
@@ -66,13 +66,13 @@
     },
     {
       "id": "preview_deployment",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner + DevOps Agent",
-      "required_evidence": "Judge-accessible preview URL, access control, smoke, and rollback evidence"
+      "required_evidence": "Judge-accessible public URL, pinned commit, anonymous smoke, and rollback boundary"
     },
     {
       "id": "final_demo",
-      "status": "waiting",
+      "status": "current_human_gate",
       "owner": "Human owner + Operator Agent",
       "required_evidence": "Public under-three-minute video with truthful live claims"
     },
@@ -84,7 +84,7 @@
     }
   ],
   "source_gate_counts": {
-    "submission": 4,
+    "submission": 3,
     "deployment": 5,
     "demo": 3,
     "live": 2,

@@ -64,8 +64,22 @@ Status: in_progress
 | C-054 | Architecture Agent + DevOps Agent + Security Agent | Code Review Agent + Test Agent + Claims Review Agent | Prevent unattached Access policy from consuming another one-shot business approval | A no-network, all-authority-false plan requires outer application save, post-save reload, bidirectional attachment evidence, exact usage count, identity-only health, short-lived independent review, and separate business approval | done |
 | C-055 | Hermes + Product Agent + Operator Agent | Claims Review Agent + Test Agent | Reconcile the live deadline and freeze the final submission critical path | Official timing is refreshed, stale claim language is repaired, four submission blockers have exact owners/evidence, and repeated Access attempts require materially new evidence | done |
 | C-056 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build a zero-network public judge mode without deployment | Exact fixture mode blocks optimization, feedback, history, project sync, provenance API, B2, and provider calls; desktop/mobile E2E and production build pass | done |
+| C-057 | DevOps Agent + Test Agent | Security Agent + Claims Review Agent + Code Review Agent | Publish the approved zero-network judge demo | Separate Pages project is commit-bound, anonymous desktop/mobile smoke passes with zero external requests, no secret or Function is uploaded, and residual edge behavior is recorded without overclaiming | done |
 
 ## Event Log
+
+### 2026-07-31 20:15 C-E065
+
+Type: PUBLIC_JUDGE_DEMO_DEPLOYED
+From: DevOps Agent + Test Agent
+To: Security Agent + Claims Review Agent + Code Review Agent + Hermes Orchestrator
+Task: C-057 / JC-T005
+Gate: Release / Security / Test / Ops
+Message: Published the explicitly approved 27-file Fixture package to a separate anonymous Pages project at the stable campaign URL, bound production to commit `c73388d`, and passed desktop/mobile primary paths with zero requests outside the Pages host and zero console errors. No secret, environment binding, B2 operation, provider call, protected-preview change, or Devpost submission occurred. A direct unused `/api/provenance` diagnostic returned 503 and is retained as non-API residual evidence; the application never requested it.
+Evidence: public deployment and immutable deployment URLs, Cloudflare deployment list, HTTP 200 stable root, public package manifest, `_routes.json` 404, desktop/mobile Playwright 2/2, local 27-file path audit, deployment report, code review, and test report.
+Decision: PUBLIC DEPLOYMENT GATE CLOSED; ADVANCE TO FINAL DEMO
+Next owner: Operator Agent + UEAgent + Claims Review Agent
+Close condition: Produce and review a public under-three-minute demo video, then request separate human publication approval.
 
 ### 2026-07-31 19:45 C-E064
 

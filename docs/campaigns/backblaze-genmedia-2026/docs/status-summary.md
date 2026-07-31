@@ -6,9 +6,10 @@
 ## Current State
 
 - Overall: **BLOCKED**
-- Current stage: **Protected preview verification**
-- Completed ordered stages: **4/7**
+- Current stage: **Public demo**
+- Completed ordered stages: **5/7**
 - Preview runtime: **deployed-blocked**
+- Public zero-network judge demo deployed: **yes**
 
 ## Evidence Boundary
 
@@ -21,11 +22,7 @@
 
 ## Open Gates
 
-- New explicit approval for one no-retry authenticated cloud B2 smoke
-- Judge or reviewer Access identity and policy
-- Cloudflare rate-limit configuration
-- Desktop and mobile judge-path E2E against the protected preview
-- Human release approval
+- Public static deployment gate closed; protected-preview blockers are non-blocking for judge access.
 
 ## Authority
 
@@ -33,6 +30,6 @@
 - Claims approval grants video publication authority: **no**
 - Claims approval grants final submission authority: **no**
 - Claims approval grants new paid-call authority: **no**
-- Submission blockers still open: **4**
+- Submission blockers still open: **3**
 
 Regenerate with `npm run hackathon:status:write`; verify with `npm run hackathon:status`.

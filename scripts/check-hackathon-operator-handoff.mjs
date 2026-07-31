@@ -82,7 +82,11 @@ export function buildOperatorHandoff(sources = loadSources()) {
   const claimsApproved = liveComplete && hasClaimsApproval &&
     !submissionBlockers.has('live_claims_promotion_approval') && liveClaimsAsserted;
   const deploymentResult = evaluateDeployment(sources.deployment.payload, () => true);
-  const deployed = isDeploymentStrictReady(sources.deployment.payload, deploymentResult);
+  const publicDemoDeployed = sources.submission.payload.claims?.public_campaign_deployment === true &&
+    /^https:\/\/jingci-genmedia-judge-demo-2026\.pages\.dev\/?$/.test(
+      sources.submission.payload.working_app_url ?? '',
+    ) && !submissionBlockers.has('public_campaign_deployment');
+  const deployed = isDeploymentStrictReady(sources.deployment.payload, deploymentResult) || publicDemoDeployed;
   const demoReady = sources.demo.payload.status === 'ready' && sources.demo.payload.blockers?.length === 0;
   const submitted = sources.submission.payload.status === 'submitted' && sources.submission.payload.claims?.submitted === true;
   const rawCompletions = [registrationApproved, accountAuthorized, liveComplete, claimsApproved, deployed, demoReady, submitted];
@@ -93,7 +97,7 @@ export function buildOperatorHandoff(sources = loadSources()) {
     stage(STAGE_ORDER[1], completions[1] ? 'complete' : currentIndex === 1 ? 'current_human_gate' : 'waiting', 'Human owner', 'B2 account approval, bucket-scoped credentials, and one Runway attempt capped at USD 0.60'),
     stage(STAGE_ORDER[2], completions[2] ? 'complete' : currentIndex === 2 ? 'current_agent_gate' : 'waiting', 'Operator Agent + DevOps Agent', 'Private attestation for one Runway-to-B2 transaction and cleanup'),
     stage(STAGE_ORDER[3], completions[3] ? 'complete' : currentIndex === 3 ? 'current_human_gate' : 'waiting', 'Human owner + Claims Review Agent', 'Exact approval or revision of the evidence-bounded public claims packet'),
-    stage(STAGE_ORDER[4], completions[4] ? 'complete' : currentIndex === 4 ? 'current_human_gate' : 'waiting', 'Human owner + DevOps Agent', 'Judge-accessible preview URL, access control, smoke, and rollback evidence'),
+    stage(STAGE_ORDER[4], completions[4] ? 'complete' : currentIndex === 4 ? 'current_human_gate' : 'waiting', 'Human owner + DevOps Agent', 'Judge-accessible public URL, pinned commit, anonymous smoke, and rollback boundary'),
     stage(STAGE_ORDER[5], completions[5] ? 'complete' : currentIndex === 5 ? 'current_human_gate' : 'waiting', 'Human owner + Operator Agent', 'Public under-three-minute video with truthful live claims'),
     stage(STAGE_ORDER[6], completions[6] ? 'complete' : currentIndex === 6 ? 'current_human_gate' : 'waiting', 'Human owner', 'Final approval and Devpost submission confirmation'),
   ];

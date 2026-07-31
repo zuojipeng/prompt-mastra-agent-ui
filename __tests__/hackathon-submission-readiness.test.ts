@@ -8,12 +8,20 @@ describe('hackathon submission readiness', () => {
     const result = evaluateSubmission(readiness, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('public_campaign_deployment');
+    expect(result.blockers).not.toContain('public_campaign_deployment');
+    expect(result.blockers).toContain('public_demo_video');
     expect(result.blockers).toContain('human_submission_approval');
   });
 
   it('rejects a ready claim without public deployment and links', () => {
-    const result = evaluateSubmission({ ...readiness, status: 'ready', blockers: [] }, () => true);
+    const result = evaluateSubmission({
+      ...readiness,
+      status: 'ready',
+      blockers: [],
+      working_app_url: null,
+      public_demo_video_url: null,
+      claims: { ...readiness.claims, public_campaign_deployment: false },
+    }, () => true);
 
     expect(result.errors).toContain('ready submission requires working_app_url');
     expect(result.errors).toContain('ready submission requires public_demo_video_url');

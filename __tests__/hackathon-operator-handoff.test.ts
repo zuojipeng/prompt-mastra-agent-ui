@@ -88,10 +88,10 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('advances the repository handoff to preview deployment after claims approval', () => {
+  it('advances the repository handoff to final demo after the public deployment', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('preview_deployment');
+    expect(handoff.current_stage).toBe('final_demo');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });
@@ -162,5 +162,26 @@ describe('hackathon operator handoff', () => {
     expect(result.errors).toContain('command_inventory_invalid');
     expect(result.errors).toContain('execution_must_remain_disabled');
     expect(result.errors).toContain('secret_or_live_command_forbidden');
+  });
+
+  it('accepts the approved zero-network public demo as the judge deployment path', () => {
+    const input = sources();
+    input.campaign.payload.human_gates = { registration_terms: 'approved' };
+    input.campaign.payload.authorization = { may_use_paid_api: true, max_external_spend: 0.6 };
+    input.live.payload.status = 'completed';
+    input.live.payload.blockers = [];
+    input.submission.payload.blockers = ['public_demo_video'];
+    input.submission.payload.claims = {
+      submitted: false,
+      live_ai_media_provider: true,
+      live_b2_upload_readback: true,
+      public_campaign_deployment: true,
+    };
+    input.submission.payload.working_app_url = 'https://jingci-genmedia-judge-demo-2026.pages.dev';
+    input.submission.payload.artifacts = [
+      'docs/campaigns/backblaze-genmedia-2026/docs/claims-promotion-review.md',
+      'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json',
+    ];
+    expect(buildOperatorHandoff(input).current_stage).toBe('final_demo');
   });
 });

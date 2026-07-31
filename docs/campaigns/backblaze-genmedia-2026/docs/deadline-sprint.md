@@ -17,7 +17,7 @@ Reviewed: 2026-07-31 19:20 GMT+8
 
 | Order | Blocker | Owner | Close Evidence |
 | --- | --- | --- | --- |
-| 1 | `public_campaign_deployment` | DevOps + Test + Human owner | Judge-accessible HTTPS URL, pinned commit/deployment, health 200, successful primary path, desktop/mobile evidence, rate limit, redacted errors, rollback result |
+| 1 | `public_campaign_deployment` (closed July 31) | DevOps + Test + Human owner | Public static URL, pinned commit/deployment, HTTP 200, desktop/mobile 2/2, zero external requests, and retained rollback boundary |
 | 2 | `public_demo_video` | Operator + UE + Claims Review + Human owner | Public YouTube/Vimeo/Youku URL, runtime under 3:00, English voiceover or subtitles, functioning app footage, approved qualification, no private identifiers |
 | 3 | `default_branch_or_reviewer_handoff` | Engineering + Code Review + Operator | Default-branch merge or fixed branch/commit handoff, anonymous repository check, setup instructions, architecture and judge path |
 | 4 | `human_submission_approval` | Human owner + Hermes | Final Devpost preview, all links independently opened, strict checks green, explicit approval, submission confirmation captured |

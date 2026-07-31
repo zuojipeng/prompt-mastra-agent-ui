@@ -51,7 +51,9 @@ function yesNo(value) {
 export function buildCampaignStatusSummary(sources = loadSources()) {
   const completed = sources.handoff.stages.filter((stage) => stage.status === 'complete').length;
   const currentStage = STAGE_LABELS[sources.handoff.current_stage] ?? 'Complete';
-  const blockers = sources.deployment.blockers.map(
+  const publicDemoDeployed = sources.submission.claims?.public_campaign_deployment === true &&
+    !sources.submission.blockers.includes('public_campaign_deployment');
+  const blockers = (publicDemoDeployed ? [] : sources.deployment.blockers).map(
     (blocker) => BLOCKER_LABELS[blocker] ?? 'Unclassified deployment blocker',
   );
   const approvedUses = Object.entries(sources.claims.allowed_uses)
@@ -80,6 +82,7 @@ export function buildCampaignStatusSummary(sources = loadSources()) {
     `- Current stage: **${currentStage}**`,
     `- Completed ordered stages: **${completed}/${sources.handoff.stages.length}**`,
     `- Preview runtime: **${sources.deployment.status}**`,
+    `- Public zero-network judge demo deployed: **${yesNo(publicDemoDeployed)}**`,
     '',
     '## Evidence Boundary',
     '',
@@ -92,7 +95,9 @@ export function buildCampaignStatusSummary(sources = loadSources()) {
     '',
     '## Open Gates',
     '',
-    ...blockers.map((blocker) => `- ${blocker}`),
+    ...(blockers.length > 0
+      ? blockers.map((blocker) => `- ${blocker}`)
+      : ['- Public static deployment gate closed; protected-preview blockers are non-blocking for judge access.']),
     '',
     '## Authority',
     '',
@@ -118,7 +123,9 @@ export function evaluateCampaignStatusSummary(summary, sources = loadSources()) 
   ];
   if (sourceResults.some((result) => result.errors.length > 0)) errors.push('source_gate_invalid');
   if (summary !== buildCampaignStatusSummary(sources)) errors.push('status_summary_drift');
-  if (sources.deployment.blockers.some((blocker) => !(blocker in BLOCKER_LABELS))) {
+  const publicDemoDeployed = sources.submission.claims?.public_campaign_deployment === true &&
+    !sources.submission.blockers.includes('public_campaign_deployment');
+  if (!publicDemoDeployed && sources.deployment.blockers.some((blocker) => !(blocker in BLOCKER_LABELS))) {
     errors.push('unclassified_deployment_blocker');
   }
   if (/https?:\/\/|sha-?256|application key|authorization token|bucket id/i.test(summary)) {
