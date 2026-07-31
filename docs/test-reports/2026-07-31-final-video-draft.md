@@ -2,7 +2,7 @@
 
 Date: 2026-07-31
 
-Status: PASS LOCAL
+Status: PASS PUBLIC
 
 | Check | Result |
 | --- | --- |
@@ -15,5 +15,9 @@ Status: PASS LOCAL
 | Visual checkpoints | PASS at 00:05, 01:05, 01:22, 01:53, 02:18; Chinese glyphs render, long lines wrap, and captions stay inside the lower safe area |
 | Claims qualification | PASS, approved two-phase and deletion language present |
 | Output digest | `886f4c448e8e2c4650d1dcefcf05140af582f65c5ce53070df8b9b2f6d4d69b1` |
+| YouTube publication | PASS, `https://youtu.be/I4dsEfnbUX4` |
+| Anonymous availability | PASS, oEmbed metadata and media extraction report a public video |
+| Public transcode | PASS, 1280×720 video and audio streams available |
+| YouTube checks | PASS, no copyright issues found |
 
-Residual: burned-in captions cannot be disabled or localized independently. The retained English SRT should still be attached on the public video platform for accessibility and search indexing.
+Residual: burned-in captions cannot be disabled or localized independently. The retained English SRT remains local and may be attached later for accessibility and search indexing; visible bilingual captions are already player-independent.

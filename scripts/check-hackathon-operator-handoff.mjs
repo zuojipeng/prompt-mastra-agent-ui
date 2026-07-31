@@ -87,7 +87,7 @@ export function buildOperatorHandoff(sources = loadSources()) {
       sources.submission.payload.working_app_url ?? '',
     ) && !submissionBlockers.has('public_campaign_deployment');
   const deployed = isDeploymentStrictReady(sources.deployment.payload, deploymentResult) || publicDemoDeployed;
-  const demoReady = sources.demo.payload.status === 'ready' && sources.demo.payload.blockers?.length === 0;
+  const demoReady = sources.demo.payload.status === 'final-ready' && sources.demo.payload.blockers?.length === 0;
   const submitted = sources.submission.payload.status === 'submitted' && sources.submission.payload.claims?.submitted === true;
   const rawCompletions = [registrationApproved, accountAuthorized, liveComplete, claimsApproved, deployed, demoReady, submitted];
   const completions = rawCompletions.map((complete, index) => complete && rawCompletions.slice(0, index).every(Boolean));

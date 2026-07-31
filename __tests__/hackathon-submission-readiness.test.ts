@@ -4,12 +4,13 @@ import readiness from '../docs/campaigns/backblaze-genmedia-2026/submission-read
 import { evaluateSubmission, isSubmissionStrictReady } from '../scripts/check-hackathon-submission.mjs';
 
 describe('hackathon submission readiness', () => {
-  it('accepts the honest draft while retaining every open gate', () => {
+  it('accepts the honest draft after public demo verification', () => {
     const result = evaluateSubmission(readiness, () => true);
 
     expect(result.errors).toEqual([]);
     expect(result.blockers).not.toContain('public_campaign_deployment');
-    expect(result.blockers).toContain('public_demo_video');
+    expect(result.blockers).not.toContain('public_demo_video');
+    expect(result.blockers).toContain('default_branch_or_reviewer_handoff');
     expect(result.blockers).toContain('human_submission_approval');
   });
 

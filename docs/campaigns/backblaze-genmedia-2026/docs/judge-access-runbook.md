@@ -1,13 +1,13 @@
 # Judge Access Runbook
 
-Status: protected-preview draft. Deployment exists, but the authenticated cloud B2 path and public judge handoff are not verified.
+Status: public zero-network judge path and public demo video verified. The protected authenticated cloud B2 preview remains separate and non-blocking for the public Fixture demo.
 
 ## Reviewer Entry
 
-- Protected preview URL: `https://97262b86.jingci-genmedia-preview-2026.pages.dev`
-- Test account/access instructions: **BLOCKED — owner-only Cloudflare Access; no judge credential issued**
-- Deployed repository commit: `c8eb57cb04d9f1d66334623e7ebdf69258ae47f6`
-- Public demo video: **BLOCKED — record after live evidence**
+- Public judge app: `https://jingci-genmedia-judge-demo-2026.pages.dev/`
+- Access instructions: none; the static Fixture demo is anonymous and performs no external API request
+- Public deployment commit: `c73388d`
+- Public demo video: `https://youtu.be/I4dsEfnbUX4`
 
 ## Expected Judge Path (Under 3 Minutes)
 

@@ -6,8 +6,8 @@
 ## Current State
 
 - Overall: **BLOCKED**
-- Current stage: **Public demo**
-- Completed ordered stages: **5/7**
+- Current stage: **Final submission**
+- Completed ordered stages: **6/7**
 - Preview runtime: **deployed-blocked**
 - Public zero-network judge demo deployed: **yes**
 
@@ -30,6 +30,6 @@
 - Claims approval grants video publication authority: **no**
 - Claims approval grants final submission authority: **no**
 - Claims approval grants new paid-call authority: **no**
-- Submission blockers still open: **3**
+- Submission blockers still open: **2**
 
 Regenerate with `npm run hackathon:status:write`; verify with `npm run hackathon:status`.

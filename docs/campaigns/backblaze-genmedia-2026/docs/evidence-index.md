@@ -35,8 +35,8 @@ Status legend: `PROVEN`, `LOCAL ONLY`, `BLOCKED`, `DRAFT`.
 | Narrow live claims are human-approved without widening authority | PROVEN | `claims-promotion-approval.json`, packet/attestation hashes, claims validator and release collector tests | Devpost draft and final demo copy only; no deployment, publication, submission, spend, or private evidence disclosure |
 | B2 stores and reads back the generated asset and canonical manifest | PROVEN | Private recovery result, matching asset/manifest digests, exact-key cleanup | Ephemeral verification only; public serving and durable retention are not proven |
 | External AI media provider generates the asset | PROVEN | Private succeeded-task metadata, recovered MP4 probe and digest | One private Runway `gen4.5` output; atomic transaction and provider reliability are not claimed |
-| Public judge-accessible campaign app | BLOCKED | Protected deployment result and submission checklist | Private owner-only deployment exists; no judge access and no successful authenticated cloud B2 smoke |
-| Public under-three-minute demo | DRAFT | `demo-video-script.md` | Final recording waits for live path |
+| Public judge-accessible campaign app | PROVEN | `https://jingci-genmedia-judge-demo-2026.pages.dev/`, anonymous desktop/mobile smoke, `2026-07-31-public-judge-deployment.md` | Deterministic zero-network Fixture mode; it does not claim a live browser-to-B2 transaction |
+| Public under-three-minute demo | PROVEN | `https://youtu.be/I4dsEfnbUX4`, local source digest, YouTube publish confirmation, anonymous oEmbed and media extraction | 147-second 1280×720 public video; captions are burned in and the separately retained English SRT was not uploaded |
 
 ## Reproducible Checks
 

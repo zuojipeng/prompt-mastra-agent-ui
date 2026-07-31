@@ -1,6 +1,6 @@
 {
   "schema_version": "jingci.hackathon-demo-rehearsal.v1",
-  "status": "publication-review",
+  "status": "final-ready",
   "target_runtime_seconds": 147,
   "visual_reel": {
     "local_path": "artifacts/demo/jingci-genmedia-final-draft.mp4",
@@ -9,13 +9,13 @@
     "height": 720,
     "audio": true,
     "captions": true,
-    "public_url": null
+    "public_url": "https://youtu.be/I4dsEfnbUX4"
   },
   "claims": {
     "live_ai_media_provider": true,
     "live_b2_storage": true,
     "public_deployment": true,
-    "final_demo": false
+    "final_demo": true
   },
   "segments": [
     { "start": 0, "end": 12, "name": "problem", "evidence_mode": "ui" },
@@ -38,8 +38,5 @@
     "output/playwright/provenance-desktop.png",
     "output/playwright/provenance-mobile.png"
   ],
-  "blockers": [
-    "public_demo_video",
-    "human_video_publication_approval"
-  ]
+  "blockers": []
 }

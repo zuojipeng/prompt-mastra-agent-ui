@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "a2d3534a33969dc9e80acf84e7ec01a80fce7feed7e5d1603aeb4457654710c8"
+      "sha256": "5196d0aac724ee6b9ab1704da9d1b904e6967f5fac48ab4859c81b2230d55b9a"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -18,7 +18,7 @@
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
-      "sha256": "c62405a7c8b7c6f28852c2b7293ac225b43aa0722823ae7d7e402b6fac39df00"
+      "sha256": "26472e92669c0de693aa8113d0f1907838f5f2cab0096c801551d9674795eac8"
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
@@ -38,7 +38,7 @@
     "final_demo",
     "final_submission"
   ],
-  "current_stage": "final_demo",
+  "current_stage": "final_submission",
   "stages": [
     {
       "id": "registration_terms",
@@ -72,21 +72,21 @@
     },
     {
       "id": "final_demo",
-      "status": "current_human_gate",
+      "status": "complete",
       "owner": "Human owner + Operator Agent",
       "required_evidence": "Public under-three-minute video with truthful live claims"
     },
     {
       "id": "final_submission",
-      "status": "waiting",
+      "status": "current_human_gate",
       "owner": "Human owner",
       "required_evidence": "Final approval and Devpost submission confirmation"
     }
   ],
   "source_gate_counts": {
-    "submission": 3,
+    "submission": 2,
     "deployment": 5,
-    "demo": 2,
+    "demo": 0,
     "live": 2,
     "preview": 4
   },

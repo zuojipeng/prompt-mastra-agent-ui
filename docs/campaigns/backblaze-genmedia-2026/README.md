@@ -4,6 +4,10 @@ Workspace mode: **campaign**
 
 Official event: https://backblaze-generative-media.devpost.com/
 
+Public judge app: https://jingci-genmedia-judge-demo-2026.pages.dev/
+
+Public demo video: https://youtu.be/I4dsEfnbUX4
+
 Participation was approved. Every account-bound or public action must still follow the recorded authorization envelope and remaining human gates.
 
 Current operator handoff: `operator-handoff.json`

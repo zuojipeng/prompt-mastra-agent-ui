@@ -66,8 +66,22 @@ Status: in_progress
 | C-056 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build a zero-network public judge mode without deployment | Exact fixture mode blocks optimization, feedback, history, project sync, provenance API, B2, and provider calls; desktop/mobile E2E and production build pass | done |
 | C-057 | DevOps Agent + Test Agent | Security Agent + Claims Review Agent + Code Review Agent | Publish the approved zero-network judge demo | Separate Pages project is commit-bound, anonymous desktop/mobile smoke passes with zero external requests, no secret or Function is uploaded, and residual edge behavior is recorded without overclaiming | done |
 | C-058 | Operator Agent + UEAgent | Claims Review Agent + Code Review Agent + Test Agent | Produce the final local demo-video candidate | Under-three-minute MP4 contains public product footage, approved Runway and recovery wording, explicit Fixture lineage, English voiceover, visible bilingual captions, and no private identifiers | done |
+| C-059 | Operator Agent + Claims Review Agent | Test Agent + Code Review Agent + Human owner | Publish and independently verify the final demo video | Human-approved MP4 is public, under three minutes, anonymously playable at 1280×720 with audio, visibly bilingual, privacy-reviewed, and not submitted to Devpost | done |
 
 ## Event Log
+
+### 2026-07-31 21:38 C-E067
+
+Type: PUBLIC_DEMO_VIDEO_VERIFIED
+From: Operator Agent + Claims Review Agent + Test Agent
+To: Code Review Agent + Hermes Orchestrator + Human owner
+Task: C-059 / JC-T005
+Gate: Human Publication / Claims / Test / Ops
+Message: After explicit human approval, published the reviewed 147-second bilingual MP4 to YouTube with evidence-bounded title and description, not-made-for-kids audience, Public visibility, and no copyright issues. Anonymous oEmbed and media extraction returned the exact title, public availability, 147-second runtime, 1280×720 video, and audio. No Devpost submission or new cloud/provider operation occurred.
+Evidence: YouTube publish confirmation, public URL, anonymous HTTP 200, oEmbed metadata, anonymous media metadata, local source digest, final-video test report, agent run, and code review.
+Decision: PUBLIC DEMO VIDEO GATE CLOSED; FINAL SUBMISSION REMAINS HUMAN-GATED
+Next owner: Operator Agent + Claims Review Agent + Human owner
+Close condition: Complete repository/default-branch reviewer handoff, re-run strict readiness, then request separate final Devpost submission approval.
 
 ### 2026-07-31 20:25 C-E066
 

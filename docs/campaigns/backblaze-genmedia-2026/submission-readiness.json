@@ -5,7 +5,7 @@
   "deadline_utc": "2026-08-03T21:00:00Z",
   "repository_url": "https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance",
   "working_app_url": "https://jingci-genmedia-judge-demo-2026.pages.dev",
-  "public_demo_video_url": null,
+  "public_demo_video_url": "https://youtu.be/I4dsEfnbUX4",
   "submission_language": "English",
   "claims": {
     "genblaze_local_pipeline": true,
@@ -38,7 +38,6 @@
     "spikes/genblaze-provenance/README.md"
   ],
   "blockers": [
-    "public_demo_video",
     "default_branch_or_reviewer_handoff",
     "human_submission_approval"
   ]

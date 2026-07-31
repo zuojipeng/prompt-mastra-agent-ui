@@ -12,9 +12,9 @@ const summary = readFileSync(path.resolve(
 ), 'utf8');
 
 describe('hackathon campaign status summary', () => {
-  it('keeps one generated, public-safe view of the current final-demo stage', () => {
+  it('keeps one generated, public-safe view of the current final-submission stage', () => {
     expect(evaluateCampaignStatusSummary(summary).errors).toEqual([]);
-    expect(summary).toContain('Current stage: **Public demo**');
+    expect(summary).toContain('Current stage: **Final submission**');
     expect(summary).toContain('Preview runtime: **deployed-blocked**');
     expect(summary).toContain('Public zero-network judge demo deployed: **yes**');
     expect(summary).toContain('Current authenticated cloud B2 smoke reached HTTP: **yes**');

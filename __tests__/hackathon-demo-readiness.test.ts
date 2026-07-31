@@ -4,20 +4,23 @@ import rehearsal from '../docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.
 import { evaluateDemo, isDemoStrictReady } from '../scripts/check-hackathon-demo.mjs';
 
 describe('hackathon demo readiness', () => {
-  it('accepts the truthful publication review while preserving publication blockers', () => {
+  it('accepts the verified public final demo with no publication blockers', () => {
     const result = evaluateDemo(rehearsal, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('human_video_publication_approval');
-    expect(result.blockers).toContain('public_demo_video');
-    expect(isDemoStrictReady(rehearsal, result)).toBe(false);
+    expect(result.blockers).toEqual([]);
+    expect(rehearsal.status).toBe('final-ready');
+    expect(rehearsal.visual_reel.public_url).toBe('https://youtu.be/I4dsEfnbUX4');
+    expect(isDemoStrictReady(rehearsal, result)).toBe(true);
   });
 
   it('rejects final or public claims before publication approval', () => {
     const premature = {
       ...rehearsal,
+      status: 'publication-review',
       claims: { ...rehearsal.claims, final_demo: true },
       visual_reel: { ...rehearsal.visual_reel, public_url: 'https://video.example/demo' },
+      blockers: ['human_video_publication_approval', 'public_demo_video'],
     };
     const result = evaluateDemo(premature, () => true);
 

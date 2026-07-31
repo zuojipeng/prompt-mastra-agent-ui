@@ -65,10 +65,10 @@ Campaign slice: Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze
 
 ## Links To Complete
 
-- Working application: **TBD after preview release and smoke**
+- Working application: https://jingci-genmedia-judge-demo-2026.pages.dev/
 - Repository: https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance
-- Public demo video: **TBD after claims approval and final recording**
+- Public demo video: https://youtu.be/I4dsEfnbUX4
 
 ## Current Blockers
 
-The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. A private Cloudflare deployment exists behind owner-only Access, but repeated identity-only preflights did not reach the Pages Function; no business POST or B2 operation ran in those attempts. Do not repeat the identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Public judge access, final video, default-branch/reviewer handoff, and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.
+The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. The public judge app and public under-three-minute video are now anonymously verified. The protected Cloudflare preview remains separate and its repeated identity-only preflights did not reach the Pages Function; do not repeat that identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Default-branch/reviewer handoff and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.

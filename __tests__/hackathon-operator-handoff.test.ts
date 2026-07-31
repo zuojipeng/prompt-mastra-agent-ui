@@ -88,10 +88,10 @@ function sources() {
 }
 
 describe('hackathon operator handoff', () => {
-  it('advances the repository handoff to final demo after the public deployment', () => {
+  it('advances the repository handoff to final submission after the public demo', () => {
     const result = evaluateOperatorHandoff(handoff, undefined, () => true);
     expect(result.errors).toEqual([]);
-    expect(handoff.current_stage).toBe('final_demo');
+    expect(handoff.current_stage).toBe('final_submission');
     expect(handoff.stages.filter((stage) => stage.status.startsWith('current'))).toHaveLength(1);
     expect(handoff.execution_allowed).toBe(false);
   });
@@ -144,6 +144,10 @@ describe('hackathon operator handoff', () => {
       current_mode: 'preview',
     };
     expect(buildOperatorHandoff(input).current_stage).toBe('final_demo');
+
+    input.demo.payload.status = 'final-ready';
+    input.demo.payload.blockers = [];
+    expect(buildOperatorHandoff(input).current_stage).toBe('final_submission');
   });
 
   it('rejects source drift, skipped stages, live commands, and execution enablement', () => {
@@ -183,5 +187,9 @@ describe('hackathon operator handoff', () => {
       'docs/campaigns/backblaze-genmedia-2026/claims-promotion-approval.json',
     ];
     expect(buildOperatorHandoff(input).current_stage).toBe('final_demo');
+
+    input.demo.payload.status = 'final-ready';
+    input.demo.payload.blockers = [];
+    expect(buildOperatorHandoff(input).current_stage).toBe('final_submission');
   });
 });
