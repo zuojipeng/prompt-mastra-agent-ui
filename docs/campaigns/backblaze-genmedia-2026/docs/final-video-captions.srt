@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:12,000
+AI video workflows lose the connection between the creative plan, model run, generated asset, and successful retry. Jingci keeps that chain inspectable.
+
+2
+00:00:12,000 --> 00:00:30,000
+Start with one idea. Jingci diagnoses generation risks before model spend, then offers safe, stylish, and cinematic directions.
+
+3
+00:00:30,000 --> 00:01:00,000
+DirectorKit turns the selected direction into an execution package. This public judge demo uses deterministic local data: no external model call and no cloud write.
+
+4
+00:01:00,000 --> 00:01:15,000
+Runway gen4.5 generated this five-second 1280x720 H.264 shot during an approved private verification.
+
+5
+00:01:15,000 --> 00:01:47,000
+Separately, Genblaze stored the MP4 and provenance manifest in Backblaze B2, read them back, verified digests and lineage, then deleted the two scoped test objects. These were two evidence-preserving phases, not one atomic transaction. This does not claim public B2 serving or durable retention.
+
+6
+00:01:47,000 --> 00:02:05,000
+The visible failure path is an offline Fixture. It proves retry and parent-lineage behavior, not general provider reliability.
+
+7
+00:02:05,000 --> 00:02:27,000
+Jingci Provenance Vault: direct the shot, generate it, prove it, and improve the next run.

@@ -1,0 +1,13 @@
+AI video creators often lose the connection between a creative plan, the exact model run, the generated asset, and the retry that finally worked. Jingci Provenance Vault keeps that chain inspectable.
+
+I begin with one idea: an old cleaning robot protecting a red-dressed doll in a wasteland town. Before spending model credits, Jingci diagnoses generation risks and offers safe, stylish, and cinematic directions. I choose the cinematic reconstruction.
+
+Jingci does not return one oversized prompt. It builds a DirectorKit execution package with story anchors, shot purpose, action, camera movement, consistency risks, stability checks, platform guidance, and recovery options. The public judge demo uses deterministic local data, so it never calls an external model or writes to cloud storage.
+
+Runway gen4.5 generated this five-second, twelve-eighty by seven-twenty, H.264 shot during an approved private verification. In a separate recovery verification, Genblaze stored that generated MP4 and its provenance manifest in Backblaze B2, read both objects back, verified their digests and lineage, and deleted the two scoped test objects.
+
+The provider generation and Genblaze-to-B2 verification completed as two evidence-preserving phases, not as one uninterrupted atomic transaction. The B2 objects were intentionally removed after verification, so this does not claim public serving or durable retention. Public evidence keeps the media and manifest hashes without exposing provider tasks, signed locations, object keys, or credentials.
+
+The visible failure path is an offline Fixture. It proves the product behavior: a failed attempt remains recoverable, retry increments the attempt, and parent lineage stays attached. It does not claim general provider reliability.
+
+Jingci connects creative direction, generation evidence, retry history, and project handoff in one workflow. Direct the shot. Generate it. Prove it. Improve the next run.

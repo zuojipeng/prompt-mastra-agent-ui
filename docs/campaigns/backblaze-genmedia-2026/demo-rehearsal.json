@@ -1,42 +1,44 @@
 {
   "schema_version": "jingci.hackathon-demo-rehearsal.v1",
-  "status": "local-rehearsal",
-  "target_runtime_seconds": 155,
+  "status": "publication-review",
+  "target_runtime_seconds": 147,
   "visual_reel": {
-    "local_path": "artifacts/demo/jingci-backblaze-rehearsal.webm",
-    "duration_seconds": 10.48,
-    "width": 1440,
-    "height": 1000,
-    "audio": false,
-    "captions": false,
+    "local_path": "artifacts/demo/jingci-genmedia-final-draft.mp4",
+    "duration_seconds": 147,
+    "width": 1280,
+    "height": 720,
+    "audio": true,
+    "captions": true,
     "public_url": null
   },
   "claims": {
-    "live_ai_media_provider": false,
-    "live_b2_storage": false,
-    "public_deployment": false,
+    "live_ai_media_provider": true,
+    "live_b2_storage": true,
+    "public_deployment": true,
     "final_demo": false
   },
   "segments": [
-    { "start": 0, "end": 15, "name": "problem", "evidence_mode": "ui" },
-    { "start": 15, "end": 42, "name": "creative_diagnosis", "evidence_mode": "fixture" },
-    { "start": 42, "end": 68, "name": "director_kit", "evidence_mode": "fixture" },
-    { "start": 68, "end": 108, "name": "local_provenance_proof", "evidence_mode": "local" },
-    { "start": 108, "end": 130, "name": "failure_retry_lineage", "evidence_mode": "fixture" },
-    { "start": 130, "end": 148, "name": "production_path_design", "evidence_mode": "ui" },
-    { "start": 148, "end": 155, "name": "close", "evidence_mode": "ui" }
+    { "start": 0, "end": 12, "name": "problem", "evidence_mode": "ui" },
+    { "start": 12, "end": 30, "name": "creative_diagnosis", "evidence_mode": "fixture" },
+    { "start": 30, "end": 60, "name": "director_kit", "evidence_mode": "fixture" },
+    { "start": 60, "end": 75, "name": "runway_private_verification", "evidence_mode": "live" },
+    { "start": 75, "end": 107, "name": "separate_b2_recovery_verification", "evidence_mode": "live" },
+    { "start": 107, "end": 125, "name": "failure_retry_lineage", "evidence_mode": "fixture" },
+    { "start": 125, "end": 147, "name": "close", "evidence_mode": "ui" }
   ],
   "artifacts": [
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-video-script.md",
+    "docs/campaigns/backblaze-genmedia-2026/docs/final-video-voiceover.txt",
+    "docs/campaigns/backblaze-genmedia-2026/docs/final-video-captions.srt",
     "docs/campaigns/backblaze-genmedia-2026/docs/demo-rehearsal-report.md",
+    "artifacts/demo/jingci-genmedia-final-draft.mp4",
     "output/playwright/hackathon-rehearsal-local-desktop.png",
     "output/playwright/hackathon-rehearsal-local-mobile.png",
     "output/playwright/provenance-desktop.png",
     "output/playwright/provenance-mobile.png"
   ],
   "blockers": [
-    "final_voiceover_or_subtitles",
     "public_demo_video",
-    "human_recording_approval"
+    "human_video_publication_approval"
   ]
 }

@@ -18,7 +18,7 @@
     },
     "demo": {
       "file": "docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.json",
-      "sha256": "c01b10dcaf522f20bad51368d1b180d80641a0775ad2f654266d45746132e90f"
+      "sha256": "3a600a63277fc271fc407b6bde2717039c3431b7bec110b2a159b0236406c29f"
     },
     "live": {
       "file": "docs/campaigns/backblaze-genmedia-2026/live-verification-plan.json",
@@ -86,7 +86,7 @@
   "source_gate_counts": {
     "submission": 3,
     "deployment": 5,
-    "demo": 3,
+    "demo": 2,
     "live": 2,
     "preview": 4
   },

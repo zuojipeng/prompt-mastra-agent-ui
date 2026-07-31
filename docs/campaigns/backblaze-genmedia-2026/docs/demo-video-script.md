@@ -1,8 +1,8 @@
 # Demo Video Script: Jingci Provenance Vault
 
-Target runtime: **2:35**
+Storyboard target: **2:35**. Current local publication-review render: **2:27**.
 
-Status: evidence-calibrated draft. Record the final version only after claims promotion is approved.
+Status: local publication-review candidate. Exact rendered narration and timing are tracked in `final-video-voiceover.txt` and `final-video-captions.srt`; publication remains separately gated.
 
 ## 0:00–0:15 — Problem
 

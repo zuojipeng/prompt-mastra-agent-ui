@@ -1,53 +1,41 @@
 # Demo Rehearsal Report
 
-Date: 2026-07-14
-Status: LOCAL REHEARSAL ONLY
+Date: 2026-07-31
+Status: LOCAL FINAL DRAFT / PUBLICATION REVIEW
 
 ## Captured Evidence
 
-- Visual reel: `artifacts/demo/jingci-backblaze-rehearsal.webm`
-- Format: VP8 WebM, 1440×1000, 10.48 seconds, no audio track
+- Visual reel: `artifacts/demo/jingci-genmedia-final-draft.mp4`
+- Format: H.264/AAC MP4, 1280×720, 147 seconds, English voiceover and English subtitle track
+- SHA-256: `85dfde49118b69e4aef67f285d4fd5b71bf458fe1893166590a0ea14885f0bd0`
 - Local desktop: `output/playwright/hackathon-rehearsal-local-desktop.png`
 - Local mobile: `output/playwright/hackathon-rehearsal-local-mobile.png`
 - Fixture failure/retry desktop: `output/playwright/provenance-desktop.png`
 - Fixture failure/retry mobile: `output/playwright/provenance-mobile.png`
 
-The WebM is a short visual reel for editing and timing rehearsal. It is not the final 2:35 submission video and is intentionally Git-ignored.
+The MP4 is the local publication-review candidate and remains Git-ignored. It is not public and has not been added to Devpost.
 
 ## Truthful Demo Path
 
-1. Enter the wasteland robot idea and run creative diagnosis.
-2. Select the cinematic reconstruction and generate DirectorKit.
-3. Open shot 1 and point out the visible `Local adapter` and memory-storage labels.
-4. Run provenance through the real loopback Python HTTP boundary.
-5. Show `jingci-local-video / local-proof`, asset SHA, memory URI, manifest hash, and `Verified`.
-6. Switch to the separately labeled Fixture evidence to explain provider timeout, attempt 2, and parent-run lineage.
-7. Close on the planned live B2 boundary and state that account-backed evidence is still blocked.
+1. Open the public zero-network Demo and show its explicit deterministic-data boundary.
+2. Enter the wasteland robot idea, run diagnosis, and select the cinematic reconstruction.
+3. Generate DirectorKit and show the execution package and Fixture provenance result.
+4. Show the approved five-second Runway output without overlays that alter the generated media.
+5. Show the public-safe evidence card and read the mandatory two-phase, deletion, and no-retention qualification.
+6. Show the visibly labeled Fixture retry panel and limit its claim to product recovery and lineage behavior.
+7. Close on the public judge URL and product promise.
 
-## Local Voiceover Replacement
+## Publication Boundary
 
-Use this wording over the current rehearsal evidence:
-
-> This is a local integration proof, not a live provider or Backblaze upload. The browser calls our Python Genblaze adapter, receives deterministic media from memory storage, and accepts the run only after the asset digest and provenance manifest verify.
-
-For failure recovery:
-
-> The failure path is an explicit offline fixture. It proves that retry increments the attempt and preserves the parent run; it does not prove provider behavior.
-
-## Failure Fallback
-
-If the local adapter is unavailable during a rehearsal:
-
-1. Do not silently switch evidence modes.
-2. Show the `Fixture` badge before running the fallback.
-3. Use the tracked desktop/mobile Fixture screenshots for failure and retry lineage.
-4. State that live provider and B2 verification remain open gates.
-5. Return to the base DirectorKit workflow rather than showing a broken spinner.
+- The local MP4 may be reviewed by the owner but is not authorized for upload yet.
+- When approved, upload both the MP4 and the tracked SRT so captions are visible on the public platform.
+- Do not show the private task, signed provider URL, B2 object keys, account console, or credentials.
+- Do not claim an atomic Runway-to-B2 transaction, public B2 serving, durable retention, or general provider reliability.
 
 ## Visual Review
 
-- Desktop and mobile panels show the evidence mode before the action.
-- Provider/model, attempt, asset, manifest, and verified state remain readable.
-- Long memory URIs wrap within the panel.
-- No credentials, account identifiers, public URLs, personal data, or third-party media appear.
-- The reel has no sound; final voiceover or accurate English subtitles remain required.
+- Public UI footage shows the zero-network boundary before interaction.
+- The provider segment and separate B2 recovery card are visually distinct.
+- The Fixture panel remains visibly labeled and centered without exposing private evidence.
+- No credentials, account identifiers, signed URLs, object keys, or personal data appear.
+- English narration completes before the 147-second endpoint; an English subtitle track is present.

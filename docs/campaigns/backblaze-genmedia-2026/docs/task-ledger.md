@@ -65,8 +65,22 @@ Status: in_progress
 | C-055 | Hermes + Product Agent + Operator Agent | Claims Review Agent + Test Agent | Reconcile the live deadline and freeze the final submission critical path | Official timing is refreshed, stale claim language is repaired, four submission blockers have exact owners/evidence, and repeated Access attempts require materially new evidence | done |
 | C-056 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build a zero-network public judge mode without deployment | Exact fixture mode blocks optimization, feedback, history, project sync, provenance API, B2, and provider calls; desktop/mobile E2E and production build pass | done |
 | C-057 | DevOps Agent + Test Agent | Security Agent + Claims Review Agent + Code Review Agent | Publish the approved zero-network judge demo | Separate Pages project is commit-bound, anonymous desktop/mobile smoke passes with zero external requests, no secret or Function is uploaded, and residual edge behavior is recorded without overclaiming | done |
+| C-058 | Operator Agent + UEAgent | Claims Review Agent + Code Review Agent + Test Agent | Produce the final local demo-video candidate | Under-three-minute MP4 contains public product footage, approved Runway and recovery wording, explicit Fixture lineage, English voiceover and captions, and no private identifiers | done |
 
 ## Event Log
+
+### 2026-07-31 20:25 C-E066
+
+Type: FINAL_VIDEO_DRAFT_READY
+From: Operator Agent + UEAgent + Test Agent
+To: Claims Review Agent + Code Review Agent + Hermes Orchestrator + Human owner
+Task: C-058 / JC-T005
+Gate: UE / Claims / Test / Ops
+Message: Produced a local 147-second H.264/AAC candidate with English voiceover and embedded English captions. It combines the public zero-network product path, the approved five-second Runway output, a public-safe two-phase recovery card, a visibly labeled Fixture retry panel, and a judge-demo URL close. The first render was rejected for truncating narration and repaired by extending the close.
+Evidence: local MP4 SHA-256, ffprobe stream report, recovered subtitle track, five visual checkpoints, final script/captions, agent run, code review, and test report.
+Decision: READY FOR HUMAN PLAYBACK REVIEW; VIDEO PUBLICATION REMAINS BLOCKED
+Next owner: Human owner + Claims Review Agent
+Close condition: Human reviews the local MP4 and explicitly approves publication; then upload the MP4 and SRT to an approved public video platform and independently verify playback, captions, duration, and privacy.
 
 ### 2026-07-31 20:15 C-E065
 

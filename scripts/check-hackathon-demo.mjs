@@ -10,7 +10,9 @@ export function evaluateDemo(payload, artifactExists = existsSync) {
   const evidenceModes = new Set();
   if (!payload || typeof payload !== 'object') return { errors: ['demo payload must be an object'], blockers: [] };
   if (payload.schema_version !== SCHEMA_VERSION) errors.push(`schema_version must be ${SCHEMA_VERSION}`);
-  if (!['local-rehearsal', 'final-ready'].includes(payload.status)) errors.push('status must be local-rehearsal or final-ready');
+  if (!['local-rehearsal', 'publication-review', 'final-ready'].includes(payload.status)) {
+    errors.push('status must be local-rehearsal, publication-review, or final-ready');
+  }
   if (!Number.isInteger(payload.target_runtime_seconds) || payload.target_runtime_seconds < 1 || payload.target_runtime_seconds > 175) {
     errors.push('target_runtime_seconds must be an integer between 1 and 175');
   }
@@ -35,6 +37,9 @@ export function evaluateDemo(payload, artifactExists = existsSync) {
     if (payload.status === 'local-rehearsal' && (!evidenceModes.has('local') || !evidenceModes.has('fixture'))) {
       errors.push('local rehearsal must include both local and fixture evidence modes');
     }
+    if (payload.status === 'publication-review' && (!evidenceModes.has('live') || !evidenceModes.has('fixture'))) {
+      errors.push('publication review must include both live and fixture evidence modes');
+    }
   }
   if (!Array.isArray(payload.artifacts) || payload.artifacts.length === 0) {
     errors.push('artifacts must not be empty');
@@ -52,6 +57,19 @@ export function evaluateDemo(payload, artifactExists = existsSync) {
       if (payload.claims?.[claim] !== false) errors.push(`local rehearsal cannot claim ${claim}`);
     }
     if (payload.visual_reel?.public_url) errors.push('local rehearsal cannot include a public video URL');
+  }
+  if (payload.status === 'publication-review') {
+    for (const claim of ['live_ai_media_provider', 'live_b2_storage', 'public_deployment']) {
+      if (payload.claims?.[claim] !== true) errors.push(`publication review requires claim ${claim}`);
+    }
+    if (payload.claims?.final_demo !== false) errors.push('publication review cannot claim final_demo');
+    if (payload.visual_reel?.public_url) errors.push('publication review cannot include a public video URL');
+    if (payload.visual_reel?.audio !== true && payload.visual_reel?.captions !== true) {
+      errors.push('publication review requires voiceover or accurate captions');
+    }
+    for (const blocker of ['public_demo_video', 'human_video_publication_approval']) {
+      if (!blockers.includes(blocker)) errors.push(`publication review requires blocker ${blocker}`);
+    }
   }
   if (payload.status === 'final-ready') {
     if (blockers.length > 0) errors.push('final-ready demo cannot contain blockers');

@@ -4,25 +4,25 @@ import rehearsal from '../docs/campaigns/backblaze-genmedia-2026/demo-rehearsal.
 import { evaluateDemo, isDemoStrictReady } from '../scripts/check-hackathon-demo.mjs';
 
 describe('hackathon demo readiness', () => {
-  it('accepts the truthful local rehearsal while preserving blockers', () => {
+  it('accepts the truthful publication review while preserving publication blockers', () => {
     const result = evaluateDemo(rehearsal, () => true);
 
     expect(result.errors).toEqual([]);
-    expect(result.blockers).toContain('human_recording_approval');
+    expect(result.blockers).toContain('human_video_publication_approval');
     expect(result.blockers).toContain('public_demo_video');
     expect(isDemoStrictReady(rehearsal, result)).toBe(false);
   });
 
-  it('rejects live claims and a public URL on local evidence', () => {
-    const dishonest = {
+  it('rejects final or public claims before publication approval', () => {
+    const premature = {
       ...rehearsal,
-      claims: { ...rehearsal.claims, live_b2_storage: true },
+      claims: { ...rehearsal.claims, final_demo: true },
       visual_reel: { ...rehearsal.visual_reel, public_url: 'https://video.example/demo' },
     };
-    const result = evaluateDemo(dishonest, () => true);
+    const result = evaluateDemo(premature, () => true);
 
-    expect(result.errors).toContain('local rehearsal cannot claim live_b2_storage');
-    expect(result.errors).toContain('local rehearsal cannot include a public video URL');
+    expect(result.errors).toContain('publication review cannot claim final_demo');
+    expect(result.errors).toContain('publication review cannot include a public video URL');
   });
 
   it('rejects a gap in the timed narration', () => {

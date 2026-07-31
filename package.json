@@ -47,6 +47,7 @@
     "hackathon:public-demo:build": "node scripts/build-hackathon-public-demo.mjs",
     "demo:record": "node scripts/record-demo.mjs",
     "demo:record:hackathon": "node scripts/record-hackathon-rehearsal.mjs",
+    "demo:record:hackathon:final-draft": "node scripts/record-hackathon-final-draft.mjs",
     "qa": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-api-test.mjs",
     "qa:v2": "vitest run && node scripts/smoke-test.mjs && node scripts/e2e-director-kit-test.mjs && node scripts/e2e-browser-readiness.mjs && playwright test",
     "release:v2:check": "node scripts/release-gate-v2.mjs"
