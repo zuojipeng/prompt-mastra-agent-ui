@@ -1,6 +1,6 @@
 # Devpost Submission Draft: Jingci Provenance Vault
 
-Status: **DRAFT — not ready for submission**
+Status: **READY — human submission approval recorded; platform confirmation pending**
 
 ## Tagline
 
@@ -69,6 +69,6 @@ Campaign slice: Next.js 15, React 18, TypeScript, Tailwind CSS, Python, Genblaze
 - Repository: https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance
 - Public demo video: https://youtu.be/I4dsEfnbUX4
 
-## Current Blockers
+## Final Submission Boundary
 
-The narrow private Runway and B2 recovery claims have been approved for this draft with the mandatory qualification in `claims-promotion-review.md`. The public judge app and public under-three-minute video are now anonymously verified. The protected Cloudflare preview remains separate and its repeated identity-only preflights did not reach the Pages Function; do not repeat that identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Default-branch/reviewer handoff and human submission approval remain open. Registration and terms were completed by the human owner on July 16, 2026.
+The narrow private Runway and B2 recovery claims use the mandatory qualification in `claims-promotion-review.md`. The public judge app, public under-three-minute video, and public campaign-branch reviewer handoff are anonymously verified. The human owner explicitly approved final submission in the active task. The protected Cloudflare preview remains separate and its repeated identity-only preflights did not reach the Pages Function; do not repeat that identical temporary Service Token flow without materially new decision evidence or a reviewed configuration repair. Status must remain `ready` and `claims.submitted` must remain false until Devpost returns a reviewable submission confirmation.

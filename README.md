@@ -13,7 +13,7 @@ Current evidence is deliberately separated:
 - **Public judge path:** the [zero-network Fixture demo](https://jingci-genmedia-judge-demo-2026.pages.dev/) is anonymously available and desktop/mobile tested, and the [147-second bilingual demo video](https://youtu.be/I4dsEfnbUX4) is public.
 - **Private live evidence:** one approved Runway `gen4.5` generation produced a five-second 1280×720 shot. In a separate recovery verification, Genblaze stored the MP4 and provenance manifest in private Backblaze B2, read both back, verified hashes and lineage, and deleted the two scoped test objects. This does not claim one atomic transaction, public B2 serving, durable retention, or general provider reliability.
 - **Verified engineering boundary:** strict provenance contracts, deterministic Genblaze execution, browser-to-Python HTTP, retry lineage, sanitized project receipts, and desktop/mobile E2E.
-- **Still open:** repository/default-branch reviewer handoff and final human-approved Devpost submission.
+- **Reviewer handoff:** the public `spike/backblaze-provenance` branch, README, judge app, and video are anonymously accessible. Final Devpost submission is separately human-approved and awaits platform confirmation.
 
 Reviewers can start with:
 
@@ -24,7 +24,7 @@ Reviewers can start with:
 - [Evidence index](docs/campaigns/backblaze-genmedia-2026/docs/evidence-index.md)
 - [Credential-free spike setup](spikes/genblaze-provenance/README.md)
 
-Run the draft readiness check with `npm run hackathon:check:draft`. The strict `npm run hackathon:check` command intentionally remains red until reviewer handoff and separate final-submission approval are complete.
+Run the strict readiness check with `npm run hackathon:check`. A `ready` result does not mean submitted; only a captured Devpost confirmation may promote the repository to `submitted`.
 
 ## 产品能力
 

@@ -4,14 +4,15 @@ import readiness from '../docs/campaigns/backblaze-genmedia-2026/submission-read
 import { evaluateSubmission, isSubmissionStrictReady } from '../scripts/check-hackathon-submission.mjs';
 
 describe('hackathon submission readiness', () => {
-  it('accepts the honest draft after public demo verification', () => {
+  it('accepts final readiness after reviewer handoff and human approval', () => {
     const result = evaluateSubmission(readiness, () => true);
 
     expect(result.errors).toEqual([]);
     expect(result.blockers).not.toContain('public_campaign_deployment');
     expect(result.blockers).not.toContain('public_demo_video');
-    expect(result.blockers).toContain('default_branch_or_reviewer_handoff');
-    expect(result.blockers).toContain('human_submission_approval');
+    expect(result.blockers).toEqual([]);
+    expect(readiness.status).toBe('ready');
+    expect(isSubmissionStrictReady(readiness, result)).toBe(true);
   });
 
   it('rejects a ready claim without public deployment and links', () => {
@@ -30,7 +31,7 @@ describe('hackathon submission readiness', () => {
   });
 
   it('does not treat a blocker-free draft label as strict readiness', () => {
-    const draft = { ...readiness, blockers: [] };
+    const draft = { ...readiness, status: 'draft' as const, blockers: [] };
     const result = evaluateSubmission(draft, () => true);
 
     expect(result.errors).toEqual([]);

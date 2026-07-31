@@ -1,6 +1,6 @@
 {
   "schema_version": "jingci.hackathon-submission-readiness.v1",
-  "status": "draft",
+  "status": "ready",
   "project_name": "Jingci Provenance Vault",
   "deadline_utc": "2026-08-03T21:00:00Z",
   "repository_url": "https://github.com/zuojipeng/prompt-mastra-agent-ui/tree/spike/backblaze-provenance",
@@ -37,8 +37,5 @@
     "docs/campaigns/backblaze-genmedia-2026/operator-handoff.json",
     "spikes/genblaze-provenance/README.md"
   ],
-  "blockers": [
-    "default_branch_or_reviewer_handoff",
-    "human_submission_approval"
-  ]
+  "blockers": []
 }

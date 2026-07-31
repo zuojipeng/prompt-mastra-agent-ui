@@ -67,8 +67,22 @@ Status: in_progress
 | C-057 | DevOps Agent + Test Agent | Security Agent + Claims Review Agent + Code Review Agent | Publish the approved zero-network judge demo | Separate Pages project is commit-bound, anonymous desktop/mobile smoke passes with zero external requests, no secret or Function is uploaded, and residual edge behavior is recorded without overclaiming | done |
 | C-058 | Operator Agent + UEAgent | Claims Review Agent + Code Review Agent + Test Agent | Produce the final local demo-video candidate | Under-three-minute MP4 contains public product footage, approved Runway and recovery wording, explicit Fixture lineage, English voiceover, visible bilingual captions, and no private identifiers | done |
 | C-059 | Operator Agent + Claims Review Agent | Test Agent + Code Review Agent + Human owner | Publish and independently verify the final demo video | Human-approved MP4 is public, under three minutes, anonymously playable at 1280×720 with audio, visibly bilingual, privacy-reviewed, and not submitted to Devpost | done |
+| C-060 | Operator Agent + DevOps Agent | Claims Review Agent + Test Agent + Human owner | Close reviewer handoff and authorize final submission | Public campaign branch and README are anonymously verified, strict readiness is green, human approval is explicit, and submitted remains false until platform confirmation | done |
 
 ## Event Log
+
+### 2026-07-31 21:51 C-E068
+
+Type: FINAL_SUBMISSION_AUTHORIZED
+From: Human owner + Operator Agent + DevOps Agent
+To: Claims Review Agent + Test Agent + Hermes Orchestrator
+Task: C-060 / JC-T005
+Gate: Reviewer Handoff / Human Gate B / Release
+Message: The human owner explicitly approved continuation and final submission after the remaining two gates were stated. Anonymous GitHub checks returned HTTP 200 for the public campaign branch and its README, and the remote reviewer commit matched the pushed branch. The branch URL is the intentional reviewer handoff; no merge into the product default branch is required.
+Evidence: human approval in the active task, public repository metadata, remote branch SHA, anonymous branch/README HTTP 200, public judge app, public video, readiness report, and strict gates.
+Decision: READY FOR DEVPOST SUBMISSION; DO NOT MARK SUBMITTED BEFORE PLATFORM CONFIRMATION
+Next owner: Operator Agent + Human owner
+Close condition: Complete the Devpost form using reviewed public links and wording, submit once, capture the platform confirmation, then promote status to submitted.
 
 ### 2026-07-31 21:38 C-E067
 

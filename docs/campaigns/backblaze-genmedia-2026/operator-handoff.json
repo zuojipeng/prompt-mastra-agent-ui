@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "5196d0aac724ee6b9ab1704da9d1b904e6967f5fac48ab4859c81b2230d55b9a"
+      "sha256": "db355e3e99663cfa50d6f802e795e3335be28e42f928a03f2f017e96fb823ca2"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",
@@ -84,7 +84,7 @@
     }
   ],
   "source_gate_counts": {
-    "submission": 2,
+    "submission": 0,
     "deployment": 5,
     "demo": 0,
     "live": 2,
