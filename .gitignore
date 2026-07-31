@@ -11,6 +11,7 @@
 /playwright-report
 /test-results
 /artifacts
+/output/hackathon-public-demo-static/
 
 # next.js
 /.next/

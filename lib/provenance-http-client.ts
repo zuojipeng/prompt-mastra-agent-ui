@@ -5,10 +5,12 @@ import {
   type ProvenanceRunRequest,
   type ProvenanceRunStatus,
 } from './provenance-run-contract';
+import { isPublicDemoMode } from './public-demo-mode';
 
 export type ProvenanceTransportMode = 'fixture' | 'local' | 'preview';
 
 export function getProvenanceTransportMode(): ProvenanceTransportMode {
+  if (isPublicDemoMode()) return 'fixture';
   const rawUrl = process.env.NEXT_PUBLIC_PROVENANCE_API_URL;
   if (!rawUrl) return 'fixture';
   return rawUrl === '/api/provenance' ? 'preview' : 'local';

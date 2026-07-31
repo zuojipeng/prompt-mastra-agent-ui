@@ -10,7 +10,7 @@
     },
     "submission": {
       "file": "docs/campaigns/backblaze-genmedia-2026/submission-readiness.json",
-      "sha256": "3d3433d2273f78d39554888ab6d319e943d158fb1f652dd9448e8389fc9d1a7f"
+      "sha256": "e7b673008e2383152ac57cc3dea7e392bd681cad158b9258bb9c0bb7fbef10ba"
     },
     "deployment": {
       "file": "docs/campaigns/backblaze-genmedia-2026/deployment-readiness.json",

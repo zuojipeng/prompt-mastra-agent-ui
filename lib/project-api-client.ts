@@ -7,6 +7,7 @@ import type {
   LocalProjectWorkspaceSummary,
 } from './project-workspace';
 import { getUserId } from './session-manager';
+import { isPublicDemoMode } from './public-demo-mode';
 
 const getApiUrl = () =>
   process.env.NEXT_PUBLIC_API_URL ??
@@ -66,6 +67,7 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
 }
 
 export async function syncProjectWorkspaceStatus(workspace: LocalProjectWorkspace): Promise<ProjectCloudSyncResult> {
+  if (isPublicDemoMode()) return 'unavailable';
   const userId = getUserId();
   try {
     const res = await fetch(getProjectsUrl(), {
@@ -85,6 +87,7 @@ export async function syncProjectWorkspace(workspace: LocalProjectWorkspace): Pr
 }
 
 export async function fetchProjectSummaries(): Promise<LocalProjectWorkspaceSummary[]> {
+  if (isPublicDemoMode()) return [];
   const userId = getUserId();
   try {
     const res = await fetch(getProjectsUrl(), { headers: { 'X-User-Id': userId } });
@@ -99,6 +102,7 @@ export async function fetchProjectSummaries(): Promise<LocalProjectWorkspaceSumm
 }
 
 export async function fetchProjectWorkspace(projectId: string): Promise<LocalProjectWorkspace | null> {
+  if (isPublicDemoMode()) return null;
   const userId = getUserId();
   try {
     const res = await fetch(`${getProjectsUrl()}/${encodeURIComponent(projectId)}`, {
@@ -118,6 +122,7 @@ export async function deleteProjectWorkspace(projectId: string): Promise<boolean
 }
 
 export async function deleteProjectWorkspaceStatus(projectId: string): Promise<ProjectCloudSyncResult> {
+  if (isPublicDemoMode()) return 'unavailable';
   const userId = getUserId();
   try {
     const res = await fetch(`${getProjectsUrl()}/${encodeURIComponent(projectId)}`, {

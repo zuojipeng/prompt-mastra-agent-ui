@@ -8,6 +8,7 @@ import type {
   DirectorKitTargetDuration,
   DirectorKitTargetType,
 } from './director-kit-contract';
+import { createPublicDemoDirectorKit, isPublicDemoMode } from './public-demo-mode';
 
 export type {
   CreativeDiagnosis,
@@ -341,6 +342,21 @@ export async function optimizePrompt(
   prompt: string,
   options?: OptimizeOptions,
 ): Promise<OptimizationResult> {
+  if (isPublicDemoMode()) {
+    return {
+      originalPrompt: prompt,
+      scenario: 'video',
+      analysis: 'Deterministic public demo result. No external model was called.',
+      continuityPlan: null,
+      timeline: [],
+      fullPrompt: `${prompt}，固定主体与场景锚点，低幅度动作，缓慢推镜。`,
+      negativePrompt: '畸形，闪烁，文字水印，主体漂移，快速运镜',
+      versions: [],
+      platformVariants: [],
+      suggestions: ['先验证主体一致性，再增加动作复杂度。'],
+      prompts: [`${prompt}，固定主体与场景锚点，低幅度动作，缓慢推镜。`],
+    };
+  }
   const apiUrl = getApiUrl();
   const userId = getUserId();
   const sessionId = getOrCreateSessionId();
@@ -473,6 +489,7 @@ export async function createDirectorKit(params: {
   targetDuration: DirectorKitTargetDuration;
   targetType: DirectorKitTargetType;
 }): Promise<DirectorKit> {
+  if (isPublicDemoMode()) return createPublicDemoDirectorKit(params);
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/v2/director-kit');
   const userId = getUserId();
   const sessionId = getOrCreateSessionId();
@@ -530,6 +547,7 @@ export async function uploadFeedback(feedback: {
   riskTags?: string[];
   failureReasons?: string[];
 }): Promise<void> {
+  if (isPublicDemoMode()) return;
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
   const response = await fetch(apiUrl, {
@@ -545,6 +563,7 @@ export async function uploadFeedback(feedback: {
 }
 
 export async function fetchFeedbackStats(): Promise<FeedbackStats> {
+  if (isPublicDemoMode()) return { total: 0, likes: 0, dislikes: 0, ratio: '0' };
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/feedback');
   const userId = getUserId();
   try {
@@ -560,6 +579,7 @@ export async function fetchFeedbackAnalytics(options: {
   eventType?: 'legacy_prompt' | 'director_kit' | 'shot_card' | 'platform_advice';
   limit?: number;
 } = {}): Promise<FeedbackAnalytics | null> {
+  if (isPublicDemoMode()) return null;
   const apiUrl = new URL(getApiUrl().replace(/\/api\/optimize$/, '/api/feedback/analytics'));
   if (options.days) apiUrl.searchParams.set('days', String(options.days));
   if (options.source) apiUrl.searchParams.set('source', options.source);
@@ -578,6 +598,7 @@ export async function fetchFeedbackAnalytics(options: {
 }
 
 export async function syncUserData(payload: Record<string, unknown>): Promise<boolean> {
+  if (isPublicDemoMode()) return false;
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/user-data');
   const userId = getUserId();
   try {
@@ -591,6 +612,7 @@ export async function syncUserData(payload: Record<string, unknown>): Promise<bo
 }
 
 export async function fetchUserData(): Promise<Record<string, unknown> | null> {
+  if (isPublicDemoMode()) return null;
   const apiUrl = getApiUrl().replace(/\/api\/optimize$/, '/api/user-data');
   const userId = getUserId();
   try {
@@ -602,6 +624,7 @@ export async function fetchUserData(): Promise<Record<string, unknown> | null> {
 }
 
 export async function fetchPromptHistory(): Promise<HistoryRecord[]> {
+  if (isPublicDemoMode()) return [];
   const userId = getUserId();
   const sessionId = getSessionId();
 

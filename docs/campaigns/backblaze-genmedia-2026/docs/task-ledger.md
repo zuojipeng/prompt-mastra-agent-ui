@@ -63,8 +63,22 @@ Status: in_progress
 | C-053 | DevOps Agent + Security Agent + Test Agent | Code Review Agent + Claims Review Agent | Execute one newly approved authenticated Cloudflare-to-B2 smoke and revoke temporary identity | Exactly one POST is classified without overclaiming, no retry occurs, temporary policy/token/files are removed, and the cloud claim remains blocked unless the Pages Function and B2 are proven | done |
 | C-054 | Architecture Agent + DevOps Agent + Security Agent | Code Review Agent + Test Agent + Claims Review Agent | Prevent unattached Access policy from consuming another one-shot business approval | A no-network, all-authority-false plan requires outer application save, post-save reload, bidirectional attachment evidence, exact usage count, identity-only health, short-lived independent review, and separate business approval | done |
 | C-055 | Hermes + Product Agent + Operator Agent | Claims Review Agent + Test Agent | Reconcile the live deadline and freeze the final submission critical path | Official timing is refreshed, stale claim language is repaired, four submission blockers have exact owners/evidence, and repeated Access attempts require materially new evidence | done |
+| C-056 | Architecture Agent + Engineering Agent | Security Agent + Code Review Agent + Test Agent | Build a zero-network public judge mode without deployment | Exact fixture mode blocks optimization, feedback, history, project sync, provenance API, B2, and provider calls; desktop/mobile E2E and production build pass | done |
 
 ## Event Log
+
+### 2026-07-31 19:45 C-E064
+
+Type: PUBLIC_DEMO_RELEASE_CANDIDATE_READY
+From: Architecture Agent + Engineering Agent + Test Agent
+To: Security Agent + Code Review Agent + Hermes Orchestrator + Human owner
+Task: C-056 / JC-T005
+Gate: Architecture / Engineering / Security / Code Review / Test / Release
+Message: Added an exact `NEXT_PUBLIC_DEMO_MODE=fixture` boundary that returns deterministic DirectorKit data, forces provenance Fixture mode, disables feedback/history/user/project cloud paths, and exposes a visible judge-demo status. Desktop and mobile browser tests deliberately injected production API and preview Function URLs and observed zero requests to either boundary.
+Evidence: public demo mode implementation and tests; 3 focused files / 27 tests, 32 files / 213 full tests, 2 desktop/mobile Playwright cases, TypeScript, ESLint, fixture-mode production build, and a 27-file static package with zero Functions, `_routes.json`, or forbidden binding names.
+Decision: READY FOR HUMAN PUBLICATION DECISION; NO CLOUD ACTION AUTHORIZED
+Next owner: Human owner + DevOps Agent
+Close condition: Human explicitly approves a separate static-only public Pages deployment with no Functions or secrets; then deploy once, run anonymous desktop/mobile smoke, and roll back immediately on any external API request or misleading claim.
 
 ### 2026-07-31 19:35 C-E063
 

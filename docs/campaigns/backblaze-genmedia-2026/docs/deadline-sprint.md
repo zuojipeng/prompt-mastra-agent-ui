@@ -30,6 +30,7 @@ Reviewed: 2026-07-31 19:20 GMT+8
 - Do not repeat the failed temporary Service Token flow without new evidence or a reviewed repair.
 - Prepare two release decisions: repaired judge identity, or a public read-only demonstration boundary that cannot invoke paid providers and exposes no credentials.
 - Keep the local fixture path as truthful video fallback; it cannot close the live cloud deployment claim.
+- Selected fallback candidate: a separate static-only public judge deployment built with `NEXT_PUBLIC_DEMO_MODE=fixture`. It must contain no Pages Functions or cloud credentials and must prove zero external API requests on desktop and mobile before publication approval.
 
 ### August 1: Close Application Access
 

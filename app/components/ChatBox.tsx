@@ -40,6 +40,7 @@ import {
 import { resolvePlatformCapability } from '@/lib/platform-capabilities';
 import { runProvenanceFixture } from '@/lib/provenance-fixture-transport';
 import { getProvenanceTransportMode, runProvenanceHttp } from '@/lib/provenance-http-client';
+import { isPublicDemoMode } from '@/lib/public-demo-mode';
 import {
   PROVENANCE_RUN_REQUEST_SCHEMA_VERSION,
   type ProvenanceRun,
@@ -209,6 +210,7 @@ const PROMPT_TEMPLATES = [
 ] as const;
 
 export function ChatBox() {
+  const publicDemo = isPublicDemoMode();
   const [input, setInput] = useState('');
   const [cloudStats, setCloudStats] = useState<{
     total: number;
@@ -509,6 +511,7 @@ export function ChatBox() {
     riskTags?: string[];
     failureReasons?: string[];
   }) => {
+    if (publicDemo) return;
     setFeedbackStatus((prev) => ({ ...prev, [key]: 'sending' }));
     try {
       await uploadFeedback({
@@ -544,7 +547,7 @@ export function ChatBox() {
     onRate: (rating: FeedbackRating, failureReasons?: string[]) => void;
   }) => {
     const status = feedbackStatus[feedbackKey] ?? 'idle';
-    const disabled = status === 'sending';
+    const disabled = publicDemo || status === 'sending';
 
     return (
       <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -571,6 +574,7 @@ export function ChatBox() {
         {status === 'liked' && <span className="text-[11px] text-emerald-600 dark:text-emerald-300">已记录有用</span>}
         {status === 'disliked' && <span className="text-[11px] text-amber-600 dark:text-amber-300">已记录问题</span>}
         {status === 'error' && <span className="text-[11px] text-red-500">未同步，不影响继续使用</span>}
+        {publicDemo && <span className="text-[11px] text-gray-500 dark:text-gray-400">Public demo 不收集反馈</span>}
       </div>
     );
   };
@@ -1033,6 +1037,12 @@ export function ChatBox() {
         stages={shellStages}
         onOpenProjects={() => setProjectDashboardOpen((open) => !open)}
       />
+
+      {publicDemo && (
+        <div role="status" className="mb-4 border-l-2 border-cyan-600 bg-cyan-50 px-3 py-2 text-xs text-cyan-900 dark:bg-cyan-950/30 dark:text-cyan-200">
+          Public judge demo · deterministic local data · external API and cloud writes disabled
+        </div>
+      )}
 
       <div className="mb-4 grid grid-cols-3 gap-1 rounded-lg border border-gray-200 bg-white p-1 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
         {mobileTabs.map((tab) => (
