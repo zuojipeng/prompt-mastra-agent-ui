@@ -75,4 +75,8 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('handleSelectShotAttempt');
     expect(source).toContain('selectedShotAttemptIds');
   });
+
+  it('includes selected shot attempts in all DirectorKit export contexts', () => {
+    expect(source).toContain('shotAttempts,\n    selectedShotAttemptIds,');
+  });
 });

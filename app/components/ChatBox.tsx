@@ -729,6 +729,8 @@ export function ChatBox() {
     generatedAt,
     projectIterations: workspace?.iterations ?? [],
     platformCalibrations: workspace?.platformCalibrations ?? [],
+    shotAttempts,
+    selectedShotAttemptIds,
   });
 
   const buildShotPrompt = (card: ShotCard) => {

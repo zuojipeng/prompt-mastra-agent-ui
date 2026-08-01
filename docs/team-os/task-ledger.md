@@ -13,7 +13,8 @@ Last Updated: 2026-08-01
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
-| JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Expose selected attempt metadata in exports before adding a live provider adapter |
+| JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Export follow-up completed by JC-T006; keep provider adapters behind an explicit paid-call gate |
+| JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
 
 ## Backlog
 
@@ -454,6 +455,19 @@ Decision: SHIP
 Next owner: Product Agent + Architecture Agent
 Close condition: Commit and push the reviewed slice; next add selected-attempt export metadata.
 
+### 2026-08-01 20:30 T038
+
+Type: REVIEWED
+From: Product Agent + Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + Hermes Orchestrator
+Task: JC-T006
+Gate: Product / Architecture / Engineering / Test
+Message: Execution checklist, project snapshot, and operator handoff now carry only the explicitly selected attempt's provider, model, status, asset, cost, and duration.
+Evidence: E3 `docs/agent-runs/2026-08-01-selected-attempt-export.md`, E3 `docs/code-reviews/2026-08-01-selected-attempt-export.md`, E3 `docs/test-reports/2026-08-01-selected-attempt-export.md`
+Decision: SHIP
+Next owner: Hermes Orchestrator
+Close condition: Commit and push the reviewed slice.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -495,6 +509,7 @@ Close condition: Commit and push the reviewed slice; next add selected-attempt e
 | EV-JC-035 | JC-T004 | E2 | Jingci has a staged evolution roadmap with product metrics, architecture constraints, hackathon asset strategy, and three bounded next slices | `docs/product/2026-07-jingci-evolution-roadmap.md`, `docs/agent-runs/2026-07-10-product-evolution-roadmap.md`, `docs/test-reports/2026-07-10-product-evolution-roadmap.md`, `git diff --check` | Added, planning evidence passes | UEAgent + Architecture Agent + Test Agent |
 | EV-JC-036 | JC-T001 | E3 | Project Dashboard names why saved workspaces are blocked from handoff and preserves ready/blocked behavior on desktop/mobile | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `docs/test-reports/2026-07-11-dashboard-handoff-reasons.md` | Added, full validation and browser evidence pass after two recorded test repairs | Code Review Agent + Test Agent |
 | EV-JC-037 | JC-T005 | E3 | Per-shot generation attempts preserve provider/model/result/cost/duration evidence and explicit selected result without a provider integration | `lib/project-workspace.ts`, `app/components/ShotAttemptPanel.tsx`, `app/components/ChatBox.tsx`, unit/source tests, desktop/mobile Playwright, build | Added, full validation and browser evidence pass after recorded repairs | Code Review Agent + Test Agent |
+| EV-JC-038 | JC-T006 | E3 | Checklist, snapshot, and operator handoff export only the explicitly selected attempt metadata and reject stale selection fallback | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, full unit/source suite, typecheck, lint, build | Added, 99 tests and production build pass | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -530,3 +545,4 @@ Close condition: Commit and push the reviewed slice; next add selected-attempt e
 | RV-JC-028 | JC-T004 | Product Agent | UEAgent + Architecture Agent + Test Agent | PASS for product evolution roadmap | Stage 1 completion is required before provider or collaboration expansion; market assumptions remain E2 | Start with handoff blocking reasons |
 | RV-JC-029 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff reasons | Local domain owns rules; dashboard only formats summary; old cloud summaries remain compatible | Add Projects API parity next |
 | RV-JC-030 | JC-T005 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS after repair | Fixed backward workspace timestamps and test locator ambiguity; no P0/P1 findings remain | Commit and push |
+| RV-JC-031 | JC-T006 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS | Explicit selection prevents stale/latest fallback; optional context keeps old callers compatible | Commit and push |

@@ -122,6 +122,24 @@ const context: DirectorKitExportContext = {
   targetType: 'cyberpunk',
   shotExecutionStatus: { 1: 'generated', 2: 'failed' },
   shotResultNotes: { 1: 'Seedance 链接：shot-1', 2: '动作抖动，需改静态特写' },
+  shotAttempts: {
+    1: [
+      {
+        id: 'attempt-1',
+        createdAt: '2026-06-06T00:45:00.000Z',
+        shotId: 1,
+        source: 'manual',
+        provider: 'Runway',
+        model: 'Gen-4.5',
+        status: 'generated',
+        assetRef: 'b2://jingci-preview/shot-1-v2.mp4',
+        note: '主体稳定，待最终确认。',
+        costUsd: 0.5,
+        durationSeconds: 41,
+      },
+    ],
+  },
+  selectedShotAttemptIds: { 1: 'attempt-1' },
   generatedAt: '2026-06-06T00:00:00.000Z',
   projectIterations: [
     {
@@ -207,6 +225,9 @@ describe('director kit export builders', () => {
     expect(checklist).toContain('目标类型：赛博都市');
     expect(checklist).toContain('进度：2/2（100%）');
     expect(checklist).toContain('## 镜头 1｜5s｜已生成');
+    expect(checklist).toContain('选中版本：Runway｜Gen-4.5｜已生成');
+    expect(checklist).toContain('版本素材：b2://jingci-preview/shot-1-v2.mp4');
+    expect(checklist).toContain('生成成本/耗时：成本 $0.50｜耗时 41 秒');
     expect(checklist).toContain('素材/备注：Seedance 链接：shot-1');
     expect(checklist).toContain('## 镜头 2｜7s｜翻车');
   });
@@ -217,6 +238,9 @@ describe('director kit export builders', () => {
     expect(snapshot).toContain('# 镜词项目快照');
     expect(snapshot).toContain('生成时间：2026-06-06T00:00:00.000Z');
     expect(snapshot).toContain('状态分布：未生成 0｜已生成 1｜翻车 1｜可用 0');
+    expect(snapshot).toContain('- 选中版本：Runway｜Gen-4.5｜已生成');
+    expect(snapshot).toContain('- 版本素材：b2://jingci-preview/shot-1-v2.mp4');
+    expect(snapshot).toContain('- 生成成本/耗时：成本 $0.50｜耗时 41 秒');
     expect(snapshot).toContain('- 素材/备注：动作抖动，需改静态特写');
     expect(snapshot).toContain('## 迭代记录');
     expect(snapshot).toContain('### 迭代 1｜主体一致性 改写');
@@ -246,6 +270,9 @@ describe('director kit export builders', () => {
     expect(handoff).toContain('- 1 条校准建议扩展到全片队列。');
     expect(handoff).toContain('## 逐镜头交接');
     expect(handoff).toContain('- 镜头 1｜已生成｜文生视频｜低风险');
+    expect(handoff).toContain('选中版本：Runway｜Gen-4.5｜已生成');
+    expect(handoff).toContain('版本素材：b2://jingci-preview/shot-1-v2.mp4');
+    expect(handoff).toContain('生成成本/耗时：成本 $0.50｜耗时 41 秒');
     expect(handoff).toContain('素材/备注：Seedance 链接：shot-1');
     expect(handoff).toContain('## 最近平台校准证据');
     expect(handoff).toContain('- Seedance｜镜头 1｜已验证');
@@ -259,6 +286,17 @@ describe('director kit export builders', () => {
     expect(handoff).toContain('平台校准：共 0 条｜已验证 0｜未通过 0');
     expect(handoff).toContain('- 先执行推荐平台首轮镜头，并回填平台校准结果。');
     expect(handoff).not.toContain('## 最近平台校准证据');
+  });
+
+  it('does not export an unselected or stale attempt as the final result', () => {
+    const staleSelectionContext = {
+      ...context,
+      selectedShotAttemptIds: { 1: 'missing-attempt' },
+    };
+
+    expect(buildExecutionChecklist(kit, staleSelectionContext)).not.toContain('选中版本：Runway');
+    expect(buildProjectSnapshot(kit, staleSelectionContext)).not.toContain('版本素材：b2://jingci-preview/shot-1-v2.mp4');
+    expect(buildOperatorHandoffNotes(kit, staleSelectionContext)).not.toContain('生成成本/耗时：成本 $0.50');
   });
 
   it('builds a platform feed pack', () => {
