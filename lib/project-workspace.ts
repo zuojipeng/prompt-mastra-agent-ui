@@ -54,6 +54,24 @@ export type PlatformCalibrationEvidence = {
   nextAction: PlatformCalibrationNextAction;
 };
 
+export type ShotGenerationAttemptStatus = Exclude<ShotExecutionStatus, 'pending'>;
+
+export type ShotGenerationAttempt = {
+  id: string;
+  createdAt: string;
+  shotId: number;
+  source: 'manual';
+  provider: string;
+  model: string;
+  status: ShotGenerationAttemptStatus;
+  assetRef: string;
+  note: string;
+  costUsd: number | null;
+  durationSeconds: number | null;
+};
+
+export type ShotGenerationAttemptInput = Omit<ShotGenerationAttempt, 'id' | 'createdAt' | 'source'>;
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -69,6 +87,8 @@ export type LocalProjectWorkspace = {
   selectedShotId: number | null;
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotResultNotes: Record<number, string>;
+  shotAttempts?: Record<number, ShotGenerationAttempt[]>;
+  selectedShotAttemptIds?: Record<number, string>;
   iterations?: ProjectWorkspaceIteration[];
   platformCalibrations?: PlatformCalibrationEvidence[];
 };
@@ -103,7 +123,7 @@ export type LocalProjectWorkspaceInput = Pick<
   | 'selectedShotId'
   | 'shotExecutionStatus'
   | 'shotResultNotes'
->;
+> & Pick<LocalProjectWorkspace, 'shotAttempts' | 'selectedShotAttemptIds'>;
 
 type WorkspaceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -119,6 +139,7 @@ const CALIBRATION_NEXT_ACTION_VALUES: PlatformCalibrationNextAction[] = [
 ];
 const PROJECT_ITERATION_LIMIT = 8;
 const PLATFORM_CALIBRATION_LIMIT = 12;
+const SHOT_ATTEMPT_LIMIT = 8;
 
 function getBrowserStorage() {
   if (typeof window === 'undefined') return null;
@@ -202,6 +223,60 @@ function isPlatformCalibrationEvidence(value: unknown): value is PlatformCalibra
 function normalizePlatformCalibrations(value: unknown): PlatformCalibrationEvidence[] {
   if (!Array.isArray(value)) return [];
   return value.filter(isPlatformCalibrationEvidence).slice(0, PLATFORM_CALIBRATION_LIMIT);
+}
+
+function isNullableNonNegativeNumber(value: unknown): value is number | null {
+  return value === null || (typeof value === 'number' && Number.isFinite(value) && value >= 0);
+}
+
+function isShotGenerationAttempt(value: unknown): value is ShotGenerationAttempt {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.createdAt === 'string' &&
+    typeof value.shotId === 'number' &&
+    value.source === 'manual' &&
+    typeof value.provider === 'string' &&
+    typeof value.model === 'string' &&
+    ['generated', 'failed', 'usable'].includes(value.status as ShotGenerationAttemptStatus) &&
+    typeof value.assetRef === 'string' &&
+    typeof value.note === 'string' &&
+    isNullableNonNegativeNumber(value.costUsd) &&
+    isNullableNonNegativeNumber(value.durationSeconds)
+  );
+}
+
+function normalizeShotAttempts(value: unknown): Record<number, ShotGenerationAttempt[]> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([shotId, attempts]) => {
+      const parsedShotId = Number(shotId);
+      if (!Number.isInteger(parsedShotId) || parsedShotId < 1 || !Array.isArray(attempts)) return [];
+      const valid = attempts
+        .filter((attempt) => isShotGenerationAttempt(attempt) && attempt.shotId === parsedShotId)
+        .slice(0, SHOT_ATTEMPT_LIMIT);
+      return valid.length > 0 ? [[parsedShotId, valid]] : [];
+    }),
+  );
+}
+
+function isShotAttemptsRecord(value: unknown) {
+  if (!isRecord(value)) return false;
+  return Object.entries(value).every(
+    ([shotId, attempts]) => {
+      const parsedShotId = Number(shotId);
+      return Number.isInteger(parsedShotId) &&
+        parsedShotId > 0 &&
+        Array.isArray(attempts) &&
+        attempts.length <= SHOT_ATTEMPT_LIMIT &&
+        attempts.every((attempt) => isShotGenerationAttempt(attempt) && attempt.shotId === parsedShotId);
+    },
+  );
+}
+
+function isStringRecord(value: unknown): value is Record<number, string> {
+  if (!isRecord(value)) return false;
+  return Object.values(value).every((entry) => typeof entry === 'string');
 }
 
 function isDirectorKit(value: unknown): value is DirectorKit {
@@ -361,6 +436,69 @@ export function appendPlatformCalibrationEvidence(
   };
 }
 
+export function createShotGenerationAttempt(
+  input: ShotGenerationAttemptInput,
+  now = new Date().toISOString(),
+): ShotGenerationAttempt {
+  const provider = input.provider.trim();
+  const model = input.model.trim();
+  const assetRef = input.assetRef.trim();
+  const note = input.note.trim();
+  if (!Number.isInteger(input.shotId) || input.shotId < 1) throw new Error('镜头编号无效');
+  if (!provider) throw new Error('请填写生成平台');
+  if (!model) throw new Error('请填写模型或版本');
+  if (input.status === 'failed' && !note) throw new Error('失败尝试需要填写失败原因');
+  if (input.status !== 'failed' && !assetRef) throw new Error('成功尝试需要填写素材链接或文件名');
+  if (!isNullableNonNegativeNumber(input.costUsd)) throw new Error('成本不能小于 0');
+  if (!isNullableNonNegativeNumber(input.durationSeconds)) throw new Error('生成耗时不能小于 0');
+
+  return {
+    ...input,
+    id: createWorkspaceId(),
+    createdAt: now,
+    source: 'manual',
+    provider,
+    model,
+    assetRef,
+    note,
+  };
+}
+
+export function selectShotGenerationAttempt(
+  workspace: LocalProjectWorkspace,
+  shotId: number,
+  attemptId: string,
+  now = new Date().toISOString(),
+): LocalProjectWorkspace {
+  const attempt = workspace.shotAttempts?.[shotId]?.find((candidate) => candidate.id === attemptId);
+  if (!attempt) return workspace;
+  const resultNote = [attempt.assetRef, attempt.note].filter(Boolean).join(' · ');
+  return {
+    ...workspace,
+    updatedAt: now,
+    selectedShotAttemptIds: { ...workspace.selectedShotAttemptIds, [shotId]: attempt.id },
+    shotExecutionStatus: { ...workspace.shotExecutionStatus, [shotId]: attempt.status },
+    shotResultNotes: { ...workspace.shotResultNotes, [shotId]: resultNote },
+  };
+}
+
+export function appendShotGenerationAttempt(
+  workspace: LocalProjectWorkspace,
+  attempt: ShotGenerationAttempt,
+): LocalProjectWorkspace {
+  const attempts = [attempt, ...(workspace.shotAttempts?.[attempt.shotId] ?? [])].slice(0, SHOT_ATTEMPT_LIMIT);
+  return selectShotGenerationAttempt(
+    {
+      ...workspace,
+      updatedAt: attempt.createdAt,
+      shotAttempts: { ...workspace.shotAttempts, [attempt.shotId]: attempts },
+    },
+    attempt.shotId,
+    attempt.id,
+    attempt.createdAt,
+  );
+}
+
 export function createLocalProjectWorkspace(
   input: LocalProjectWorkspaceInput,
   existing?: LocalProjectWorkspace | null,
@@ -371,6 +509,10 @@ export function createLocalProjectWorkspace(
     id: existing?.id ?? createWorkspaceId(),
     title: deriveProjectTitle(input.creativeInput),
     ...input,
+    shotAttempts: normalizeShotAttempts(input.shotAttempts ?? existing?.shotAttempts),
+    selectedShotAttemptIds: isStringRecord(input.selectedShotAttemptIds)
+      ? input.selectedShotAttemptIds
+      : existing?.selectedShotAttemptIds ?? {},
     iterations: normalizeIterations(existing?.iterations),
     platformCalibrations: normalizePlatformCalibrations(existing?.platformCalibrations),
     createdAt: existing?.createdAt ?? now,
@@ -395,6 +537,8 @@ export function isLocalProjectWorkspace(value: unknown): value is LocalProjectWo
     isNullableNumber(value.selectedShotId) &&
     isShotExecutionStatusRecord(value.shotExecutionStatus) &&
     isShotResultNotesRecord(value.shotResultNotes) &&
+    (value.shotAttempts === undefined || isShotAttemptsRecord(value.shotAttempts)) &&
+    (value.selectedShotAttemptIds === undefined || isStringRecord(value.selectedShotAttemptIds)) &&
     (value.iterations === undefined ||
       (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration))) &&
     (value.platformCalibrations === undefined ||

@@ -39,12 +39,14 @@ import {
 } from '@/lib/director-kit-export';
 import { resolvePlatformCapability } from '@/lib/platform-capabilities';
 import {
+  appendShotGenerationAttempt,
   appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   createPlatformCalibrationEvidence,
   createProjectWorkspaceIteration,
+  createShotGenerationAttempt,
   deleteLocalProjectWorkspace,
   deriveProjectWorkspaceIterationDigest,
   isLocalProjectWorkspace,
@@ -52,9 +54,12 @@ import {
   loadLocalProjectWorkspace,
   loadLocalProjectWorkspaceSummaries,
   saveLocalProjectWorkspace,
+  selectShotGenerationAttempt,
   type LocalProjectWorkspace,
   type LocalProjectWorkspaceSummary,
   type PlatformCalibrationOutcome,
+  type ShotGenerationAttempt,
+  type ShotGenerationAttemptInput,
 } from '@/lib/project-workspace';
 import type { FeedbackNextAction } from '@/lib/feedback-next-action';
 import {
@@ -228,6 +233,8 @@ export function ChatBox() {
   const [v2Error, setV2Error] = useState('');
   const [shotExecutionStatus, setShotExecutionStatus] = useState<Record<number, ShotExecutionStatus>>({});
   const [shotResultNotes, setShotResultNotes] = useState<Record<number, string>>({});
+  const [shotAttempts, setShotAttempts] = useState<Record<number, ShotGenerationAttempt[]>>({});
+  const [selectedShotAttemptIds, setSelectedShotAttemptIds] = useState<Record<number, string>>({});
   const [mobileTab, setMobileTab] = useState<MobileWorkbenchTab>('work');
   const [selectedShotId, setSelectedShotId] = useState<number | null>(null);
   const [workspace, setWorkspace] = useState<LocalProjectWorkspace | null>(null);
@@ -322,6 +329,8 @@ export function ChatBox() {
     setSelectedShotId(nextWorkspace.selectedShotId ?? nextWorkspace.directorKit?.shotCards?.[0]?.shotId ?? null);
     setShotExecutionStatus(nextWorkspace.shotExecutionStatus);
     setShotResultNotes(nextWorkspace.shotResultNotes);
+    setShotAttempts(nextWorkspace.shotAttempts ?? {});
+    setSelectedShotAttemptIds(nextWorkspace.selectedShotAttemptIds ?? {});
     setCopiedShotId(null);
     setCopiedChecklist(false);
     setCopiedSnapshot(false);
@@ -569,6 +578,40 @@ export function ChatBox() {
     setShotResultNotes((prev) => ({ ...prev, [shotId]: value }));
   };
 
+  const createCurrentWorkspace = () => createLocalProjectWorkspace(
+    {
+      creativeInput: input,
+      targetDuration,
+      targetType,
+      v2State,
+      directorKit,
+      selectedVersionIndex,
+      selectedShotId,
+      shotExecutionStatus,
+      shotResultNotes,
+      shotAttempts,
+      selectedShotAttemptIds,
+    },
+    workspace,
+  );
+
+  const applyAttemptWorkspace = (nextWorkspace: LocalProjectWorkspace) => {
+    setShotExecutionStatus(nextWorkspace.shotExecutionStatus);
+    setShotResultNotes(nextWorkspace.shotResultNotes);
+    setShotAttempts(nextWorkspace.shotAttempts ?? {});
+    setSelectedShotAttemptIds(nextWorkspace.selectedShotAttemptIds ?? {});
+    persistProjectWorkspace(nextWorkspace);
+  };
+
+  const handleImportShotAttempt = (input: ShotGenerationAttemptInput) => {
+    const attempt = createShotGenerationAttempt(input);
+    applyAttemptWorkspace(appendShotGenerationAttempt(createCurrentWorkspace(), attempt));
+  };
+
+  const handleSelectShotAttempt = (shotId: number, attemptId: string) => {
+    applyAttemptWorkspace(selectShotGenerationAttempt(createCurrentWorkspace(), shotId, attemptId));
+  };
+
   const handleCapturePlatformCalibration = (
     advice: PlatformAdvice,
     outcome: PlatformCalibrationOutcome,
@@ -635,6 +678,8 @@ export function ChatBox() {
           selectedShotId,
           shotExecutionStatus,
           shotResultNotes,
+          shotAttempts,
+          selectedShotAttemptIds,
         },
         workspace,
       );
@@ -760,6 +805,8 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setShotAttempts({});
+    setSelectedShotAttemptIds({});
     setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
@@ -805,6 +852,8 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setShotAttempts({});
+    setSelectedShotAttemptIds({});
     setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
@@ -846,6 +895,8 @@ export function ChatBox() {
     setSelectedVersionIndex(null);
     setShotExecutionStatus({});
     setShotResultNotes({});
+    setShotAttempts({});
+    setSelectedShotAttemptIds({});
     setSelectedShotId(null);
     setCopiedShotId(null);
     setCopiedChecklist(false);
@@ -1665,10 +1716,14 @@ export function ChatBox() {
             shotExecutionStatus={shotExecutionStatus}
             shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
             shotResultNotes={shotResultNotes}
+            shotAttempts={shotAttempts}
+            selectedShotAttemptIds={selectedShotAttemptIds}
             selectedShotId={selectedShot?.shotId ?? null}
             onCopyShotPrompt={handleCopyShotPrompt}
             onStatusChange={handleShotExecutionStatusChange}
             onShotResultNoteChange={handleShotResultNoteChange}
+            onImportAttempt={handleImportShotAttempt}
+            onSelectAttempt={handleSelectShotAttempt}
             onSelectShot={(card) => {
               setSelectedShotId(card.shotId);
               setMobileTab('execute');
@@ -1907,9 +1962,13 @@ export function ChatBox() {
               currentStatus={selectedShot ? shotExecutionStatus[selectedShot.shotId] ?? 'pending' : 'pending'}
               shotExecutionOptions={SHOT_EXECUTION_OPTIONS}
               resultNote={selectedShot ? shotResultNotes[selectedShot.shotId] ?? '' : ''}
+              attempts={selectedShot ? shotAttempts[selectedShot.shotId] ?? [] : []}
+              selectedAttemptId={selectedShot ? selectedShotAttemptIds[selectedShot.shotId] ?? null : null}
               onCopyShotPrompt={handleCopyShotPrompt}
               onStatusChange={handleShotExecutionStatusChange}
               onShotResultNoteChange={handleShotResultNoteChange}
+              onImportAttempt={handleImportShotAttempt}
+              onSelectAttempt={handleSelectShotAttempt}
               renderFeedback={(card) =>
                 renderFeedbackButtons({
                   feedbackKey: `shot-${card.shotId}`,

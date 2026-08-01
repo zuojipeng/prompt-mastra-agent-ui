@@ -5,6 +5,8 @@ import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
+import type { ShotGenerationAttempt, ShotGenerationAttemptInput } from '@/lib/project-workspace';
+import { ShotAttemptPanel } from './ShotAttemptPanel';
 
 function getGenerationModeLabel(mode: ShotCard['generationMode']) {
   if (mode === 'text-to-video') return '文生视频';
@@ -50,9 +52,13 @@ export function DirectorKitShotList({
   shotExecutionStatus,
   shotExecutionOptions,
   shotResultNotes,
+  shotAttempts,
+  selectedShotAttemptIds,
   onCopyShotPrompt,
   onStatusChange,
   onShotResultNoteChange,
+  onImportAttempt,
+  onSelectAttempt,
   selectedShotId,
   onSelectShot,
   renderFeedback,
@@ -62,9 +68,13 @@ export function DirectorKitShotList({
   shotExecutionStatus: Record<number, ShotExecutionStatus>;
   shotExecutionOptions: ShotExecutionOption[];
   shotResultNotes: Record<number, string>;
+  shotAttempts: Record<number, ShotGenerationAttempt[]>;
+  selectedShotAttemptIds: Record<number, string>;
   onCopyShotPrompt: (card: ShotCard) => void;
   onStatusChange: (shotId: number, status: ShotExecutionStatus) => void;
   onShotResultNoteChange: (shotId: number, value: string) => void;
+  onImportAttempt: (input: ShotGenerationAttemptInput) => void;
+  onSelectAttempt: (shotId: number, attemptId: string) => void;
   selectedShotId?: number | null;
   onSelectShot?: (card: ShotCard) => void;
   renderFeedback: (card: ShotCard) => ReactNode;
@@ -177,6 +187,13 @@ export function DirectorKitShotList({
               currentStatus={shotExecutionStatus[card.shotId] ?? 'pending'}
               options={shotExecutionOptions}
               onStatusChange={onStatusChange}
+            />
+            <ShotAttemptPanel
+              shotId={card.shotId}
+              attempts={shotAttempts[card.shotId] ?? []}
+              selectedAttemptId={selectedShotAttemptIds[card.shotId] ?? null}
+              onImport={onImportAttempt}
+              onSelect={onSelectAttempt}
             />
             <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">
               <label

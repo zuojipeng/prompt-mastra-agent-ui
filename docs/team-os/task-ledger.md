@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-07-10
+Last Updated: 2026-08-01
 
 ## Active Tasks
 
@@ -13,6 +13,7 @@ Last Updated: 2026-07-10
 | JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
+| JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Expose selected attempt metadata in exports before adding a live provider adapter |
 
 ## Backlog
 
@@ -440,6 +441,19 @@ Decision: SHIP
 Next owner: Backend Engineering Agent + Test Agent
 Close condition: Projects API returns the same reason list and local/cloud summary parity is verified.
 
+### 2026-08-01 09:30 T037
+
+Type: REVIEWED
+From: Code Review Agent + Test Agent
+To: Hermes Orchestrator
+Task: JC-T005
+Gate: Code Review / Test
+Message: Provider-neutral manual shot attempts persist, select, and project into existing handoff evidence on desktop and mobile.
+Evidence: E3 `docs/agent-runs/2026-08-01-shot-attempt-import.md`, E3 `docs/code-reviews/2026-08-01-shot-attempt-import.md`, E3 `docs/test-reports/2026-08-01-shot-attempt-import.md`
+Decision: SHIP
+Next owner: Product Agent + Architecture Agent
+Close condition: Commit and push the reviewed slice; next add selected-attempt export metadata.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -480,6 +494,7 @@ Close condition: Projects API returns the same reason list and local/cloud summa
 | EV-JC-034 | JC-T001 | E3 | Project Dashboard can filter by handoff readiness and keep the ready project visible in desktop/mobile E2E | `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `npx vitest run __tests__/project-dashboard-source.test.ts`, `PLAYWRIGHT_PORT=3200 npx playwright test tests/e2e/v2-director-kit.spec.ts --project=chromium --project=mobile-chrome`, `npx tsc --noEmit`, `npx vitest run --pool=threads`, `npx eslint app lib __tests__ tests --ignore-pattern 'playwright-report/**' --ignore-pattern 'test-results/**'`, `npm run build`, `git diff --check` | Added, full validation and browser evidence pass | Code Review Agent + Test Agent |
 | EV-JC-035 | JC-T004 | E2 | Jingci has a staged evolution roadmap with product metrics, architecture constraints, hackathon asset strategy, and three bounded next slices | `docs/product/2026-07-jingci-evolution-roadmap.md`, `docs/agent-runs/2026-07-10-product-evolution-roadmap.md`, `docs/test-reports/2026-07-10-product-evolution-roadmap.md`, `git diff --check` | Added, planning evidence passes | UEAgent + Architecture Agent + Test Agent |
 | EV-JC-036 | JC-T001 | E3 | Project Dashboard names why saved workspaces are blocked from handoff and preserves ready/blocked behavior on desktop/mobile | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `docs/test-reports/2026-07-11-dashboard-handoff-reasons.md` | Added, full validation and browser evidence pass after two recorded test repairs | Code Review Agent + Test Agent |
+| EV-JC-037 | JC-T005 | E3 | Per-shot generation attempts preserve provider/model/result/cost/duration evidence and explicit selected result without a provider integration | `lib/project-workspace.ts`, `app/components/ShotAttemptPanel.tsx`, `app/components/ChatBox.tsx`, unit/source tests, desktop/mobile Playwright, build | Added, full validation and browser evidence pass after recorded repairs | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -514,3 +529,4 @@ Close condition: Projects API returns the same reason list and local/cloud summa
 | RV-JC-027 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff filter | Dashboard-only state; reuses existing summary fields; E2E covers ready filter on desktop and mobile | Commit and push after validation |
 | RV-JC-028 | JC-T004 | Product Agent | UEAgent + Architecture Agent + Test Agent | PASS for product evolution roadmap | Stage 1 completion is required before provider or collaboration expansion; market assumptions remain E2 | Start with handoff blocking reasons |
 | RV-JC-029 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff reasons | Local domain owns rules; dashboard only formats summary; old cloud summaries remain compatible | Add Projects API parity next |
+| RV-JC-030 | JC-T005 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS after repair | Fixed backward workspace timestamps and test locator ambiguity; no P0/P1 findings remain | Commit and push |

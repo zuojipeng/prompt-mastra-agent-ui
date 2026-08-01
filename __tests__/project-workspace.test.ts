@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  appendShotGenerationAttempt,
   appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   createPlatformCalibrationEvidence,
   createProjectWorkspaceIteration,
+  createShotGenerationAttempt,
   deleteLocalProjectWorkspace,
   deriveProjectTitle,
   deriveProjectWorkspaceIterationDigest,
@@ -14,6 +16,7 @@ import {
   loadLocalProjectWorkspaceSummaries,
   loadLocalProjectWorkspace,
   saveLocalProjectWorkspace,
+  selectShotGenerationAttempt,
   type LocalProjectWorkspace,
 } from '@/lib/project-workspace';
 import type { DirectorKit } from '@/lib/director-kit-contract';
@@ -394,6 +397,99 @@ describe('project workspace persistence', () => {
       outcome: 'validated',
       nextAction: 'expand_full_queue',
     });
+  });
+
+  it('appends and selects shot generation attempts as execution evidence', () => {
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const first = createShotGenerationAttempt(
+      {
+        shotId: 1,
+        provider: 'Runway',
+        model: 'Gen-4.5',
+        status: 'generated',
+        assetRef: 'shot-1-v1.mp4',
+        note: '主体轻微漂移',
+        costUsd: 0.5,
+        durationSeconds: 42,
+      },
+      '2026-06-16T01:00:00.000Z',
+    );
+    const second = createShotGenerationAttempt(
+      {
+        shotId: 1,
+        provider: 'Runway',
+        model: 'Gen-4.5',
+        status: 'usable',
+        assetRef: 'shot-1-v2.mp4',
+        note: '主体稳定',
+        costUsd: 0.5,
+        durationSeconds: 39,
+      },
+      '2026-06-16T02:00:00.000Z',
+    );
+
+    const withFirst = appendShotGenerationAttempt(workspace, first);
+    const withSecond = appendShotGenerationAttempt(withFirst, second);
+
+    expect(withSecond.shotAttempts?.[1]).toHaveLength(2);
+    expect(withSecond.selectedShotAttemptIds?.[1]).toBe(second.id);
+    expect(withSecond.shotExecutionStatus[1]).toBe('usable');
+    expect(withSecond.shotResultNotes[1]).toBe('shot-1-v2.mp4 · 主体稳定');
+
+    const reselected = selectShotGenerationAttempt(withSecond, 1, first.id, '2026-06-16T03:00:00.000Z');
+    expect(reselected.selectedShotAttemptIds?.[1]).toBe(first.id);
+    expect(reselected.shotExecutionStatus[1]).toBe('generated');
+    expect(reselected.shotResultNotes[1]).toBe('shot-1-v1.mp4 · 主体轻微漂移');
+    expect(reselected.updatedAt).toBe('2026-06-16T03:00:00.000Z');
+  });
+
+  it('requires usable evidence for manually imported attempts', () => {
+    expect(() => createShotGenerationAttempt({
+      shotId: 0,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'generated',
+      assetRef: 'shot.mp4',
+      note: '',
+      costUsd: null,
+      durationSeconds: null,
+    })).toThrow('镜头编号无效');
+
+    expect(() => createShotGenerationAttempt({
+      shotId: 1,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'usable',
+      assetRef: '',
+      note: '看起来不错',
+      costUsd: null,
+      durationSeconds: null,
+    })).toThrow('成功尝试需要填写素材链接或文件名');
+
+    expect(() => createShotGenerationAttempt({
+      shotId: 1,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'failed',
+      assetRef: '',
+      note: '',
+      costUsd: null,
+      durationSeconds: null,
+    })).toThrow('失败尝试需要填写失败原因');
   });
 
   it('summarizes platform calibration evidence for project dashboards', () => {

@@ -67,4 +67,12 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain("mobileTab === 'execute'");
     expect(source).not.toContain("mobileTab === 'work' &&");
   });
+
+  it('persists provider-neutral shot attempts and selected results', () => {
+    expect(source).toContain('handleImportShotAttempt');
+    expect(source).toContain('createShotGenerationAttempt');
+    expect(source).toContain('appendShotGenerationAttempt');
+    expect(source).toContain('handleSelectShotAttempt');
+    expect(source).toContain('selectedShotAttemptIds');
+  });
 });

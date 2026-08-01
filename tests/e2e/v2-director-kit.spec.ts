@@ -345,12 +345,25 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(blockedProjectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
     await blockedProjectDashboard.getByRole('button', { name: '全部交接' }).click();
     await page.getByRole('button', { name: '收起' }).click();
+    await page.getByRole('button', { name: '导入结果' }).click();
+    await page.getByLabel('生成平台').fill('Runway');
+    await page.getByLabel('模型版本').fill('Gen-4.5');
+    await page.getByLabel('尝试结果').selectOption('usable');
+    await page.getByLabel('素材引用').fill('shot-1-v2.mp4');
+    await page.getByLabel('尝试备注').fill('主体稳定，动作节奏可用');
+    await page.getByLabel('生成成本').fill('0.5');
+    await page.getByLabel('生成耗时').fill('41');
+    await page.getByRole('button', { name: '保存并选中' }).click();
+    await expect(page.getByText('Runway · Gen-4.5').and(page.locator(':visible'))).toBeVisible();
+    await expect(page.getByText('$0.50 · 41s').and(page.locator(':visible'))).toBeVisible();
+    await page.waitForFunction(() => {
+      const raw = window.localStorage.getItem('jingci-current-project');
+      return raw?.includes('shotAttempts') && raw.includes('shot-1-v2.mp4');
+    });
     if (isMobile) {
       await expect(page.getByLabel('当前镜头素材 / 备注')).toBeVisible();
-      await page.getByPlaceholder('记录平台链接、文件名或失败原因...').fill('Seedance 生成链接：demo-shot-1');
     } else {
       await expect(page.getByLabel('素材链接 / 结果备注')).toBeVisible();
-      await page.getByPlaceholder('粘贴平台生成链接、文件名或记录翻车原因...').fill('Seedance 生成链接：demo-shot-1');
     }
     await page.getByRole('button', { name: '复制执行清单' }).click();
     await expect(page.getByText('执行清单已复制')).toBeVisible();
@@ -370,7 +383,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
     await expect(page.getByText('100%')).toBeVisible();
     await expect(page.getByText('交接状态：可交接')).toBeVisible();
-    await page.getByRole('button', { name: '可用' }).click();
+    await page.getByRole('button', { name: '可用', exact: true }).click();
     await expect(page.getByText('1/1 个镜头已有执行结果')).toBeVisible();
     if (isMobile) {
       await page.getByRole('button', { name: /Work/ }).click();
