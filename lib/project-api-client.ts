@@ -58,6 +58,17 @@ export function normalizeCloudProjectSummary(value: unknown): LocalProjectWorksp
         ? row.latestCalibrationOutcome
         : null,
     latestCalibrationPlatform: typeof row.latestCalibrationPlatform === 'string' ? row.latestCalibrationPlatform : null,
+    selectedAttemptCount: typeof row.selectedAttemptCount === 'number' ? row.selectedAttemptCount : 0,
+    latestSelectedAttemptProvider:
+      typeof row.latestSelectedAttemptProvider === 'string' ? row.latestSelectedAttemptProvider : null,
+    latestSelectedAttemptModel:
+      typeof row.latestSelectedAttemptModel === 'string' ? row.latestSelectedAttemptModel : null,
+    latestSelectedAttemptStatus:
+      row.latestSelectedAttemptStatus === 'generated' ||
+      row.latestSelectedAttemptStatus === 'failed' ||
+      row.latestSelectedAttemptStatus === 'usable'
+        ? row.latestSelectedAttemptStatus
+        : null,
     handoffReady: typeof row.handoffReady === 'boolean' ? row.handoffReady : false,
     handoffBlockingIssueCount:
       typeof row.handoffBlockingIssueCount === 'number' ? row.handoffBlockingIssueCount : handoffBlockingReasons.length,

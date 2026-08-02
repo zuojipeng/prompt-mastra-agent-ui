@@ -42,6 +42,12 @@ const CALIBRATION_OUTCOME_LABELS: Record<NonNullable<LocalProjectWorkspaceSummar
   inconclusive: '不确定',
 };
 
+const ATTEMPT_STATUS_LABELS: Record<NonNullable<LocalProjectWorkspaceSummary['latestSelectedAttemptStatus']>, string> = {
+  generated: '已生成',
+  failed: '翻车',
+  usable: '可用',
+};
+
 function getHandoffLabel(project: LocalProjectWorkspaceSummary) {
   return project.handoffReady ? '可交接' : project.handoffBlockingIssueCount > 0 ? `缺 ${project.handoffBlockingIssueCount} 项` : '--';
 }
@@ -87,6 +93,8 @@ export function ProjectDashboardPanel({
         getTargetTypeLabel(project.targetType).toLowerCase().includes(normalizedQuery) ||
         (project.latestIterationFocus ?? '').toLowerCase().includes(normalizedQuery) ||
         (project.latestCalibrationPlatform ?? '').toLowerCase().includes(normalizedQuery) ||
+        (project.latestSelectedAttemptProvider ?? '').toLowerCase().includes(normalizedQuery) ||
+        (project.latestSelectedAttemptModel ?? '').toLowerCase().includes(normalizedQuery) ||
         project.handoffBlockingReasons.some((reason) => reason.toLowerCase().includes(normalizedQuery)) ||
         getHandoffLabel(project).toLowerCase().includes(normalizedQuery);
       const matchesStage = stageFilter === 'all' || project.stage === stageFilter;
@@ -238,6 +246,11 @@ export function ProjectDashboardPanel({
                   {project.latestCalibrationPlatform && project.latestCalibrationOutcome && (
                     <p className="mt-1 truncate text-[11px] text-cyan-700 dark:text-cyan-300">
                       最近校准：{project.latestCalibrationPlatform} · {CALIBRATION_OUTCOME_LABELS[project.latestCalibrationOutcome]}
+                    </p>
+                  )}
+                  {project.latestSelectedAttemptProvider && project.latestSelectedAttemptModel && project.latestSelectedAttemptStatus && (
+                    <p className="mt-1 truncate text-[11px] text-violet-700 dark:text-violet-300">
+                      选中出片：{project.latestSelectedAttemptProvider} · {project.latestSelectedAttemptModel} · {ATTEMPT_STATUS_LABELS[project.latestSelectedAttemptStatus]}
                     </p>
                   )}
                   <p className={`mt-1 truncate text-[11px] ${project.handoffReady ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'}`}>

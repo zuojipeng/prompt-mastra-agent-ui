@@ -112,6 +112,12 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
         const directorKit = workspace.directorKit as { shotCards?: Array<{ shotId: number }> } | undefined;
         const shotExecutionStatus = workspace.shotExecutionStatus as Record<string, string> | undefined;
         const shotResultNotes = workspace.shotResultNotes as Record<string, string> | undefined;
+        const iterations = Array.isArray(workspace.iterations) ? workspace.iterations as Array<Record<string, unknown>> : [];
+        const platformCalibrations = Array.isArray(workspace.platformCalibrations)
+          ? workspace.platformCalibrations as Array<Record<string, unknown>>
+          : [];
+        const shotAttempts = workspace.shotAttempts as Record<string, Array<Record<string, unknown>>> | undefined;
+        const selectedShotAttemptIds = workspace.selectedShotAttemptIds as Record<string, string> | undefined;
         const shotCards = directorKit?.shotCards ?? [];
         const completedShotCount = shotCards.filter((card) => (shotExecutionStatus?.[card.shotId] ?? 'pending') !== 'pending').length;
         const handoffBlockingReasons = shotCards.flatMap((card) => {
@@ -123,6 +129,11 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
           return [];
         });
         const handoffBlockingIssueCount = handoffBlockingReasons.length;
+        const selectedAttempts = Object.entries(selectedShotAttemptIds ?? {}).flatMap(([shotId, selectedId]) => {
+          const selected = shotAttempts?.[shotId]?.find((attempt) => attempt.id === selectedId);
+          return selected ? [selected] : [];
+        });
+        const latestSelectedAttempt = selectedAttempts[0];
 
         return {
           id: workspace.id,
@@ -133,6 +144,15 @@ async function mockDirectorKit(page: Page, options?: { failOnce?: boolean }) {
           stage: workspace.v2State,
           shotCount: shotCards.length,
           completedShotCount,
+          iterationCount: iterations.length,
+          latestIterationFocus: typeof iterations[0]?.focus === 'string' ? iterations[0].focus : null,
+          calibrationCount: platformCalibrations.length,
+          latestCalibrationOutcome: platformCalibrations[0]?.outcome ?? null,
+          latestCalibrationPlatform: platformCalibrations[0]?.platform ?? null,
+          selectedAttemptCount: selectedAttempts.length,
+          latestSelectedAttemptProvider: latestSelectedAttempt?.provider ?? null,
+          latestSelectedAttemptModel: latestSelectedAttempt?.model ?? null,
+          latestSelectedAttemptStatus: latestSelectedAttempt?.status ?? null,
           handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
           handoffBlockingIssueCount,
           handoffBlockingReasons,
@@ -399,6 +419,7 @@ test.describe('V2 DirectorKit browser flow', () => {
     await expect(page.getByRole('heading', { name: '项目仪表盘' })).toBeVisible();
     const projectDashboard = page.getByRole('region', { name: '项目仪表盘' });
     await expect(page.getByText('最近校准：Seedance · 通过')).toBeVisible();
+    await expect(projectDashboard.getByText('选中出片：Runway · Gen-4.5 · 可用')).toBeVisible();
     await expect(projectDashboard.getByRole('button', { name: /废土小镇里/ })).toBeVisible();
     await expect(projectDashboard.getByText('交接状态：可交接')).toBeVisible();
     await projectDashboard.getByRole('button', { name: '可交接' }).click();

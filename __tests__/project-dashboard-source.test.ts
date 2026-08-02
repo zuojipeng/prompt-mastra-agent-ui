@@ -19,6 +19,14 @@ describe('project dashboard source contract', () => {
     expect(source).toContain('project.calibrationCount');
   });
 
+  it('surfaces the latest explicitly selected shot result', () => {
+    expect(source).toContain('选中出片：');
+    expect(source).toContain('project.latestSelectedAttemptProvider');
+    expect(source).toContain('project.latestSelectedAttemptModel');
+    expect(source).toContain('project.latestSelectedAttemptStatus');
+    expect(source).toContain('ATTEMPT_STATUS_LABELS');
+  });
+
   it('surfaces handoff readiness in the project dashboard', () => {
     expect(source).toContain('Handoff');
     expect(source).toContain('handoffReadyProjects');

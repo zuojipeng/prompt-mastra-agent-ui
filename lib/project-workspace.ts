@@ -107,6 +107,10 @@ export type LocalProjectWorkspaceSummary = {
   calibrationCount: number;
   latestCalibrationOutcome: PlatformCalibrationOutcome | null;
   latestCalibrationPlatform: string | null;
+  selectedAttemptCount: number;
+  latestSelectedAttemptProvider: string | null;
+  latestSelectedAttemptModel: string | null;
+  latestSelectedAttemptStatus: ShotGenerationAttemptStatus | null;
   handoffReady: boolean;
   handoffBlockingIssueCount: number;
   handoffBlockingReasons: string[];
@@ -332,6 +336,14 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     return [];
   });
   const handoffBlockingIssueCount = handoffBlockingReasons.length;
+  const selectedAttempts = Object.entries(project.selectedShotAttemptIds ?? {}).flatMap(([shotId, selectedId]) => {
+    const selected = project.shotAttempts?.[Number(shotId)]?.find((attempt) => attempt.id === selectedId);
+    return selected ? [selected] : [];
+  });
+  const latestSelectedAttempt = selectedAttempts.reduce<ShotGenerationAttempt | null>((latest, attempt) => {
+    if (!latest) return attempt;
+    return Date.parse(attempt.createdAt) > Date.parse(latest.createdAt) ? attempt : latest;
+  }, null);
 
   return {
     id: project.id,
@@ -347,6 +359,10 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     calibrationCount: project.platformCalibrations?.length ?? 0,
     latestCalibrationOutcome: project.platformCalibrations?.[0]?.outcome ?? null,
     latestCalibrationPlatform: project.platformCalibrations?.[0]?.platform ?? null,
+    selectedAttemptCount: selectedAttempts.length,
+    latestSelectedAttemptProvider: latestSelectedAttempt?.provider ?? null,
+    latestSelectedAttemptModel: latestSelectedAttempt?.model ?? null,
+    latestSelectedAttemptStatus: latestSelectedAttempt?.status ?? null,
     handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
     handoffBlockingIssueCount,
     handoffBlockingReasons,

@@ -309,6 +309,10 @@ describe('project workspace persistence', () => {
         calibrationCount: 0,
         latestCalibrationOutcome: null,
         latestCalibrationPlatform: null,
+        selectedAttemptCount: 0,
+        latestSelectedAttemptProvider: null,
+        latestSelectedAttemptModel: null,
+        latestSelectedAttemptStatus: null,
         handoffReady: true,
         handoffBlockingIssueCount: 0,
         handoffBlockingReasons: [],
@@ -455,6 +459,15 @@ describe('project workspace persistence', () => {
     expect(reselected.shotExecutionStatus[1]).toBe('generated');
     expect(reselected.shotResultNotes[1]).toBe('shot-1-v1.mp4 · 主体轻微漂移');
     expect(reselected.updatedAt).toBe('2026-06-16T03:00:00.000Z');
+
+    const storage = createStorage();
+    saveLocalProjectWorkspace(reselected, storage);
+    expect(loadLocalProjectWorkspaceSummaries(storage)[0]).toMatchObject({
+      selectedAttemptCount: 1,
+      latestSelectedAttemptProvider: 'Runway',
+      latestSelectedAttemptModel: 'Gen-4.5',
+      latestSelectedAttemptStatus: 'generated',
+    });
   });
 
   it('requires usable evidence for manually imported attempts', () => {

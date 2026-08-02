@@ -3,18 +3,19 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-08-01
+Last Updated: 2026-08-02
 
 ## Active Tasks
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Sync handoff blocking reasons to the backend Projects API and verify local/cloud parity |
-| JC-T002 | Production Projects API release verification | blocked | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Production smoke still fails at `/api/projects` 404; current env lacks Wrangler login, Cloudflare token, and valid `gh` auth |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Summary parity is implemented by JC-T007; release after approved backend deployment and E5 smoke |
+| JC-T002 | Production Projects API release verification | in_review | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Base Projects API was production-verified on 2026-07-12; deploy the new summary contract only after release approval |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
 | JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Export follow-up completed by JC-T006; keep provider adapters behind an explicit paid-call gate |
 | JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
+| JC-T007 | Local/cloud project evidence summary parity | in_review | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Commit and push both repos; request production deployment approval separately |
 
 ## Backlog
 
@@ -468,6 +469,19 @@ Decision: SHIP
 Next owner: Hermes Orchestrator
 Close condition: Commit and push the reviewed slice.
 
+### 2026-08-02 11:30 T039
+
+Type: REVIEWED
+From: Product Agent + UEAgent + Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + DevOps Agent + Hermes Orchestrator
+Task: JC-T007
+Gate: Product / UE / Architecture / Engineering / Test / Release
+Message: Local and cloud project summaries now preserve iteration, calibration, handoff, and explicitly selected shot evidence; the dashboard surfaces the selected provider, model, and status without adding another panel.
+Evidence: E3 `docs/agent-runs/2026-08-02-project-summary-parity.md`, E3 `docs/code-reviews/2026-08-02-project-summary-parity.md`, E3 `docs/test-reports/2026-08-02-project-summary-parity.md`, E4 backend local Worker smoke
+Decision: READY_FOR_RELEASE_APPROVAL
+Next owner: Hermes Orchestrator + DevOps Agent
+Close condition: Commit and push both repositories; deploy the backend only after explicit production approval and then run E5 smoke.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -510,6 +524,7 @@ Close condition: Commit and push the reviewed slice.
 | EV-JC-036 | JC-T001 | E3 | Project Dashboard names why saved workspaces are blocked from handoff and preserves ready/blocked behavior on desktop/mobile | `lib/project-workspace.ts`, `lib/project-api-client.ts`, `app/components/ProjectDashboardPanel.tsx`, `__tests__/project-workspace.test.ts`, `__tests__/project-api-client.test.ts`, `__tests__/project-dashboard-source.test.ts`, `tests/e2e/v2-director-kit.spec.ts`, `docs/test-reports/2026-07-11-dashboard-handoff-reasons.md` | Added, full validation and browser evidence pass after two recorded test repairs | Code Review Agent + Test Agent |
 | EV-JC-037 | JC-T005 | E3 | Per-shot generation attempts preserve provider/model/result/cost/duration evidence and explicit selected result without a provider integration | `lib/project-workspace.ts`, `app/components/ShotAttemptPanel.tsx`, `app/components/ChatBox.tsx`, unit/source tests, desktop/mobile Playwright, build | Added, full validation and browser evidence pass after recorded repairs | Code Review Agent + Test Agent |
 | EV-JC-038 | JC-T006 | E3 | Checklist, snapshot, and operator handoff export only the explicitly selected attempt metadata and reject stale selection fallback | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, full unit/source suite, typecheck, lint, build | Added, 99 tests and production build pass | Code Review Agent + Test Agent |
+| EV-JC-039 | JC-T007 | E3/E4 | Local and cloud project summaries use compatible evidence fields and the dashboard shows the explicitly selected result on desktop/mobile | frontend workspace/API/dashboard code and tests; backend Projects API derivation and 8-step local Worker smoke; `docs/test-reports/2026-08-02-project-summary-parity.md` | Added; frontend 100 tests, build, scoped lint, desktop/mobile E2E pass; backend local smoke 8/8 | Code Review Agent + Test Agent |
 
 ## Review Index
 
@@ -546,3 +561,4 @@ Close condition: Commit and push the reviewed slice.
 | RV-JC-029 | JC-T001 | Product Agent + UEAgent + Engineering Agent | Code Review Agent + Test Agent | PASS for dashboard handoff reasons | Local domain owns rules; dashboard only formats summary; old cloud summaries remain compatible | Add Projects API parity next |
 | RV-JC-030 | JC-T005 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS after repair | Fixed backward workspace timestamps and test locator ambiguity; no P0/P1 findings remain | Commit and push |
 | RV-JC-031 | JC-T006 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS | Explicit selection prevents stale/latest fallback; optional context keeps old callers compatible | Commit and push |
+| RV-JC-032 | JC-T007 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS FOR RELEASE CANDIDATE | Backend malformed evidence validation repaired; old cloud summaries fail closed; no P0/P1 findings remain | Commit/push, then obtain production deployment approval and E5 smoke |
