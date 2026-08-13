@@ -1,0 +1,30 @@
+{
+  "schema_version": "team-os.campaign-result.v1",
+  "opportunity_id": "devpost-30205",
+  "checked_at": "2026-08-13T00:00:00+07:00",
+  "official_gallery": "https://backblaze-generative-media.devpost.com/project-gallery",
+  "official_update": "https://backblaze-generative-media.devpost.com/updates/44903-and-the-winner-is",
+  "submission_url": "https://devpost.com/software/jingci-provenance-vault",
+  "submission_count": 243,
+  "participant_count": 1314,
+  "winner_count": 13,
+  "outcome": "not_selected",
+  "winner_badge_present": false,
+  "prizes": {
+    "grand_prize": "FirstFrame",
+    "second_place": "Beavous",
+    "third_place": "Takegraph",
+    "feedback_prize": [
+      "Fernwood",
+      "Notary - An AI Creative Review Board for Generative Media",
+      "Cinemory",
+      "Hallmark",
+      "SIGMORA(sigmora.org)",
+      "Ninth",
+      "Spatialize",
+      "VeriStudio",
+      "Trueprint: AI restoration that proves what's real",
+      "Reel"
+    ]
+  }
+}
