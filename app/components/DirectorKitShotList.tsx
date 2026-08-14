@@ -5,7 +5,7 @@ import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
-import type { ShotGenerationAttempt, ShotGenerationAttemptInput } from '@/lib/project-workspace';
+import type { ShotApprovalReceipt, ShotGenerationAttempt, ShotGenerationAttemptInput } from '@/lib/project-workspace';
 import { ShotAttemptPanel } from './ShotAttemptPanel';
 
 function getGenerationModeLabel(mode: ShotCard['generationMode']) {
@@ -54,11 +54,13 @@ export function DirectorKitShotList({
   shotResultNotes,
   shotAttempts,
   selectedShotAttemptIds,
+  shotApprovalReceipts,
   onCopyShotPrompt,
   onStatusChange,
   onShotResultNoteChange,
   onImportAttempt,
   onSelectAttempt,
+  onApproveAttempt,
   selectedShotId,
   onSelectShot,
   renderFeedback,
@@ -70,11 +72,13 @@ export function DirectorKitShotList({
   shotResultNotes: Record<number, string>;
   shotAttempts: Record<number, ShotGenerationAttempt[]>;
   selectedShotAttemptIds: Record<number, string>;
+  shotApprovalReceipts: Record<number, ShotApprovalReceipt>;
   onCopyShotPrompt: (card: ShotCard) => void;
   onStatusChange: (shotId: number, status: ShotExecutionStatus) => void;
   onShotResultNoteChange: (shotId: number, value: string) => void;
   onImportAttempt: (input: ShotGenerationAttemptInput) => void;
   onSelectAttempt: (shotId: number, attemptId: string) => void;
+  onApproveAttempt: (shotId: number, decisionNote: string) => void;
   selectedShotId?: number | null;
   onSelectShot?: (card: ShotCard) => void;
   renderFeedback: (card: ShotCard) => ReactNode;
@@ -192,8 +196,10 @@ export function DirectorKitShotList({
               shotId={card.shotId}
               attempts={shotAttempts[card.shotId] ?? []}
               selectedAttemptId={selectedShotAttemptIds[card.shotId] ?? null}
+              approvalReceipt={shotApprovalReceipts[card.shotId] ?? null}
               onImport={onImportAttempt}
               onSelect={onSelectAttempt}
+              onApprove={onApproveAttempt}
             />
             <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">
               <label

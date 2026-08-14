@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-08-02
+Last Updated: 2026-08-14
 
 ## Active Tasks
 
@@ -16,6 +16,7 @@ Last Updated: 2026-08-02
 | JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Export follow-up completed by JC-T006; keep provider adapters behind an explicit paid-call gate |
 | JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
 | JC-T007 | Local/cloud project evidence summary parity | in_review | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Commit and push both repos; request production deployment approval separately |
+| JC-T008 | Selected shot delivery approval receipt | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / UE / Architecture / Engineering / Test / Ops | E3 domain/export tests, E3 desktop/mobile browser evidence, explicit claims boundary | Evaluate approval as a handoff-readiness requirement in a separate product slice |
 
 ## Backlog
 
@@ -482,6 +483,19 @@ Decision: READY_FOR_RELEASE_APPROVAL
 Next owner: Hermes Orchestrator + DevOps Agent
 Close condition: Commit and push both repositories; deploy the backend only after explicit production approval and then run E5 smoke.
 
+### 2026-08-14 19:45 T040
+
+Type: REVIEWED
+From: Product Agent + UEAgent + Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + Operator Agent + Hermes Orchestrator
+Task: JC-T008
+Gate: Product / UE / Architecture / Engineering / Test / Ops
+Message: A selected usable shot attempt can now receive a durable human delivery approval receipt; changing selection invalidates it, and exports state the non-cryptographic evidence boundary.
+Evidence: E3 `docs/agent-runs/2026-08-14-shot-delivery-approval.md`, E3 `docs/code-reviews/2026-08-14-shot-delivery-approval.md`, E3 `docs/test-reports/2026-08-14-shot-delivery-approval.md`
+Decision: SHIP
+Next owner: Hermes Orchestrator
+Close condition: Commit and push the reviewed frontend slice; no production deployment.
+
 ## Evidence Index
 
 | Evidence ID | Task | Level | Claim | Source / Command / Tool | Result | Reviewer |
@@ -525,6 +539,7 @@ Close condition: Commit and push both repositories; deploy the backend only afte
 | EV-JC-037 | JC-T005 | E3 | Per-shot generation attempts preserve provider/model/result/cost/duration evidence and explicit selected result without a provider integration | `lib/project-workspace.ts`, `app/components/ShotAttemptPanel.tsx`, `app/components/ChatBox.tsx`, unit/source tests, desktop/mobile Playwright, build | Added, full validation and browser evidence pass after recorded repairs | Code Review Agent + Test Agent |
 | EV-JC-038 | JC-T006 | E3 | Checklist, snapshot, and operator handoff export only the explicitly selected attempt metadata and reject stale selection fallback | `lib/director-kit-export.ts`, `app/components/ChatBox.tsx`, `__tests__/director-kit-export.test.ts`, `__tests__/chatbox-v2-source.test.ts`, full unit/source suite, typecheck, lint, build | Added, 99 tests and production build pass | Code Review Agent + Test Agent |
 | EV-JC-039 | JC-T007 | E3/E4 | Local and cloud project summaries use compatible evidence fields and the dashboard shows the explicitly selected result on desktop/mobile | frontend workspace/API/dashboard code and tests; backend Projects API derivation and 8-step local Worker smoke; `docs/test-reports/2026-08-02-project-summary-parity.md` | Added; frontend 100 tests, build, scoped lint, desktop/mobile E2E pass; backend local smoke 8/8 | Code Review Agent + Test Agent |
+| EV-JC-040 | JC-T008 | E3 | Human delivery approval is bound to the selected usable attempt, persists locally, exports with an explicit non-cryptographic boundary, and works on desktop/mobile | workspace/UI/export code, 104 unit/source tests, typecheck, scoped lint, build, desktop/mobile Playwright; `docs/test-reports/2026-08-14-shot-delivery-approval.md` | PASS after one locator repair loop | Code Review Agent + Test Agent + Operator Agent |
 
 ## Review Index
 
@@ -562,3 +577,4 @@ Close condition: Commit and push both repositories; deploy the backend only afte
 | RV-JC-030 | JC-T005 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS after repair | Fixed backward workspace timestamps and test locator ambiguity; no P0/P1 findings remain | Commit and push |
 | RV-JC-031 | JC-T006 | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | PASS | Explicit selection prevents stale/latest fallback; optional context keeps old callers compatible | Commit and push |
 | RV-JC-032 | JC-T007 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | PASS FOR RELEASE CANDIDATE | Backend malformed evidence validation repaired; old cloud summaries fail closed; no P0/P1 findings remain | Commit/push, then obtain production deployment approval and E5 smoke |
+| RV-JC-033 | JC-T008 | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | PASS | Stale approval is deleted on selection change and ignored by UI/exports; human/non-cryptographic evidence boundary is explicit | Commit and push; assess readiness policy separately |

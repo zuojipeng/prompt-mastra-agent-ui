@@ -299,6 +299,44 @@ describe('director kit export builders', () => {
     expect(buildOperatorHandoffNotes(kit, staleSelectionContext)).not.toContain('生成成本/耗时：成本 $0.50');
   });
 
+  it('exports only the approval receipt for the currently selected attempt', () => {
+    const approvedContext: DirectorKitExportContext = {
+      ...context,
+      shotAttempts: {
+        1: [{ ...context.shotAttempts![1][0], status: 'usable' }],
+      },
+      shotApprovalReceipts: {
+        1: {
+          id: 'approval-1',
+          approvedAt: '2026-06-06T02:00:00.000Z',
+          shotId: 1,
+          attemptId: 'attempt-1',
+          provider: 'Runway',
+          model: 'Gen-4.5',
+          assetRef: 'b2://jingci-preview/shot-1-v2.mp4',
+          decisionNote: '主体稳定，已人工复核。',
+          evidenceKind: 'human_approval',
+        },
+      },
+    };
+
+    [
+      buildExecutionChecklist(kit, approvedContext),
+      buildProjectSnapshot(kit, approvedContext),
+      buildOperatorHandoffNotes(kit, approvedContext),
+    ].forEach((output) => {
+      expect(output).toContain('人工审批：已批准交付｜2026-06-06T02:00:00.000Z');
+      expect(output).toContain('审批说明：主体稳定，已人工复核。');
+      expect(output).toContain('证据边界：人工审批回执，非加密存证');
+    });
+
+    const staleApprovalContext = {
+      ...approvedContext,
+      selectedShotAttemptIds: { 1: 'another-attempt' },
+    };
+    expect(buildExecutionChecklist(kit, staleApprovalContext)).not.toContain('人工审批：');
+  });
+
   it('builds a platform feed pack', () => {
     const pack = buildPlatformFeedPack(kit, kit.platformAdvice[0], context);
 

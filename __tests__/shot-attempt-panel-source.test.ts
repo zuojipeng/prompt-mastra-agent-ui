@@ -22,4 +22,11 @@ describe('ShotAttemptPanel source contract', () => {
     expect(source).toContain('onSelect(shotId, attempt.id)');
     expect(source).toContain('保留最近 8 个');
   });
+
+  it('requires a human decision note and states the evidence boundary', () => {
+    expect(source).toContain('aria-label="交付审批说明"');
+    expect(source).toContain('批准为交付版本');
+    expect(source).toContain('交付已批准');
+    expect(source).toContain('人工审批回执 · 非加密存证');
+  });
 });

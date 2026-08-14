@@ -5,7 +5,7 @@ import type { ShotCard } from '@/lib/director-kit-contract';
 import type { ShotExecutionStatus } from '@/lib/director-kit-export';
 import { DirectorKitShotExecutionControls } from './DirectorKitShotExecutionControls';
 import type { ShotExecutionOption } from './DirectorKitExecutionPanel';
-import type { ShotGenerationAttempt, ShotGenerationAttemptInput } from '@/lib/project-workspace';
+import type { ShotApprovalReceipt, ShotGenerationAttempt, ShotGenerationAttemptInput } from '@/lib/project-workspace';
 import { ShotAttemptPanel } from './ShotAttemptPanel';
 
 export function DirectorKitShotInspector({
@@ -16,11 +16,13 @@ export function DirectorKitShotInspector({
   resultNote,
   attempts,
   selectedAttemptId,
+  approvalReceipt,
   onCopyShotPrompt,
   onStatusChange,
   onShotResultNoteChange,
   onImportAttempt,
   onSelectAttempt,
+  onApproveAttempt,
   renderFeedback,
 }: {
   shot: ShotCard | null;
@@ -30,11 +32,13 @@ export function DirectorKitShotInspector({
   resultNote: string;
   attempts: ShotGenerationAttempt[];
   selectedAttemptId: string | null;
+  approvalReceipt: ShotApprovalReceipt | null;
   onCopyShotPrompt: (card: ShotCard) => void;
   onStatusChange: (shotId: number, status: ShotExecutionStatus) => void;
   onShotResultNoteChange: (shotId: number, value: string) => void;
   onImportAttempt: (input: ShotGenerationAttemptInput) => void;
   onSelectAttempt: (shotId: number, attemptId: string) => void;
+  onApproveAttempt: (shotId: number, decisionNote: string) => void;
   renderFeedback: (card: ShotCard) => ReactNode;
 }) {
   if (!shot) {
@@ -86,8 +90,10 @@ export function DirectorKitShotInspector({
         shotId={shot.shotId}
         attempts={attempts}
         selectedAttemptId={selectedAttemptId}
+        approvalReceipt={approvalReceipt}
         onImport={onImportAttempt}
         onSelect={onSelectAttempt}
+        onApprove={onApproveAttempt}
       />
 
       <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/70">

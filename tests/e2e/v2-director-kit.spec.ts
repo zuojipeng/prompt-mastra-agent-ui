@@ -376,9 +376,15 @@ test.describe('V2 DirectorKit browser flow', () => {
     await page.getByRole('button', { name: '保存并选中' }).click();
     await expect(page.getByText('Runway · Gen-4.5').and(page.locator(':visible'))).toBeVisible();
     await expect(page.getByText('$0.50 · 41s').and(page.locator(':visible'))).toBeVisible();
+    await page.getByLabel('交付审批说明').and(page.locator(':visible')).fill('主体稳定，动作节奏已人工复核，可进入交付。');
+    await page.getByRole('button', { name: '批准为交付版本' }).and(page.locator(':visible')).click();
+    await expect(page.getByText('交付已批准').and(page.locator(':visible'))).toBeVisible();
+    await expect(page.getByText('人工审批回执 · 非加密存证').and(page.locator(':visible'))).toBeVisible();
     await page.waitForFunction(() => {
       const raw = window.localStorage.getItem('jingci-current-project');
-      return raw?.includes('shotAttempts') && raw.includes('shot-1-v2.mp4');
+      return raw?.includes('shotApprovalReceipts') &&
+        raw.includes('shot-1-v2.mp4') &&
+        raw.includes('主体稳定，动作节奏已人工复核，可进入交付。');
     });
     if (isMobile) {
       await expect(page.getByLabel('当前镜头素材 / 备注')).toBeVisible();

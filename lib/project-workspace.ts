@@ -72,6 +72,18 @@ export type ShotGenerationAttempt = {
 
 export type ShotGenerationAttemptInput = Omit<ShotGenerationAttempt, 'id' | 'createdAt' | 'source'>;
 
+export type ShotApprovalReceipt = {
+  id: string;
+  approvedAt: string;
+  shotId: number;
+  attemptId: string;
+  provider: string;
+  model: string;
+  assetRef: string;
+  decisionNote: string;
+  evidenceKind: 'human_approval';
+};
+
 export type LocalProjectWorkspace = {
   schemaVersion: typeof LOCAL_PROJECT_WORKSPACE_SCHEMA_VERSION;
   id: string;
@@ -89,6 +101,7 @@ export type LocalProjectWorkspace = {
   shotResultNotes: Record<number, string>;
   shotAttempts?: Record<number, ShotGenerationAttempt[]>;
   selectedShotAttemptIds?: Record<number, string>;
+  shotApprovalReceipts?: Record<number, ShotApprovalReceipt>;
   iterations?: ProjectWorkspaceIteration[];
   platformCalibrations?: PlatformCalibrationEvidence[];
 };
@@ -127,7 +140,7 @@ export type LocalProjectWorkspaceInput = Pick<
   | 'selectedShotId'
   | 'shotExecutionStatus'
   | 'shotResultNotes'
-> & Pick<LocalProjectWorkspace, 'shotAttempts' | 'selectedShotAttemptIds'>;
+> & Pick<LocalProjectWorkspace, 'shotAttempts' | 'selectedShotAttemptIds' | 'shotApprovalReceipts'>;
 
 type WorkspaceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -281,6 +294,49 @@ function isShotAttemptsRecord(value: unknown) {
 function isStringRecord(value: unknown): value is Record<number, string> {
   if (!isRecord(value)) return false;
   return Object.values(value).every((entry) => typeof entry === 'string');
+}
+
+function isShotApprovalReceipt(value: unknown): value is ShotApprovalReceipt {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'string' &&
+    typeof value.approvedAt === 'string' &&
+    !Number.isNaN(Date.parse(value.approvedAt)) &&
+    Number.isInteger(value.shotId) &&
+    (value.shotId as number) > 0 &&
+    typeof value.attemptId === 'string' &&
+    typeof value.provider === 'string' && value.provider.trim().length > 0 &&
+    typeof value.model === 'string' && value.model.trim().length > 0 &&
+    typeof value.assetRef === 'string' && value.assetRef.trim().length > 0 &&
+    typeof value.decisionNote === 'string' && value.decisionNote.trim().length > 0 &&
+    value.evidenceKind === 'human_approval'
+  );
+}
+
+function normalizeShotApprovalReceipts(value: unknown): Record<number, ShotApprovalReceipt> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([shotId, receipt]) => {
+      const parsedShotId = Number(shotId);
+      return Number.isInteger(parsedShotId) &&
+        parsedShotId > 0 &&
+        isShotApprovalReceipt(receipt) &&
+        receipt.shotId === parsedShotId
+        ? [[parsedShotId, receipt]]
+        : [];
+    }),
+  );
+}
+
+function isShotApprovalReceiptRecord(value: unknown) {
+  if (!isRecord(value)) return false;
+  return Object.entries(value).every(([shotId, receipt]) => {
+    const parsedShotId = Number(shotId);
+    return Number.isInteger(parsedShotId) &&
+      parsedShotId > 0 &&
+      isShotApprovalReceipt(receipt) &&
+      receipt.shotId === parsedShotId;
+  });
 }
 
 function isDirectorKit(value: unknown): value is DirectorKit {
@@ -489,12 +545,51 @@ export function selectShotGenerationAttempt(
   const attempt = workspace.shotAttempts?.[shotId]?.find((candidate) => candidate.id === attemptId);
   if (!attempt) return workspace;
   const resultNote = [attempt.assetRef, attempt.note].filter(Boolean).join(' · ');
+  const shotApprovalReceipts = { ...workspace.shotApprovalReceipts };
+  if (shotApprovalReceipts[shotId]?.attemptId !== attempt.id) {
+    delete shotApprovalReceipts[shotId];
+  }
   return {
     ...workspace,
     updatedAt: now,
     selectedShotAttemptIds: { ...workspace.selectedShotAttemptIds, [shotId]: attempt.id },
+    shotApprovalReceipts,
     shotExecutionStatus: { ...workspace.shotExecutionStatus, [shotId]: attempt.status },
     shotResultNotes: { ...workspace.shotResultNotes, [shotId]: resultNote },
+  };
+}
+
+export function approveSelectedShotAttempt(
+  workspace: LocalProjectWorkspace,
+  shotId: number,
+  decisionNote: string,
+  now = new Date().toISOString(),
+): LocalProjectWorkspace {
+  const selectedAttemptId = workspace.selectedShotAttemptIds?.[shotId];
+  const attempt = workspace.shotAttempts?.[shotId]?.find((candidate) => candidate.id === selectedAttemptId);
+  const normalizedDecisionNote = decisionNote.trim();
+
+  if (!attempt) throw new Error('请先选择一个生成版本');
+  if (attempt.status !== 'usable') throw new Error('只有标记为可用的版本才能批准交付');
+  if (!attempt.assetRef.trim()) throw new Error('可交付版本需要素材引用');
+  if (!normalizedDecisionNote) throw new Error('请填写交付审批说明');
+
+  const receipt: ShotApprovalReceipt = {
+    id: createWorkspaceId(),
+    approvedAt: now,
+    shotId,
+    attemptId: attempt.id,
+    provider: attempt.provider,
+    model: attempt.model,
+    assetRef: attempt.assetRef,
+    decisionNote: normalizedDecisionNote,
+    evidenceKind: 'human_approval',
+  };
+
+  return {
+    ...workspace,
+    updatedAt: now,
+    shotApprovalReceipts: { ...workspace.shotApprovalReceipts, [shotId]: receipt },
   };
 }
 
@@ -529,6 +624,9 @@ export function createLocalProjectWorkspace(
     selectedShotAttemptIds: isStringRecord(input.selectedShotAttemptIds)
       ? input.selectedShotAttemptIds
       : existing?.selectedShotAttemptIds ?? {},
+    shotApprovalReceipts: normalizeShotApprovalReceipts(
+      input.shotApprovalReceipts ?? existing?.shotApprovalReceipts,
+    ),
     iterations: normalizeIterations(existing?.iterations),
     platformCalibrations: normalizePlatformCalibrations(existing?.platformCalibrations),
     createdAt: existing?.createdAt ?? now,
@@ -555,6 +653,7 @@ export function isLocalProjectWorkspace(value: unknown): value is LocalProjectWo
     isShotResultNotesRecord(value.shotResultNotes) &&
     (value.shotAttempts === undefined || isShotAttemptsRecord(value.shotAttempts)) &&
     (value.selectedShotAttemptIds === undefined || isStringRecord(value.selectedShotAttemptIds)) &&
+    (value.shotApprovalReceipts === undefined || isShotApprovalReceiptRecord(value.shotApprovalReceipts)) &&
     (value.iterations === undefined ||
       (Array.isArray(value.iterations) && value.iterations.every(isProjectWorkspaceIteration))) &&
     (value.platformCalibrations === undefined ||

@@ -3,6 +3,7 @@ import {
   appendShotGenerationAttempt,
   appendPlatformCalibrationEvidence,
   appendProjectWorkspaceIteration,
+  approveSelectedShotAttempt,
   clearLocalProjectWorkspace,
   createLocalProjectWorkspace,
   createPlatformCalibrationEvidence,
@@ -454,11 +455,32 @@ describe('project workspace persistence', () => {
     expect(withSecond.shotExecutionStatus[1]).toBe('usable');
     expect(withSecond.shotResultNotes[1]).toBe('shot-1-v2.mp4 · 主体稳定');
 
-    const reselected = selectShotGenerationAttempt(withSecond, 1, first.id, '2026-06-16T03:00:00.000Z');
+    const approved = approveSelectedShotAttempt(
+      withSecond,
+      1,
+      '主体和动作已人工复核，可进入交付。',
+      '2026-06-16T02:30:00.000Z',
+    );
+    expect(approved.shotApprovalReceipts?.[1]).toMatchObject({
+      approvedAt: '2026-06-16T02:30:00.000Z',
+      attemptId: second.id,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      assetRef: 'shot-1-v2.mp4',
+      decisionNote: '主体和动作已人工复核，可进入交付。',
+      evidenceKind: 'human_approval',
+    });
+
+    const approvalStorage = createStorage();
+    saveLocalProjectWorkspace(approved, approvalStorage);
+    expect(loadLocalProjectWorkspace(approvalStorage)?.shotApprovalReceipts?.[1]?.attemptId).toBe(second.id);
+
+    const reselected = selectShotGenerationAttempt(approved, 1, first.id, '2026-06-16T03:00:00.000Z');
     expect(reselected.selectedShotAttemptIds?.[1]).toBe(first.id);
     expect(reselected.shotExecutionStatus[1]).toBe('generated');
     expect(reselected.shotResultNotes[1]).toBe('shot-1-v1.mp4 · 主体轻微漂移');
     expect(reselected.updatedAt).toBe('2026-06-16T03:00:00.000Z');
+    expect(reselected.shotApprovalReceipts?.[1]).toBeUndefined();
 
     const storage = createStorage();
     saveLocalProjectWorkspace(reselected, storage);
@@ -503,6 +525,51 @@ describe('project workspace persistence', () => {
       costUsd: null,
       durationSeconds: null,
     })).toThrow('失败尝试需要填写失败原因');
+  });
+
+  it('rejects delivery approval without a selected usable attempt and decision note', () => {
+    const workspace = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    expect(() => approveSelectedShotAttempt(workspace, 1, '可以交付')).toThrow('请先选择一个生成版本');
+
+    const generated = createShotGenerationAttempt({
+      shotId: 1,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'generated',
+      assetRef: 'shot-1-v1.mp4',
+      note: '',
+      costUsd: null,
+      durationSeconds: null,
+    });
+    const withGenerated = appendShotGenerationAttempt(workspace, generated);
+    expect(() => approveSelectedShotAttempt(withGenerated, 1, '可以交付')).toThrow('只有标记为可用的版本才能批准交付');
+
+    const usable = createShotGenerationAttempt({
+      shotId: 1,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'usable',
+      assetRef: 'shot-1-v2.mp4',
+      note: '',
+      costUsd: null,
+      durationSeconds: null,
+    });
+    const withUsable = appendShotGenerationAttempt(withGenerated, usable);
+    expect(() => approveSelectedShotAttempt(withUsable, 1, '   ')).toThrow('请填写交付审批说明');
   });
 
   it('summarizes platform calibration evidence for project dashboards', () => {

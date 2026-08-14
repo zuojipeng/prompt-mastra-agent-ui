@@ -13,6 +13,7 @@ import {
 import type {
   PlatformCalibrationEvidence,
   ProjectWorkspaceIteration,
+  ShotApprovalReceipt,
   ShotGenerationAttempt,
 } from './project-workspace';
 
@@ -29,6 +30,7 @@ export type DirectorKitExportContext = {
   platformCalibrations?: PlatformCalibrationEvidence[];
   shotAttempts?: Record<number, ShotGenerationAttempt[]>;
   selectedShotAttemptIds?: Record<number, string>;
+  shotApprovalReceipts?: Record<number, ShotApprovalReceipt>;
 };
 
 type PlatformAdvice = DirectorKit['platformAdvice'][number];
@@ -101,6 +103,18 @@ function summarizeSelectedShotAttempt(context: DirectorKitExportContext, shotId:
     identity: `${attempt.provider}｜${attempt.model}｜${SHOT_STATUS_LABELS[attempt.status]}`,
     assetRef: attempt.assetRef.trim(),
     economics,
+  };
+}
+
+function summarizeShotApproval(context: DirectorKitExportContext, shotId: number) {
+  const receipt = context.shotApprovalReceipts?.[shotId];
+  const selectedAttemptId = context.selectedShotAttemptIds?.[shotId];
+  if (!receipt || receipt.attemptId !== selectedAttemptId) return null;
+
+  return {
+    approvedAt: receipt.approvedAt,
+    decisionNote: receipt.decisionNote,
+    boundary: '人工审批回执，非加密存证',
   };
 }
 
@@ -189,6 +203,7 @@ export function buildExecutionChecklist(kit: DirectorKit, context: DirectorKitEx
   const shotLines = (kit.shotCards ?? []).map((card) => {
     const resultNote = getResultNote(context, card.shotId);
     const selectedAttempt = summarizeSelectedShotAttempt(context, card.shotId);
+    const approval = summarizeShotApproval(context, card.shotId);
     return [
       `## 镜头 ${card.shotId}｜${card.duration}｜${getShotStatusLabel(context, card.shotId)}`,
       `目的：${card.purpose}`,
@@ -199,6 +214,9 @@ export function buildExecutionChecklist(kit: DirectorKit, context: DirectorKitEx
       selectedAttempt ? `选中版本：${selectedAttempt.identity}` : '',
       selectedAttempt?.assetRef ? `版本素材：${selectedAttempt.assetRef}` : '',
       selectedAttempt?.economics ? `生成成本/耗时：${selectedAttempt.economics}` : '',
+      approval ? `人工审批：已批准交付｜${approval.approvedAt}` : '',
+      approval ? `审批说明：${approval.decisionNote}` : '',
+      approval ? `证据边界：${approval.boundary}` : '',
       resultNote ? `素材/备注：${resultNote}` : '',
       card.fixSuggestion ? `补救：${card.fixSuggestion}` : '',
     ].filter(Boolean).join('\n');
@@ -252,6 +270,7 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
   const shotLines = (kit.shotCards ?? []).map((card) => {
     const resultNote = getResultNote(context, card.shotId);
     const selectedAttempt = summarizeSelectedShotAttempt(context, card.shotId);
+    const approval = summarizeShotApproval(context, card.shotId);
 
     return [
       `### 镜头 ${card.shotId}｜${getShotStatusLabel(context, card.shotId)}`,
@@ -264,6 +283,9 @@ export function buildProjectSnapshot(kit: DirectorKit, context: DirectorKitExpor
       selectedAttempt ? `- 选中版本：${selectedAttempt.identity}` : '',
       selectedAttempt?.assetRef ? `- 版本素材：${selectedAttempt.assetRef}` : '',
       selectedAttempt?.economics ? `- 生成成本/耗时：${selectedAttempt.economics}` : '',
+      approval ? `- 人工审批：已批准交付｜${approval.approvedAt}` : '',
+      approval ? `- 审批说明：${approval.decisionNote}` : '',
+      approval ? `- 证据边界：${approval.boundary}` : '',
       resultNote ? `- 素材/备注：${resultNote}` : '- 素材/备注：待补充',
     ].filter(Boolean).join('\n');
   });
@@ -367,12 +389,16 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
   const shotLines = (kit.shotCards ?? []).map((card) => {
     const resultNote = getResultNote(context, card.shotId);
     const selectedAttempt = summarizeSelectedShotAttempt(context, card.shotId);
+    const approval = summarizeShotApproval(context, card.shotId);
     return [
       `- 镜头 ${card.shotId}｜${getShotStatusLabel(context, card.shotId)}｜${label(card.generationMode)}｜${label(card.riskLevel)}`,
       `  目的：${card.purpose}`,
       selectedAttempt ? `  选中版本：${selectedAttempt.identity}` : '',
       selectedAttempt?.assetRef ? `  版本素材：${selectedAttempt.assetRef}` : '',
       selectedAttempt?.economics ? `  生成成本/耗时：${selectedAttempt.economics}` : '',
+      approval ? `  人工审批：已批准交付｜${approval.approvedAt}` : '',
+      approval ? `  审批说明：${approval.decisionNote}` : '',
+      approval ? `  证据边界：${approval.boundary}` : '',
       resultNote ? `  素材/备注：${resultNote}` : '  素材/备注：待补充',
       card.fixSuggestion ? `  异常处理：${card.fixSuggestion}` : '',
     ].filter(Boolean).join('\n');

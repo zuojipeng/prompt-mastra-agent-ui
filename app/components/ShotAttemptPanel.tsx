@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type {
+  ShotApprovalReceipt,
   ShotGenerationAttempt,
   ShotGenerationAttemptInput,
   ShotGenerationAttemptStatus,
@@ -17,14 +18,18 @@ export function ShotAttemptPanel({
   shotId,
   attempts,
   selectedAttemptId,
+  approvalReceipt,
   onImport,
   onSelect,
+  onApprove,
 }: {
   shotId: number;
   attempts: ShotGenerationAttempt[];
   selectedAttemptId: string | null;
+  approvalReceipt: ShotApprovalReceipt | null;
   onImport: (input: ShotGenerationAttemptInput) => void;
   onSelect: (shotId: number, attemptId: string) => void;
+  onApprove: (shotId: number, decisionNote: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [provider, setProvider] = useState('');
@@ -35,6 +40,10 @@ export function ShotAttemptPanel({
   const [costUsd, setCostUsd] = useState('');
   const [durationSeconds, setDurationSeconds] = useState('');
   const [error, setError] = useState('');
+  const [approvalNote, setApprovalNote] = useState('');
+  const [approvalError, setApprovalError] = useState('');
+  const selectedAttempt = attempts.find((attempt) => attempt.id === selectedAttemptId) ?? null;
+  const currentApproval = approvalReceipt?.attemptId === selectedAttemptId ? approvalReceipt : null;
 
   const submit = () => {
     try {
@@ -56,6 +65,16 @@ export function ShotAttemptPanel({
       setOpen(false);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '导入失败');
+    }
+  };
+
+  const approve = () => {
+    try {
+      onApprove(shotId, approvalNote);
+      setApprovalNote('');
+      setApprovalError('');
+    } catch (caught) {
+      setApprovalError(caught instanceof Error ? caught.message : '审批失败');
     }
   };
 
@@ -132,6 +151,38 @@ export function ShotAttemptPanel({
               </button>
             );
           })}
+        </div>
+      )}
+
+      {currentApproval && (
+        <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-2.5 dark:border-emerald-900 dark:bg-emerald-950/20">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">交付已批准</p>
+            <time className="text-[10px] text-emerald-700/70 dark:text-emerald-300/70" dateTime={currentApproval.approvedAt}>
+              {new Date(currentApproval.approvedAt).toLocaleString('zh-CN')}
+            </time>
+          </div>
+          <p className="mt-1 text-[10px] text-emerald-800 dark:text-emerald-200">
+            {currentApproval.provider} · {currentApproval.model}｜{currentApproval.decisionNote}
+          </p>
+          <p className="mt-1 text-[10px] text-emerald-700/70 dark:text-emerald-300/70">人工审批回执 · 非加密存证</p>
+        </div>
+      )}
+
+      {!currentApproval && selectedAttempt?.status === 'usable' && (
+        <div className="mt-3 grid gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+          <textarea
+            aria-label="交付审批说明"
+            value={approvalNote}
+            onChange={(event) => setApprovalNote(event.target.value)}
+            placeholder="说明为什么该版本可交付"
+            className="min-h-16 resize-y rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs dark:border-gray-700 dark:bg-gray-950"
+          />
+          {approvalError && <p role="alert" className="text-[11px] text-red-600 dark:text-red-400">{approvalError}</p>}
+          <button type="button" onClick={approve} className="rounded-md bg-emerald-700 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-800">
+            批准为交付版本
+          </button>
+          <p className="text-[10px] text-gray-400">人工审批回执 · 非加密存证</p>
         </div>
       )}
     </section>

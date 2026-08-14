@@ -78,5 +78,12 @@ describe('ChatBox V2 source states', () => {
 
   it('includes selected shot attempts in all DirectorKit export contexts', () => {
     expect(source).toContain('shotAttempts,\n    selectedShotAttemptIds,');
+    expect(source).toContain('shotApprovalReceipts: workspace?.shotApprovalReceipts ?? {}');
+  });
+
+  it('persists human delivery approval through the workspace domain', () => {
+    expect(source).toContain('approveSelectedShotAttempt');
+    expect(source).toContain('handleApproveShotAttempt');
+    expect(source).toContain('onApproveAttempt={handleApproveShotAttempt}');
   });
 });
