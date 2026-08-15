@@ -86,4 +86,10 @@ describe('ChatBox V2 source states', () => {
     expect(source).toContain('handleApproveShotAttempt');
     expect(source).toContain('onApproveAttempt={handleApproveShotAttempt}');
   });
+
+  it('includes selected attempts and approvals in operator handoff readiness', () => {
+    expect(source).toContain('shotAttempts,');
+    expect(source).toContain('selectedShotAttemptIds,');
+    expect(source).toContain('shotApprovalReceipts: workspace?.shotApprovalReceipts ?? {}');
+  });
 });

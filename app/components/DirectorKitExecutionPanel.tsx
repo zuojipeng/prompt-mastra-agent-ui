@@ -114,6 +114,9 @@ export function DirectorKitExecutionPanel({
               handoffAcceptance.failedWithoutReasonShotIds.length
                 ? `缺失败说明 ${handoffAcceptance.failedWithoutReasonShotIds.join('、')}`
                 : '',
+              handoffAcceptance.unapprovedUsableShotIds.length
+                ? `缺交付审批 ${handoffAcceptance.unapprovedUsableShotIds.join('、')}`
+                : '',
             ].filter(Boolean).join('；')}
           </p>
         )}

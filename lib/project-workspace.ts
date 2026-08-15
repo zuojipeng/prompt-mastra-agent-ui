@@ -8,6 +8,7 @@ import {
   DIRECTOR_KIT_TARGET_TYPES,
 } from './director-kit-contract';
 import type { ShotExecutionStatus } from './director-kit-export';
+import { deriveShotHandoffReadiness } from './handoff-readiness';
 
 export const LOCAL_PROJECT_WORKSPACE_KEY = 'jingci-current-project';
 export const LOCAL_PROJECT_WORKSPACE_LIBRARY_KEY = 'jingci-project-library';
@@ -381,17 +382,19 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
     return status === 'pending' ? count : count + 1;
   }, 0);
-  const handoffBlockingReasons = shotCards.flatMap((card) => {
-    const status = project.shotExecutionStatus[card.shotId] ?? 'pending';
-    const resultNote = project.shotResultNotes[card.shotId]?.trim();
-    if (status === 'pending') return [`镜头 ${card.shotId} 未执行`];
-    if ((status === 'generated' || status === 'usable') && !resultNote) {
-      return [`镜头 ${card.shotId} 缺素材链接或结果备注`];
-    }
-    if (status === 'failed' && !resultNote) return [`镜头 ${card.shotId} 缺失败原因`];
-    return [];
+  const handoff = deriveShotHandoffReadiness({
+    shotIds: shotCards.map((card) => card.shotId),
+    shotExecutionStatus: project.shotExecutionStatus,
+    shotResultNotes: project.shotResultNotes,
+    selectedShotAttemptIds: project.selectedShotAttemptIds,
+    shotApprovalReceipts: project.shotApprovalReceipts,
   });
-  const handoffBlockingIssueCount = handoffBlockingReasons.length;
+  const handoffBlockingReasons = [
+    ...handoff.pendingShotIds.map((shotId) => `镜头 ${shotId} 未执行`),
+    ...handoff.missingEvidenceShotIds.map((shotId) => `镜头 ${shotId} 缺素材链接或结果备注`),
+    ...handoff.failedWithoutReasonShotIds.map((shotId) => `镜头 ${shotId} 缺失败原因`),
+    ...handoff.unapprovedUsableShotIds.map((shotId) => `镜头 ${shotId} 缺交付审批`),
+  ];
   const selectedAttempts = Object.entries(project.selectedShotAttemptIds ?? {}).flatMap(([shotId, selectedId]) => {
     const selected = project.shotAttempts?.[Number(shotId)]?.find((attempt) => attempt.id === selectedId);
     return selected ? [selected] : [];
@@ -419,8 +422,8 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     latestSelectedAttemptProvider: latestSelectedAttempt?.provider ?? null,
     latestSelectedAttemptModel: latestSelectedAttempt?.model ?? null,
     latestSelectedAttemptStatus: latestSelectedAttempt?.status ?? null,
-    handoffReady: shotCards.length > 0 && handoffBlockingIssueCount === 0,
-    handoffBlockingIssueCount,
+    handoffReady: handoff.ready,
+    handoffBlockingIssueCount: handoff.blockingIssueCount,
     handoffBlockingReasons,
   };
 }

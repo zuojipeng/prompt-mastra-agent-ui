@@ -271,6 +271,9 @@ export function ChatBox() {
       targetType,
       shotExecutionStatus,
       shotResultNotes,
+      shotAttempts,
+      selectedShotAttemptIds,
+      shotApprovalReceipts: workspace?.shotApprovalReceipts ?? {},
       projectIterations: workspace?.iterations ?? [],
       platformCalibrations: workspace?.platformCalibrations ?? [],
     })
@@ -280,6 +283,7 @@ export function ChatBox() {
       pendingShotIds: [],
       missingEvidenceShotIds: [],
       failedWithoutReasonShotIds: [],
+      unapprovedUsableShotIds: [],
       calibrationCount: 0,
     };
 

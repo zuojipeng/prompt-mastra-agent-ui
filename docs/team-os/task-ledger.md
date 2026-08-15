@@ -17,6 +17,7 @@ Last Updated: 2026-08-14
 | JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
 | JC-T007 | Local/cloud project evidence summary parity | in_review | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Commit and push both repos; request production deployment approval separately |
 | JC-T008 | Selected shot delivery approval receipt | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / UE / Architecture / Engineering / Test / Ops | E3 domain/export tests, E3 desktop/mobile browser evidence, explicit claims boundary | Evaluate approval as a handoff-readiness requirement in a separate product slice |
+| JC-T009 | Approval-aware operator handoff gate | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / Architecture / Engineering / Review / Test / Ops | E3 shared derivation tests, E3 desktop/mobile state transition, E3 build | Promote approval-aware summary parity through the backend only after a separate release approval |
 
 ## Backlog
 
@@ -27,6 +28,19 @@ Last Updated: 2026-08-14
 | JC-B003 | Evidence-aware Agent run surface | P2 | Team OS should become visible to maintainers without leaking into end-user UI | Internal docs show capabilities, evidence IDs, reviews, and blockers for each slice |
 
 ## Event Log
+
+### 2026-08-15 00:55 T009
+
+Type: EVIDENCE_ADDED
+From: Product Agent + Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + Operator Agent
+Task: JC-T009
+Gate: Product / Architecture / Engineering / Review / Test / Ops
+Message: A usable selected shot now blocks operator handoff until its current attempt has a matching human approval receipt; dashboard summaries and operator exports use one pure derivation.
+Evidence: E3 `lib/handoff-readiness.ts`; E3 `docs/agent-runs/2026-08-15-shot-approval-handoff-gate.md`; E3 `docs/code-reviews/2026-08-15-shot-approval-handoff-gate.md`; E3 `docs/test-reports/2026-08-15-shot-approval-handoff-gate.md`
+Decision: SHIP
+Next owner: Hermes Orchestrator
+Close condition: Commit and push after final validation; backend promotion remains separately gated.
 
 ### 2026-06-29 10:00 T001
 

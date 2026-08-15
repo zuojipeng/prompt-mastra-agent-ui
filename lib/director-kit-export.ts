@@ -16,6 +16,7 @@ import type {
   ShotApprovalReceipt,
   ShotGenerationAttempt,
 } from './project-workspace';
+import { deriveShotHandoffReadiness } from './handoff-readiness';
 
 export type ShotExecutionStatus = 'pending' | 'generated' | 'failed' | 'usable';
 
@@ -141,33 +142,16 @@ export function summarizeShotExecution(kit: DirectorKit, context: DirectorKitExp
 
 export function summarizeOperatorHandoffAcceptance(kit: DirectorKit, context: DirectorKitExportContext) {
   const shots = kit.shotCards ?? [];
-  const pendingShotIds: number[] = [];
-  const missingEvidenceShotIds: number[] = [];
-  const failedWithoutReasonShotIds: number[] = [];
-
-  shots.forEach((card) => {
-    const status = context.shotExecutionStatus[card.shotId] ?? 'pending';
-    const resultNote = getResultNote(context, card.shotId);
-
-    if (status === 'pending') {
-      pendingShotIds.push(card.shotId);
-    }
-    if ((status === 'generated' || status === 'usable') && !resultNote) {
-      missingEvidenceShotIds.push(card.shotId);
-    }
-    if (status === 'failed' && !resultNote) {
-      failedWithoutReasonShotIds.push(card.shotId);
-    }
+  const readiness = deriveShotHandoffReadiness({
+    shotIds: shots.map((card) => card.shotId),
+    shotExecutionStatus: context.shotExecutionStatus,
+    shotResultNotes: context.shotResultNotes,
+    selectedShotAttemptIds: context.selectedShotAttemptIds,
+    shotApprovalReceipts: context.shotApprovalReceipts,
   });
 
-  const blockingIssueCount = pendingShotIds.length + missingEvidenceShotIds.length + failedWithoutReasonShotIds.length;
-
   return {
-    ready: shots.length > 0 && blockingIssueCount === 0,
-    blockingIssueCount,
-    pendingShotIds,
-    missingEvidenceShotIds,
-    failedWithoutReasonShotIds,
+    ...readiness,
     calibrationCount: context.platformCalibrations?.length ?? 0,
   };
 }
@@ -442,6 +426,9 @@ export function buildOperatorHandoffNotes(kit: DirectorKit, context: DirectorKit
     latestCalibrations.length === 0 ? '- 先执行推荐平台首轮镜头，并回填平台校准结果。' : '',
     execution.pending > 0 ? '- 对未生成镜头继续逐镜头投喂，并补齐素材链接。' : '',
     execution.failed > 0 ? '- 对翻车镜头记录失败原因，优先重试低风险改写版本。' : '',
+    acceptance.unapprovedUsableShotIds.length > 0
+      ? `- 对可用镜头 ${acceptance.unapprovedUsableShotIds.join('、')} 完成人工交付审批。`
+      : '',
     '',
     '## 逐镜头交接',
     shotLines.join('\n'),

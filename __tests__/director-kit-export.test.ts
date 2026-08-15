@@ -190,6 +190,7 @@ describe('director kit export builders', () => {
       pendingShotIds: [],
       missingEvidenceShotIds: [],
       failedWithoutReasonShotIds: [],
+      unapprovedUsableShotIds: [],
       calibrationCount: 1,
     });
 
@@ -204,7 +205,44 @@ describe('director kit export builders', () => {
       pendingShotIds: [],
       missingEvidenceShotIds: [1],
       failedWithoutReasonShotIds: [2],
+      unapprovedUsableShotIds: [],
       calibrationCount: 0,
+    });
+  });
+
+  it('blocks a usable shot until the selected attempt has a matching approval receipt', () => {
+    const usableContext = {
+      ...context,
+      shotExecutionStatus: { 1: 'usable', 2: 'failed' } as const,
+      selectedShotAttemptIds: { 1: 'attempt-1' },
+      shotApprovalReceipts: {},
+    };
+
+    expect(summarizeOperatorHandoffAcceptance(kit, usableContext)).toMatchObject({
+      ready: false,
+      blockingIssueCount: 1,
+      unapprovedUsableShotIds: [1],
+    });
+
+    expect(summarizeOperatorHandoffAcceptance(kit, {
+      ...usableContext,
+      shotApprovalReceipts: {
+        1: {
+          id: 'approval-1',
+          approvedAt: '2026-08-14T12:00:00.000Z',
+          shotId: 1,
+          attemptId: 'attempt-1',
+          provider: 'Runway',
+          model: 'Gen-4.5',
+          assetRef: 'b2://jingci/shot-1.mp4',
+          decisionNote: '已人工复核，可交付。',
+          evidenceKind: 'human_approval',
+        },
+      },
+    })).toMatchObject({
+      ready: true,
+      blockingIssueCount: 0,
+      unapprovedUsableShotIds: [],
     });
   });
 

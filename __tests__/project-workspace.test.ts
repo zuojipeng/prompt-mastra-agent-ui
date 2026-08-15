@@ -314,9 +314,9 @@ describe('project workspace persistence', () => {
         latestSelectedAttemptProvider: null,
         latestSelectedAttemptModel: null,
         latestSelectedAttemptStatus: null,
-        handoffReady: true,
-        handoffBlockingIssueCount: 0,
-        handoffBlockingReasons: [],
+        handoffReady: false,
+        handoffBlockingIssueCount: 1,
+        handoffBlockingReasons: ['镜头 1 缺交付审批'],
       }),
     ]);
 
@@ -674,6 +674,52 @@ describe('project workspace persistence', () => {
       handoffReady: false,
       handoffBlockingIssueCount: 2,
       handoffBlockingReasons: ['镜头 1 未执行', '镜头 2 缺失败原因'],
+    });
+  });
+
+  it('marks a selected usable attempt ready only after matching human approval', () => {
+    const storage = createStorage();
+    const base = createLocalProjectWorkspace(
+      {
+        creativeInput: '废土小镇里，一个旧清洁机器人守护红裙人偶',
+        targetDuration: '30s',
+        targetType: 'wasteland',
+        v2State: 'result',
+        directorKit: kit,
+        selectedVersionIndex: 1,
+        selectedShotId: 1,
+        shotExecutionStatus: {},
+        shotResultNotes: {},
+      },
+      null,
+      '2026-06-16T00:00:00.000Z',
+    );
+    const attempt = createShotGenerationAttempt({
+      shotId: 1,
+      provider: 'Runway',
+      model: 'Gen-4.5',
+      status: 'usable',
+      assetRef: 'b2://jingci/shot-1.mp4',
+      note: '主体稳定',
+      costUsd: 0.5,
+      durationSeconds: 41,
+    }, '2026-06-16T01:00:00.000Z');
+    const selected = appendShotGenerationAttempt(base, attempt);
+
+    saveLocalProjectWorkspace(selected, storage);
+    expect(loadLocalProjectWorkspaceSummaries(storage)[0]).toMatchObject({
+      handoffReady: false,
+      handoffBlockingReasons: ['镜头 1 缺交付审批'],
+    });
+
+    saveLocalProjectWorkspace(
+      approveSelectedShotAttempt(selected, 1, '已人工复核，可交付。', '2026-06-16T02:00:00.000Z'),
+      storage,
+    );
+    expect(loadLocalProjectWorkspaceSummaries(storage)[0]).toMatchObject({
+      handoffReady: true,
+      handoffBlockingIssueCount: 0,
+      handoffBlockingReasons: [],
     });
   });
 
