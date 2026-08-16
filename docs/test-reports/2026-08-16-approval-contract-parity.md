@@ -12,6 +12,8 @@ Gate: Engineering / Code Review / Test
 - `npm run build`: PASS.
 - Playwright desktop/mobile DirectorKit E2E: PASS, 6/6.
 - Backend local Worker approval smoke: PASS, 18/18 in commit `c434ddc`.
+- Backend production health: PASS.
+- Backend production approval smoke: PASS, 18/18 against Worker version `283c2a6e-73f2-4d5e-8375-dcb89d5496a1`.
 
 ## Failed Evidence Retained
 
@@ -21,4 +23,4 @@ Gate: Engineering / Code Review / Test
 
 ## Release Status
 
-Frontend evidence level: E3 tested build and browser behavior. Backend local evidence: E4. Production E5 remains pending explicit deployment approval.
+Frontend evidence level: E3 tested build and browser behavior. Backend evidence level: E5 production behavior with successful cleanup.

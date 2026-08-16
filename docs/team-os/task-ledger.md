@@ -9,16 +9,16 @@ Last Updated: 2026-08-16
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Summary parity is implemented by JC-T007; release after approved backend deployment and E5 smoke |
-| JC-T002 | Production Projects API release verification | in_review | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Base Projects API was production-verified on 2026-07-12; deploy the new summary contract only after release approval |
+| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Approval parity is live; choose the next smallest DirectorKit-to-feedback product slice |
+| JC-T002 | Production Projects API release verification | done | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Monitor Worker version `283c2a6e-73f2-4d5e-8375-dcb89d5496a1`; retain `9f3ecbf` as rollback point |
 | JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
 | JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Export follow-up completed by JC-T006; keep provider adapters behind an explicit paid-call gate |
 | JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
-| JC-T007 | Local/cloud project evidence summary parity | in_review | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Commit and push both repos; request production deployment approval separately |
+| JC-T007 | Local/cloud project evidence summary parity | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Production verified 18/18; monitor project sync and preserve fail-closed approval behavior |
 | JC-T008 | Selected shot delivery approval receipt | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / UE / Architecture / Engineering / Test / Ops | E3 domain/export tests, E3 desktop/mobile browser evidence, explicit claims boundary | Evaluate approval as a handoff-readiness requirement in a separate product slice |
-| JC-T009 | Approval-aware operator handoff gate | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / Architecture / Engineering / Review / Test / Ops | E3 shared derivation tests, E3 desktop/mobile state transition, E3 build | Promote approval-aware summary parity through the backend only after a separate release approval |
-| JC-T010 | Frontend/backend approval contract parity | done | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Architecture / Engineering / Review / Test | E3 strict receipt unit tests, E3 full test suite, E3 desktop/mobile E2E, E4 backend Worker smoke | Request production deployment approval for backend commit `c434ddc`; run E5 smoke before promoting the cloud-ready claim |
+| JC-T009 | Approval-aware operator handoff gate | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / Architecture / Engineering / Review / Test / Ops | E3 shared derivation tests, E3 desktop/mobile state transition, E3 build | Backend promotion completed by JC-T007; monitor operator handoff feedback |
+| JC-T010 | Frontend/backend approval contract parity | done | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Architecture / Engineering / Review / Test | E3 strict receipt unit tests, E3 full test suite, E3 desktop/mobile E2E, E5 backend production smoke | Contract is live; reject regressions where stale or mismatched receipts become ready |
 
 ## Backlog
 
@@ -29,6 +29,19 @@ Last Updated: 2026-08-16
 | JC-B003 | Evidence-aware Agent run surface | P2 | Team OS should become visible to maintainers without leaking into end-user UI | Internal docs show capabilities, evidence IDs, reviews, and blockers for each slice |
 
 ## Event Log
+
+### 2026-08-16 21:15 T011
+
+Type: RELEASED
+From: DevOps Agent + Test Agent
+To: Hermes Orchestrator + Operator Agent
+Task: JC-T002 / JC-T007 / JC-T010
+Gate: Release / Ops
+Message: Approval-aware project summaries were deployed from backend commit `c434ddc`; production health and the complete 18-step Projects API smoke passed, including cleanup.
+Evidence: E5 Cloudflare Worker version `283c2a6e-73f2-4d5e-8375-dcb89d5496a1`; E5 production URL `https://prompt-optimizer.hahazuo460.workers.dev`; E4 backend release record commit `91db264`; E3 frontend commit `1e0fd1c`
+Decision: SHIP
+Next owner: Product Agent + Operator Agent
+Close condition: Monitor normal project sync behavior; reopen only on a production regression or evidence mismatch.
 
 ### 2026-08-16 20:30 T010
 
