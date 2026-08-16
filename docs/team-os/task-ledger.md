@@ -3,7 +3,7 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-08-14
+Last Updated: 2026-08-16
 
 ## Active Tasks
 
@@ -18,6 +18,7 @@ Last Updated: 2026-08-14
 | JC-T007 | Local/cloud project evidence summary parity | in_review | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + DevOps Agent | Product / UE / Architecture / Engineering / Test / Release | E3 unit and browser tests, E4 local Worker smoke, E5 production smoke | Commit and push both repos; request production deployment approval separately |
 | JC-T008 | Selected shot delivery approval receipt | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / UE / Architecture / Engineering / Test / Ops | E3 domain/export tests, E3 desktop/mobile browser evidence, explicit claims boundary | Evaluate approval as a handoff-readiness requirement in a separate product slice |
 | JC-T009 | Approval-aware operator handoff gate | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / Architecture / Engineering / Review / Test / Ops | E3 shared derivation tests, E3 desktop/mobile state transition, E3 build | Promote approval-aware summary parity through the backend only after a separate release approval |
+| JC-T010 | Frontend/backend approval contract parity | done | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Architecture / Engineering / Review / Test | E3 strict receipt unit tests, E3 full test suite, E3 desktop/mobile E2E, E4 backend Worker smoke | Request production deployment approval for backend commit `c434ddc`; run E5 smoke before promoting the cloud-ready claim |
 
 ## Backlog
 
@@ -28,6 +29,19 @@ Last Updated: 2026-08-14
 | JC-B003 | Evidence-aware Agent run surface | P2 | Team OS should become visible to maintainers without leaking into end-user UI | Internal docs show capabilities, evidence IDs, reviews, and blockers for each slice |
 
 ## Event Log
+
+### 2026-08-16 20:30 T010
+
+Type: EVIDENCE_ADDED
+From: Architecture Agent + Engineering Agent
+To: Code Review Agent + Test Agent + DevOps Agent
+Task: JC-T007 / JC-T010
+Gate: Architecture / Engineering / Review / Test / Release
+Message: Backend project summaries and frontend handoff derivation now require the same complete human-approval receipt bound to the current usable attempt; legacy, stale, and mismatched evidence fails closed.
+Evidence: E4 backend commit `c434ddc`; E3 `lib/handoff-readiness.ts`; E3 `__tests__/handoff-readiness.test.ts`; E3 111/111 unit tests; E3 6/6 desktop/mobile E2E; E3 production build
+Decision: READY_FOR_RELEASE_APPROVAL
+Next owner: Human Owner + DevOps Agent
+Close condition: Explicitly approve backend production deployment, then pass authenticated E5 Projects API smoke before changing JC-T007 or JC-T002 to done.
 
 ### 2026-08-15 00:55 T009
 

@@ -386,6 +386,7 @@ function summarizeWorkspace(project: LocalProjectWorkspace): LocalProjectWorkspa
     shotIds: shotCards.map((card) => card.shotId),
     shotExecutionStatus: project.shotExecutionStatus,
     shotResultNotes: project.shotResultNotes,
+    shotAttempts: project.shotAttempts,
     selectedShotAttemptIds: project.selectedShotAttemptIds,
     shotApprovalReceipts: project.shotApprovalReceipts,
   });

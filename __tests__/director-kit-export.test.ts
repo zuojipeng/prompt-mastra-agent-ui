@@ -214,6 +214,9 @@ describe('director kit export builders', () => {
     const usableContext = {
       ...context,
       shotExecutionStatus: { 1: 'usable', 2: 'failed' } as const,
+      shotAttempts: {
+        1: [{ ...context.shotAttempts![1][0], status: 'usable' as const }],
+      },
       selectedShotAttemptIds: { 1: 'attempt-1' },
       shotApprovalReceipts: {},
     };
@@ -234,7 +237,7 @@ describe('director kit export builders', () => {
           attemptId: 'attempt-1',
           provider: 'Runway',
           model: 'Gen-4.5',
-          assetRef: 'b2://jingci/shot-1.mp4',
+          assetRef: 'b2://jingci-preview/shot-1-v2.mp4',
           decisionNote: '已人工复核，可交付。',
           evidenceKind: 'human_approval',
         },

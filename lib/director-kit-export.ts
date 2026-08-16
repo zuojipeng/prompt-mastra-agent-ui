@@ -146,6 +146,7 @@ export function summarizeOperatorHandoffAcceptance(kit: DirectorKit, context: Di
     shotIds: shots.map((card) => card.shotId),
     shotExecutionStatus: context.shotExecutionStatus,
     shotResultNotes: context.shotResultNotes,
+    shotAttempts: context.shotAttempts,
     selectedShotAttemptIds: context.selectedShotAttemptIds,
     shotApprovalReceipts: context.shotApprovalReceipts,
   });
