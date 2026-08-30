@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "filmId": "film-01",
+  "gate": "pitch-selection",
+  "status": "pending",
+  "reviewers": [
+    { "reviewerId": "H1", "role": "owner", "eligibilityStatus": "pending" },
+    { "reviewerId": "H2", "role": "film-practitioner", "eligibilityStatus": "pending" },
+    { "reviewerId": "H3", "role": "target-audience", "eligibilityStatus": "pending" },
+    { "reviewerId": "H4", "role": "target-audience", "eligibilityStatus": "pending" },
+    { "reviewerId": "H5", "role": "target-audience", "eligibilityStatus": "pending" }
+  ]
+}

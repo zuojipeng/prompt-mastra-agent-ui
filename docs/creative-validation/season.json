@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "seasonId": "jingci-creative-validation-2026",
+  "title": "镜词创作验证季",
+  "status": "active",
+  "durationWeeks": 6,
+  "primaryAudience": "中文语境下的移动端大众短片观众",
+  "format": {
+    "aspectRatio": "9:16",
+    "originalIpOnly": true,
+    "language": "zh-CN"
+  },
+  "developmentFreeze": {
+    "active": true,
+    "allowedChanges": [
+      "critical-defect",
+      "security-or-data-loss",
+      "experiment-measurement",
+      "validation-artifacts-and-ledger",
+      "repeated-cross-film-blocker"
+    ],
+    "repeatedBlockerMinimumFilms": 2,
+    "forbiddenPreemptiveChanges": [
+      "director-kit-schema",
+      "public-api",
+      "user-interface",
+      "script-import-feature"
+    ]
+  },
+  "humanPanel": {
+    "size": 5,
+    "composition": {
+      "owner": 1,
+      "filmPractitioner": 1,
+      "targetAudience": 3
+    },
+    "blindReviewRequired": true
+  },
+  "qualityGates": {
+    "scriptAverageMinimum": 4,
+    "scriptDimensionMinimum": 3.5,
+    "criticalBeatTraceabilityPercent": 100,
+    "criticalOmissionsMaximum": 0,
+    "unsupportedCriticalAdditionsMaximum": 0,
+    "comprehensionMinimumReviewers": 4,
+    "viewingIntentAverageMinimum": 4,
+    "severeContinuityErrorsMaximum": 0
+  },
+  "comparisonGroups": {
+    "A": "一句原始创意直接进入当前镜词",
+    "B": "锁定剧本进入当前镜词",
+    "C": "导演 Agent 基于同一锁定剧本独立制作参考镜头方案"
+  },
+  "films": [
+    {
+      "id": "film-01",
+      "durationSeconds": 30,
+      "type": "everyday-visual-twist",
+      "status": "pitch-review",
+      "currentGate": "G2_BLIND_PITCH_SELECTION"
+    },
+    {
+      "id": "film-02",
+      "durationSeconds": 60,
+      "type": "emotional-choice",
+      "status": "research",
+      "currentGate": "G1_RESEARCH_EVIDENCE"
+    },
+    {
+      "id": "film-03",
+      "durationSeconds": 90,
+      "type": "two-character-mystery-or-light-scifi",
+      "status": "queued",
+      "currentGate": "G0_NOT_STARTED"
+    }
+  ],
+  "failureCategories": [
+    "story",
+    "directorial-adaptation",
+    "generation",
+    "edit-sound",
+    "product-workflow"
+  ]
+}

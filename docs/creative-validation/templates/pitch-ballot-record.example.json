@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "filmId": "film-01",
+  "reviewerId": "H1",
+  "packetId": "COPY_FROM_MANIFEST",
+  "packetSha256": "COPY_FROM_MANIFEST",
+  "locked": false,
+  "conflictFree": false,
+  "independenceConfirmed": false,
+  "scores": {
+    "P01": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P02": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P03": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P04": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P05": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P06": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P07": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P08": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null },
+    "P09": { "hook": null, "clarity": null, "causality": null, "originality": null, "visualFeasibility": null, "payoffPotential": null, "severeFeasibilityRisks": null }
+  }
+}

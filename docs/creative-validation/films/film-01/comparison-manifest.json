@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "filmId": "film-01",
+  "status": "not-ready",
+  "lockedScript": null,
+  "commonControls": {
+    "aspectRatio": "9:16",
+    "durationSeconds": 30,
+    "provider": null,
+    "model": null,
+    "attemptBudgetPerShot": null,
+    "seedPolicy": null
+  },
+  "arms": {
+    "A": { "inputKind": "selected-raw-idea", "inputArtifact": null, "inputSha256": null, "outputArtifact": null, "outputSha256": null, "blindId": null },
+    "B": { "inputKind": "locked-screenplay", "inputArtifact": null, "inputSha256": null, "outputArtifact": null, "outputSha256": null, "blindId": null },
+    "C": { "inputKind": "independent-director-treatment", "inputArtifact": null, "inputSha256": null, "outputArtifact": null, "outputSha256": null, "blindId": null }
+  },
+  "readinessRule": "Do not set ready until the pitch winner, locked screenplay, common controls, all input/output hashes and blind IDs are present."
+}

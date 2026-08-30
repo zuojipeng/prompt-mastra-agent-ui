@@ -3,15 +3,25 @@
 Project: Jingci AI Video Prompt Workbench
 Owner: Hermes Orchestrator
 Started: 2026-06-29
-Last Updated: 2026-08-16
+Last Updated: 2026-08-26
+
+## Current Initiative
+
+Mode: Creative Validation Season
+
+Decision: Freeze routine product expansion for six weeks. Existing DirectorKit, API, and UI are the system under test.
+
+Source of truth: `docs/creative-validation/season.json`
+
+Engineering admission: critical defect, security/data loss, necessary experiment measurement, or the same blocker evidenced in at least two benchmark films.
 
 ## Active Tasks
 
 | Task ID | Title | Status | Owner Agent | Reviewer Agent | Gate | Evidence Required | Next Action |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| JC-T001 | Projectized creation workbench v4 | in_review | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Approval parity is live; choose the next smallest DirectorKit-to-feedback product slice |
+| JC-T001 | Projectized creation workbench v4 | paused | Product Agent + Engineering Agent | Test Agent + Hermes | Product / UE / Engineering / Test | E3 tests, E3 build, E3 feedback screenshots | Hold during the creative validation season; reopen only with admitted evidence |
 | JC-T002 | Production Projects API release verification | done | DevOps Agent | Test Agent + Hermes | Release | E4 remote deploy steps and E5 production smoke | Monitor Worker version `283c2a6e-73f2-4d5e-8375-dcb89d5496a1`; retain `9f3ecbf` as rollback point |
-| JC-T003 | DirectorKit-to-feedback loop hardening | backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Define next vertical slice after workbench shell plan |
+| JC-T003 | DirectorKit-to-feedback loop hardening | frozen-backlog | Product Agent | Architecture Agent + Test Agent | Product | E2 acceptance criteria and E3 test mapping | Reassess after the three-film validation report |
 | JC-T004 | Product evolution roadmap | shipped | Product Agent + Architecture Agent | UEAgent + Test Agent + Hermes | Product / Architecture | E2 roadmap, measurable exits, bounded next slices | Start with row-level handoff blocking reasons before provider or collaboration expansion |
 | JC-T005 | Manual shot attempt import | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / UE / Architecture / Engineering / Test | E3 domain tests, E3 desktop/mobile browser evidence, E3 build | Export follow-up completed by JC-T006; keep provider adapters behind an explicit paid-call gate |
 | JC-T006 | Selected attempt handoff export | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Product / Architecture / Engineering / Test | E3 export tests, E3 typecheck, E3 build | Add dashboard evidence after Projects API summary parity |
@@ -19,6 +29,11 @@ Last Updated: 2026-08-16
 | JC-T008 | Selected shot delivery approval receipt | done | Product Agent + UEAgent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / UE / Architecture / Engineering / Test / Ops | E3 domain/export tests, E3 desktop/mobile browser evidence, explicit claims boundary | Evaluate approval as a handoff-readiness requirement in a separate product slice |
 | JC-T009 | Approval-aware operator handoff gate | done | Product Agent + Architecture Agent + Engineering Agent | Code Review Agent + Test Agent + Operator Agent | Product / Architecture / Engineering / Review / Test / Ops | E3 shared derivation tests, E3 desktop/mobile state transition, E3 build | Backend promotion completed by JC-T007; monitor operator handoff feedback |
 | JC-T010 | Frontend/backend approval contract parity | done | Architecture Agent + Engineering Agent | Code Review Agent + Test Agent | Architecture / Engineering / Review / Test | E3 strict receipt unit tests, E3 full test suite, E3 desktop/mobile E2E, E5 backend production smoke | Contract is live; reject regressions where stale or mismatched receipts become ready |
+| JC-CV001 | Creative validation operating system | in_review | Showrunner Agent + Hermes | Independent Review Agent | Creative Operations | E2 role contract, six-week program, machine-readable thresholds, validation command | Pass adversarial review and record validation evidence |
+| JC-CV002 | Film 01 anonymous pitch slate | human_gate | Story Research Agent + 3 Writer Agents | Story Editor Agent + 5-person human panel | Pitch Selection | E2 creative brief, 9 complete anonymous pitches, 5 valid blind ballots | Recruit the practitioner and 3 audience reviewers; collect blind ballots without revealing authorship |
+| JC-CV003 | Film 01 locked screenplay and A/B/C treatments | queued | Head Writer Agent + Director Agent | Story Editor Agent + Independent Review Agent | Script / Direction | Script score PASS, locked-script receipt, three anonymous treatments | Start only after JC-CV002 has a valid human-panel winner |
+| JC-CV004 | Films 02 and 03 benchmark delivery | queued | Showrunner Agent | Independent Review Agent + human panel | Full Creative Validation | Complete artifacts and gates for 60s and 90s films | Start Film 02 research during Film 01 pitch selection, then follow the rolling six-week pipeline |
+| JC-CV005 | Six-week creative validation report | queued | Hermes + Showrunner Agent | Product Agent + human owner | Season Decision | Cross-film comparison, failure attribution, evidence-backed product recommendation | Decide whether and where product development resumes |
 
 ## Backlog
 
@@ -29,6 +44,52 @@ Last Updated: 2026-08-16
 | JC-B003 | Evidence-aware Agent run surface | P2 | Team OS should become visible to maintainers without leaking into end-user UI | Internal docs show capabilities, evidence IDs, reviews, and blockers for each slice |
 
 ## Event Log
+
+### 2026-08-26 07:45 CV001
+
+Type: INITIATIVE_CHANGED
+
+From: Human Owner + Hermes Orchestrator
+
+To: Creative Studio Agents + Product/Engineering Agents
+
+Task: JC-CV001 / JC-CV002
+
+Gate: Creative Operations / Pitch Selection
+
+Message: Routine product development is frozen. The team started a six-week, three-film creative validation season with producer/reviewer separation and a five-person blind panel.
+
+Evidence: E2 `docs/creative-validation/decision-record.md`; E2 `docs/creative-validation/season.json`; E2 Film 01 creative brief and anonymous pitch deck
+
+Decision: CONTINUE
+
+Next owner: Independent Review Agent + Human Panel Coordinator
+
+Close condition (JC-CV001): Structure validation passes and adversarial review has no blocker.
+
+Close condition (JC-CV002): Five valid blind ballots select Film 01 without exposing authorship.
+
+### 2026-08-26 21:18 CV001-EVIDENCE
+
+Type: EVIDENCE_ADDED
+
+From: Hermes Orchestrator + Creative Studio Agents
+
+To: Independent Review Agent + Human Panel Coordinator
+
+Task: JC-CV001 / JC-CV002 / JC-CV004
+
+Gate: Creative Operations / Pitch Selection
+
+Message: Three isolated Luna writers rebuilt the Film 01 slate, V2 blind packets now bind source and packet hashes, and the current-phase structure plus the existing 111-test regression suite pass. Film 01 remains at 0/5 human ballots; Film 02 remains at 0/6 research observations.
+
+Evidence: E3 `docs/agent-runs/2026-08-26-creative-validation-season.md`; E3 `docs/code-reviews/2026-08-26-creative-validation-season.md`; E3 `docs/test-reports/2026-08-26-creative-validation-season.md`
+
+Decision: CONTINUE_WITH_EXTERNAL_GATES
+
+Next owner: Independent Review Agent + Human Panel Coordinator + Story Research Agent
+
+Close condition: Obtain an independent no-blocker review for JC-CV001; separately collect five valid human ballots for JC-CV002. Do not create a winner or advance Film 01 before the human gate passes.
 
 ### 2026-08-16 21:15 T011
 

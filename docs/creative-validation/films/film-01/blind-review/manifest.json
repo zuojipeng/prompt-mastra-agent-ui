@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "filmId": "film-01",
+  "gate": "pitch-selection",
+  "packetVersion": 2,
+  "generator": "scripts/build-pitch-review-packets.mjs",
+  "sources": {
+    "creativeBrief": {
+      "path": "docs/creative-validation/films/film-01/creative-brief.md",
+      "sha256": "2949cf36bfa590e8cb15a448768e28c753d09945dbfa9c4410307aefaca0aa56"
+    },
+    "pitches": {
+      "path": "docs/creative-validation/films/film-01/pitches.md",
+      "sha256": "d7f856a875fd89d2ed1a34c20fadf06af095625a3a31476b15b92e9be9370fcc"
+    },
+    "ballotTemplate": {
+      "path": "docs/creative-validation/templates/pitch-ballot.md",
+      "sha256": "62c5e8674ed2469f31ea81b3369521403e469dfa6f6ff4fe8f9a449c4099747e"
+    }
+  },
+  "blindContentSha256": "a9d31a046b07e41651bdd44d3109a251f606bc434e963e62e11d6fb2ced16e2e",
+  "packets": {
+    "H1": {
+      "packetId": "F01-PITCH-H1-V2",
+      "path": "docs/creative-validation/films/film-01/blind-review/packets/H1.md",
+      "sha256": "c69d44c424d1714c5518defcc92f582fab62eee56c63f4d2b0a1de4c563bfb75",
+      "order": [
+        "P04",
+        "P09",
+        "P02",
+        "P07",
+        "P01",
+        "P06",
+        "P03",
+        "P08",
+        "P05"
+      ]
+    },
+    "H2": {
+      "packetId": "F01-PITCH-H2-V2",
+      "path": "docs/creative-validation/films/film-01/blind-review/packets/H2.md",
+      "sha256": "94cc798627e901225522fd472c388542f6dd78cb320bee0c461f5dc625099ca2",
+      "order": [
+        "P07",
+        "P03",
+        "P08",
+        "P01",
+        "P05",
+        "P09",
+        "P04",
+        "P02",
+        "P06"
+      ]
+    },
+    "H3": {
+      "packetId": "F01-PITCH-H3-V2",
+      "path": "docs/creative-validation/films/film-01/blind-review/packets/H3.md",
+      "sha256": "c1dfe7f4fa94a8f07676f6042ced7ee36ca2252c1d5101d01a9d5086ddc9b0f3",
+      "order": [
+        "P02",
+        "P06",
+        "P04",
+        "P08",
+        "P09",
+        "P03",
+        "P05",
+        "P01",
+        "P07"
+      ]
+    },
+    "H4": {
+      "packetId": "F01-PITCH-H4-V2",
+      "path": "docs/creative-validation/films/film-01/blind-review/packets/H4.md",
+      "sha256": "3bb4c50fa20e2389021151837bf286e35e76e3135b2ef24ed779721a51ce4eea",
+      "order": [
+        "P09",
+        "P05",
+        "P01",
+        "P03",
+        "P07",
+        "P02",
+        "P08",
+        "P06",
+        "P04"
+      ]
+    },
+    "H5": {
+      "packetId": "F01-PITCH-H5-V2",
+      "path": "docs/creative-validation/films/film-01/blind-review/packets/H5.md",
+      "sha256": "ef285e0868f2fe27a5c05c703ed67e52fe1217752231ac0156b4ca44c4308908",
+      "order": [
+        "P05",
+        "P08",
+        "P06",
+        "P04",
+        "P03",
+        "P07",
+        "P02",
+        "P09",
+        "P01"
+      ]
+    }
+  }
+}
